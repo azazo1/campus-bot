@@ -1,10 +1,10 @@
 from src.config import init
-from src.library.login import login
+from src.library.login import get_login_cache
 
 
 def main():
     init()
-    login()
+    get_login_cache()
 
 
 if __name__ == '__main__':

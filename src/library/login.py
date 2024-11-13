@@ -55,7 +55,7 @@ def _click_element(driver: Edge, selector: str, timeout: float = 10):
 
 
 @requires_init
-def login() -> Optional[LoginCache]:
+def get_login_cache() -> Optional[LoginCache]:
     """
     使用浏览器的进行图书馆的登录操作,
     并获取相应的登录缓存, 以供爬虫部分使用.
