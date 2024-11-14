@@ -38,12 +38,21 @@ def query_date(q: LibraryQuery):
     print(days)
 
 
+def query_seats(q: LibraryQuery):
+    qs = q.quick_select()
+    id_ = qs.get_most_free_seats_area()
+    days = q.query_date(id_)
+    ret = q.query_seats(id_, days[0].times[0])
+    print(ret)
+
+
 def main():
     init()
     login_cache = load_cache()
     q = LibraryQuery(login_cache)
     # quick_select(q)
-    query_date(q)
+    # query_date(q)
+    query_seats(q)
 
 
 if __name__ == '__main__':
