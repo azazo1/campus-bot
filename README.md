@@ -7,12 +7,12 @@
 ## 前置配置
 
 在项目根目录创建文件 configuration.toml 配置文件.
-```javascript
+```text
 ecnu-campus-plugin/
-├── configuration.toml # 在此处创建
-└── src/
-    ├── config
-    ├── ....
+|-- configuration.toml # 在此处创建
+|-- src/
+    |-- config
+    |--  ....
 ```
 
 ### 邮箱配置
@@ -35,11 +35,11 @@ ecnu-campus-plugin/
 填写样本如下, **Notice: 发件邮箱为 user, 必须与 from 中的邮箱一致**.
 ```toml
 [smtp]
-host = "smtp.qq.com"
-pass = "abcdefghijklmnop"
-user = "3141592653@qq.com"
-from = ["Deralive", "3141592653@qq.com"] # 发件人昵称, 邮箱
-to = ["Azazo1", "2718281828@qq.com"] # 收件人昵称, 邮箱
+host = "<host_smtp_server>" # e.g. smtp.qq.com
+pass = "<token>" # 上述获得的 16 位授权码
+user = "<sender_email>" # e.g. 3141592653@qq.com
+from = ["<sender_name>", "<sender_email>"] # 发件人昵称, 邮箱同上 e.g. ["AA", "3141592653@qq.com"]
+to = ["<receiver_name>", "<receiver_email>"] # 收件人昵称, 邮箱 e.g. ["BB", "2718281828@qq.com"]
 ```
 
 ## 环境准备
