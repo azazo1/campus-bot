@@ -5,7 +5,7 @@ from typing import Optional
 import requests
 from requests import Response
 
-from .date import Day
+from .date import Day, TimePeriod
 from .login import LoginCache
 
 
@@ -19,7 +19,7 @@ class LoginError(Exception):
 class QuickSelect:
     """
     表示 quickSelect 请求返回的 json 中的 data 字段.
-    包含可选 预约日期, 校区, 楼层, 区域 的速览信息.
+    包含可选 预约日期(day), 校区(premises), 楼层(storey), 区域(area) 的速览信息.
     """
 
     def __init__(self, data: dict):
@@ -147,7 +147,7 @@ class LibraryQuery:
 
     @classmethod
     def check_login_and_extract_data(cls, response: Response,
-                                     expected_code: int = 0) -> Optional[dict | list]:
+                                     expected_code: int = 0) -> dict | list:
         if response.status_code != 200:
             raise LoginError(f"response status code: {response.status_code}.")
         if "json" not in response.headers["content-type"]:
@@ -155,7 +155,9 @@ class LibraryQuery:
         ret = json.loads(response.text)
         if ret["code"] != expected_code:
             raise LoginError(f"result code: {ret['code']}, {ret}.")
-        return ret.get("data")
+        rst = ret.get("data")
+        assert rst is not None, "error in response, no data."
+        return rst
 
     def quick_select(self) -> QuickSelect:
         """
@@ -167,10 +169,10 @@ class LibraryQuery:
 
         payload(json): {
           "id": "[int]", // 未知作用, 同义: reserveType, 始终为 "1".
-          "date": "[%Y-%m-%d]", // 要预约的日期, 影响 response 中空闲的位置数量.
           "members": [int], // 未知作用, 始终为 0.
 
           // 以下为已发现的可选部分, 用于筛选空闲座位.
+          "date": "[%Y-%m-%d]", // 要预约的日期.
           "categoryIds": [ // 座位类型.
             "1" // "1" 表示 `普通座位`.
           ],
@@ -184,41 +186,51 @@ class LibraryQuery:
         }
 
         Returns:
-            - 如果请求成功, 返回 json 对象, 包含可以预约的时间(date), 校区(premises), 楼层(storey), 每层的区域(area), 见.
-            - 如果出现了登录信息失效,
+            - 如果请求成功, 返回 QuickSelect 对象.
+            - 如果出现了登录信息失效.
         """
-        now = time.localtime()
         response = self._post(
             "https://seat-lib.ecnu.edu.cn/reserve/index/quickSelect",
             payload={"id": "1",
-                     "date": f"{now.tm_year}-{now.tm_mon:02d}-{now.tm_mday:02d}",
                      "members": 0, }
         )
         return QuickSelect(self.check_login_and_extract_data(response))
 
-    def query_seats(self, id_: int):
+    def query_seats(self, area_id: int, time_period: TimePeriod):
         """
         查询一个区域可用的座位具体情况.
 
         会返回座位的位置分布信息.
 
         Parameters:
-            id_(int): 要查询的区域在 QuickSelect 中的 id 值.
+            area_id(int): 要查询的区域在 QuickSelect 中的 id 值.
+            time_period(TimePeriod): 要查询的日期和时间段.
 
         url: https://seat-lib.ecnu.edu.cn/api/Seat/seat
 
         payload(json): {
-          "area": "[int]",
-          "segment": "[int]",
-          "day": "[%Y-%m-%d]",
-          "startTime": "[%H:%M]",
-          "endTime": "[%H:%M]",
-          "authorization": "..."
+          "area": "[int]", // 区域的 id.
+          "segment": "[int]", // 时间段 Time 对象的 id.
+          "day": "[%Y-%m-%d]", // 从可选日期中选择的日期.
+          "startTime": "[%H:%M]", // 从可选时间段中选取的开始时间.
+          "endTime": "[%H:%M]", // 从可选时间段中选取的结束时间.
         }
         """
-        pass
+        response = self._post("https://seat-lib.ecnu.edu.cn/api/Seat/seat",
+                              payload={
+                                  "area": area_id,
+                                  "segment": time_period["id"],
+                                  "day": time_period.day["day"],
+                                  "startTime": time_period["start"],
+                                  "endTime": time_period["end"],
+                              })
+        ret_data = self.check_login_and_extract_data(
+            response,
+            expected_code=1,
+        )
+        return ret_data
 
-    def query_date(self, id_: int):
+    def query_date(self, id_: int) -> list[Day]:
         """
         查询某个区域可用的预约时间.
 
@@ -242,3 +254,5 @@ class LibraryQuery:
             expected_code=1
         )
         return Day.from_response(ret_data)
+
+    # detail, map 请求没有适配, 暂时认为需求不大.
