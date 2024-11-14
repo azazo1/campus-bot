@@ -6,6 +6,7 @@ from requests import Response
 
 from .date import Day, TimePeriod
 from .login import LoginCache
+from .seat import Seat
 
 
 class LoginError(Exception):
@@ -221,7 +222,7 @@ class LibraryQuery:
                                        "startTime": time_period["start"],
                                        "endTime": time_period["end"], })
         ret_data = self.check_login_and_extract_data(response, expected_code=1)
-        return ret_data
+        return Seat.from_response(ret_data)
 
     def query_date(self, id_: int) -> list[Day]:
         """

@@ -70,6 +70,7 @@ def get_login_cache() -> Optional[LoginCache]:
         driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
         # 此时重定向至 ecnu 统一认证界面, 用户登录后返回至 seat-lib.ecnu.edu.cn 域名下.
         # todo 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
+        # todo 检测二维码超时并自动刷新, 发送新的二维码给用户.
 
         logger.info("library site waiting for login...")
         WebDriverWait(driver, 60 * 60 * 24).until(
