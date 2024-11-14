@@ -1,5 +1,4 @@
 import json
-import time
 from typing import Optional
 
 import requests
@@ -191,8 +190,7 @@ class LibraryQuery:
         """
         response = self._post(
             "https://seat-lib.ecnu.edu.cn/reserve/index/quickSelect",
-            payload={"id": "1",
-                     "members": 0, }
+            payload={"id": "1", "members": 0}
         )
         return QuickSelect(self.check_login_and_extract_data(response))
 
@@ -217,17 +215,12 @@ class LibraryQuery:
         }
         """
         response = self._post("https://seat-lib.ecnu.edu.cn/api/Seat/seat",
-                              payload={
-                                  "area": area_id,
-                                  "segment": time_period["id"],
-                                  "day": time_period.day["day"],
-                                  "startTime": time_period["start"],
-                                  "endTime": time_period["end"],
-                              })
-        ret_data = self.check_login_and_extract_data(
-            response,
-            expected_code=1,
-        )
+                              payload={"area": area_id,
+                                       "segment": time_period["id"],
+                                       "day": time_period.day["day"],
+                                       "startTime": time_period["start"],
+                                       "endTime": time_period["end"], })
+        ret_data = self.check_login_and_extract_data(response, expected_code=1)
         return ret_data
 
     def query_date(self, id_: int) -> list[Day]:
@@ -245,9 +238,7 @@ class LibraryQuery:
         """
         response = self._post(
             "https://seat-lib.ecnu.edu.cn/api/Seat/date",
-            payload={
-                "build_id": f"{id_}"
-            }
+            payload={"build_id": f"{id_}"}
         )
         ret_data = self.check_login_and_extract_data(
             response,
