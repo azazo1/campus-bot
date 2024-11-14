@@ -18,20 +18,33 @@ def load_cache():
     return login_cache
 
 
-def query_area():
+def quick_select(q: LibraryQuery):
+    qs = q.quick_select()
+    id_ = qs.get_most_free_seats_area()
+    most_free_seats = qs.get_by_id(id_)
+    print(most_free_seats)
+    storey = qs.get_by_id(int(most_free_seats["parentId"]))
+    print(storey)
+    premises = qs.get_by_id(int(storey["parentId"]))
+    print(premises)
+    print(qs.get_premises_of(id_))
+    print(qs.get_premises_of(21))
+
+
+def query_date(q: LibraryQuery):
+    qs = q.quick_select()
+    id_ = qs.get_most_free_seats_area()
+    days = q.query_date(id_)
+    print(days)
+
+
+def main():
     init()
     login_cache = load_cache()
-    r = LibraryQuery(login_cache).query_area()
-    id_ = r.get_most_free_seats_area()
-    most_free_seats = r.get_by_id(id_)
-    print(most_free_seats)
-    storey = r.get_by_id(int(most_free_seats["parentId"]))
-    print(storey)
-    premises = r.get_by_id(int(storey["parentId"]))
-    print(premises)
-    print(r.get_premises_of(id_))
-    print(r.get_premises_of(21))
+    q = LibraryQuery(login_cache)
+    # quick_select(q)
+    query_date(q)
 
 
 if __name__ == '__main__':
-    query_area()
+    main()

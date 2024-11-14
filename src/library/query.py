@@ -3,11 +3,20 @@ import time
 from typing import Optional
 
 import requests
+from requests import Response
 
+from .date import Day
 from .login import LoginCache
 
 
-class Area:
+class LoginError(Exception):
+    """登录缓存失效时触发."""
+
+    def __init__(self, msg: str = ""):
+        super().__init__(msg)
+
+
+class QuickSelect:
     """
     表示 quickSelect 请求返回的 json 中的 data 字段.
     包含可选 预约日期, 校区, 楼层, 区域 的速览信息.
@@ -102,14 +111,30 @@ class LibraryQuery:
     def __init__(self, cache: LoginCache):
         self.cache = cache
 
-    def _post(self, url: str, headers: dict = None, data: dict = None):
-        headers_ = {"Authorization": self.cache.authorization}
+    def _post(self, url: str, headers: dict = None, payload: dict = None):
+        """
+        提交 POST 请求并自动附加以下内容:
+
+        headers:
+            Authorization: ...
+            Content-Type: application/json
+
+        cookies: ...
+
+        payload(json): {
+            "authorization": ...,
+        }
+        """
+        headers_ = {"Authorization": self.cache.authorization, "Content-Type": "application/json"}
         if headers is not None:
             headers_.update(headers)
+        data_ = {'authorization': self.cache.authorization}
+        if payload is not None:
+            data_.update(payload)
         return requests.post(
             url,
             headers=headers_,
-            json=data or {},  # 这里不能选择 data 的形参, 因为 data 形参对应的是 x-www-form-urlencodeed.
+            json=payload,  # 这里不能选择 data 的形参, 因为 data 形参对应的是 x-www-form-urlencodeed.
             cookies=self.cache.cookies,
         )
 
@@ -120,7 +145,19 @@ class LibraryQuery:
             cookies=self.cache.cookies,
         )
 
-    def query_area(self) -> Area:
+    @classmethod
+    def check_login_and_extract_data(cls, response: Response,
+                                     expected_code: int = 0) -> Optional[dict | list]:
+        if response.status_code != 200:
+            raise LoginError(f"response status code: {response.status_code}.")
+        if "json" not in response.headers["content-type"]:
+            raise LoginError("request was redirected, which means you didn't login.")
+        ret = json.loads(response.text)
+        if ret["code"] != expected_code:
+            raise LoginError(f"result code: {ret['code']}, {ret}.")
+        return ret.get("data")
+
+    def quick_select(self) -> QuickSelect:
         """
         查询各个区域的座位空闲情况, 相当于 quickSelect 请求.
 
@@ -128,17 +165,10 @@ class LibraryQuery:
 
         method: POST
 
-        headers:
-          Authorization: ...
-          Content-Type: application/json
-
-        cookies: ...
-
         payload(json): {
           "id": "[int]", // 未知作用, 同义: reserveType, 始终为 "1".
           "date": "[%Y-%m-%d]", // 要预约的日期, 影响 response 中空闲的位置数量.
           "members": [int], // 未知作用, 始终为 0.
-          "authorization": "..."
 
           // 以下为已发现的可选部分, 用于筛选空闲座位.
           "categoryIds": [ // 座位类型.
@@ -153,32 +183,29 @@ class LibraryQuery:
           "noiseId": "..." // 座位噪声水平.
         }
 
-        response(json):
-            返回 json 对象, 包含可以预约的时间(date), 校区(premises), 楼层(storey), 每层的区域(area), 见.
+        Returns:
+            - 如果请求成功, 返回 json 对象, 包含可以预约的时间(date), 校区(premises), 楼层(storey), 每层的区域(area), 见.
+            - 如果出现了登录信息失效,
         """
         now = time.localtime()
-        ret_data = json.loads(self._post(
+        response = self._post(
             "https://seat-lib.ecnu.edu.cn/reserve/index/quickSelect",
-            headers={"Content-Type": "application/json"},
-            data={
-                "id": "1",
-                "date": f"{now.tm_year}-{now.tm_mon:02d}-{now.tm_mday:02d}",
-                "members": 0,
-                "authorization": self.cache.authorization
-            }).text).get("data")
-        return Area(ret_data)
+            payload={"id": "1",
+                     "date": f"{now.tm_year}-{now.tm_mon:02d}-{now.tm_mday:02d}",
+                     "members": 0, }
+        )
+        return QuickSelect(self.check_login_and_extract_data(response))
 
-    def query_seat(self):
+    def query_seats(self, id_: int):
         """
-        查询某个楼层中一个区域可用的座位具体情况.
+        查询一个区域可用的座位具体情况.
 
         会返回座位的位置分布信息.
 
+        Parameters:
+            id_(int): 要查询的区域在 QuickSelect 中的 id 值.
+
         url: https://seat-lib.ecnu.edu.cn/api/Seat/seat
-
-        headers: Authorization: ...
-
-        cookies: ...
 
         payload(json): {
           "area": "[int]",
@@ -191,18 +218,27 @@ class LibraryQuery:
         """
         pass
 
-    def query_date(self):
+    def query_date(self, id_: int):
         """
-        查询可用的预约时间.
+        查询某个区域可用的预约时间.
+
+        Parameters:
+            id_(int): 要查询的区域在 QuickSelect 中的 id 值.
 
         url: https://seat-lib.ecnu.edu.cn/api/Seat/date
 
-        headers: Authorization: ...
-
-        cookies: ...
-
         payload(json): {
           "build_id": "[int]",
-          "authorization": "..."
         }
         """
+        response = self._post(
+            "https://seat-lib.ecnu.edu.cn/api/Seat/date",
+            payload={
+                "build_id": f"{id_}"
+            }
+        )
+        ret_data = self.check_login_and_extract_data(
+            response,
+            expected_code=1
+        )
+        return Day.from_response(ret_data)
