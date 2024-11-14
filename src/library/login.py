@@ -93,3 +93,5 @@ def get_login_cache() -> Optional[LoginCache]:
     except TimeoutException:
         logger.error(traceback.format_exc())
         return None
+    finally:
+        driver.quit()

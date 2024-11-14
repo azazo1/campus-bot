@@ -1,3 +1,4 @@
-/configuration.toml
+/*.toml
+/*.pickle
 /.idea
 /ec-plugin.log
