@@ -22,7 +22,15 @@ def query_area():
     init()
     login_cache = load_cache()
     r = LibraryQuery(login_cache).query_area()
-    print(r)
+    id_ = r.get_most_free_seats_area()
+    most_free_seats = r.get_by_id(id_)
+    print(most_free_seats)
+    storey = r.get_by_id(int(most_free_seats["parentId"]))
+    print(storey)
+    premises = r.get_by_id(int(storey["parentId"]))
+    print(premises)
+    print(r.get_premises_of(id_))
+    print(r.get_premises_of(21))
 
 
 if __name__ == '__main__':
