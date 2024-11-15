@@ -20,13 +20,17 @@ ecnu-campus-plugin/
 
 首先进入 [QQ邮箱](https://mail.qq.com) 主页, 进入账号设置, 或进入 [新版QQ邮箱](https://wx.mail.qq.com)
 
-![进入邮箱设置](./assets/mailbox_settings.png)
+[//]: # (![进入邮箱设置]&#40;./assets/mailbox_settings.png&#41;)
+
+<img src="./assets/mailbox_settings.png" alt="进入邮箱设置" width="350">
 
 若为旧版，找到开启 <u>POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV</u> 服务, 点击开启.
 
 若为新版，找到开启 <u>第三方 IMAP/SMTP</u> 服务, 点击开启.
 
-![开启 SMTP 服务](./assets/smtp_open.jpg)
+[//]: # (![开启 SMTP 服务]&#40;./assets/smtp_open.jpg&#41;)
+
+<img src="./assets/smtp_open.jpg" alt="开启 SMTP 服务" width="350">
 
 扫描微信二维码, 按照步骤操作 (Tips: 一般是使用手机号发送 1009 至指定号码).
 
