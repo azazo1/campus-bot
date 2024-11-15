@@ -89,7 +89,7 @@ def _init_logger():
     logger_.addHandler(stream_handler)
 
     file_handler = logging.FileHandler(LOG_FILE)
-    file_handler.setLevel(logging.ERROR)
+    file_handler.setLevel(logging.WARN)
     file_handler.setFormatter(formatter)
     logger_.addHandler(file_handler)
 
