@@ -73,7 +73,7 @@ Python/
 
 后续步骤与 Edge 部署示例相同.
 
-<img src="./assets/chrome_json.png" alt="Chrome Json" width="450">
+<img src="./assets/chrome_json.png" alt="Chrome Json" width="550">
 
 
 ## 环境准备
