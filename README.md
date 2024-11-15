@@ -22,7 +22,7 @@ ecnu-campus-plugin/
 
 [//]: # (![进入邮箱设置]&#40;./assets/mailbox_settings.png&#41;)
 
-<img src="./assets/mailbox_settings.png" alt="进入邮箱设置" width="350">
+<img src="./assets/mailbox_settings.png" alt="进入邮箱设置" width="400">
 
 若为旧版，找到开启 <u>POP3/IMAP/SMTP/Exchange/CardDAV/CalDAV</u> 服务, 点击开启.
 
@@ -30,7 +30,7 @@ ecnu-campus-plugin/
 
 [//]: # (![开启 SMTP 服务]&#40;./assets/smtp_open.jpg&#41;)
 
-<img src="./assets/smtp_open.jpg" alt="开启 SMTP 服务" width="350">
+<img src="./assets/smtp_open.jpg" alt="开启 SMTP 服务" width="400">
 
 扫描微信二维码, 按照步骤操作 (Tips: 一般是使用手机号发送 1009 至指定号码).
 
