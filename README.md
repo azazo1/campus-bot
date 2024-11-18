@@ -67,7 +67,7 @@ Python/
 - 您可以通过`Win + I`打开系统 -> 系统信息, 若<u>设备规格</u>中显示基于 x64 的处理器, 请下载 win64 版本, 若显示基于 ARM 的处理器, 请下载 arm64 版本.
 
 #### Chrome 浏览器部署示例
-请进入 [Chrome 版本](chrome://version/) 查看版本号(在 Chrome 的地址栏输入 `chrome://version` 亦可), 下载对应版本的 [WebDriver](https://developer.chrome.google.cn/docs/chromedriver/downloads?hl=zh-cn#chromedriver_1120561528).
+请进入 [Chrome 版本](chrome://version/) 查看版本号(在 Chrome 的地址栏输入 `chrome://version` 亦可), 下载对应版本的 [WebDriver](https://developer.chrome.google.cn/docs/chromedriver/downloads?hl=zh-cn).
 
 您可以通过网址中提及的 JSON 端点中获取您想要的版本, 复制 url 打开即可开始下载.
 
@@ -75,9 +75,10 @@ Python/
 
 <img src="./assets/chrome_json.png" alt="Chrome Json" width="550">
 
-
 ## 环境准备
 进入项目目录, 运行:
 ```shell
 pip install -r requirements.txt
 ```
+
+

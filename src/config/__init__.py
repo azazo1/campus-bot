@@ -12,8 +12,8 @@ CONFIG_FILE = "configuration.toml"
 SMTP_HOST = ""
 SMTP_PASS = ""
 SMTP_USER = ""
-SMTP_FROM = None
-SMTP_TO = None
+SMTP_FROM = []
+SMTP_TO = []
 
 
 def requires_init(f):

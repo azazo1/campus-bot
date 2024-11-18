@@ -1,28 +1,95 @@
 import smtplib
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
-from ..config import SMTP_USER, SMTP_HOST, SMTP_PASS, SMTP_FROM, SMTP_TO
+from .. import config
+
 
 class EmailSender:
-    def __init__(self, subject, content, debug=False):
-        self.sender = SMTP_USER
-        self.receivers = [SMTP_TO[1]]
-        self.message = MIMEText(content, "plain", "utf-8")
-        self.message["From"] = formataddr((Header(SMTP_FROM[0], 'utf-8').encode(), SMTP_FROM[1]))
-        self.message["To"] = formataddr((Header(SMTP_TO[0], 'utf-8').encode(), SMTP_TO[1]))
-        self.message["Subject"] = Header(subject, 'utf-8')
+    def __init__(self, debug=False):
+        """
+        初始化邮件发送类
+        :param debug: 是否开启 SMTP 调试模式
+        """
+        self.sender = config.SMTP_USER
+        self.receivers = [config.SMTP_TO[1]]
         self.debug = debug
 
     def smtp_connect(self):
+        """
+        连接到 SMTP 服务器
+        """
         try:
-            self.smtp_obj = smtplib.SMTP_SSL(SMTP_HOST, 465)
+            self.smtp_obj = smtplib.SMTP_SSL(config.SMTP_HOST, 465)
             if self.debug:
                 self.smtp_obj.set_debuglevel(1)
-            self.smtp_obj.login(SMTP_USER, SMTP_PASS)
+            self.smtp_obj.login(config.SMTP_USER, config.SMTP_PASS)
         except Exception as e:
             raise ConnectionError(f"SMTP Connect Error: {e}")
 
-    def smtp_send_text_email(self):
+    def smtp_send_text_email(self, subject: str, text_content: str):
+        """
+        发送纯文本邮件
+        :param subject: 邮件主题
+        :param text_content: 邮件正文内容
+        """
         self.smtp_connect()
+        self.message = MIMEText(text_content, "plain", "utf-8")
+        self.message["From"] = formataddr((Header(config.SMTP_FROM[0], 'utf-8').encode(), config.SMTP_FROM[1]))
+        self.message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        self.message["Subject"] = Header(subject, 'utf-8')
+        self.smtp_obj.sendmail(self.sender, self.receivers, self.message.as_string())
+
+    def smtp_send_html_email(self, subject: str, html_content: str):
+        """
+        发送 HTML 邮件
+        :param subject: 邮件主题
+        :param html_content: HTML 格式的邮件正文内容
+        """
+        self.smtp_connect()
+        # 要发送 HTML 格式的邮件，需要先格式化为 Multipart
+        self.message = MIMEMultipart("alternatives")
+        self.message["From"] = formataddr((Header(config.SMTP_FROM[0], 'utf-8').encode(), config.SMTP_FROM[1]))
+        self.message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        self.message["Subject"] = Header(subject, 'utf-8')
+
+        html_part = MIMEText(html_content, "html", "utf-8")
+        self.message.attach(html_part)
+
+        self.smtp_obj.sendmail(self.sender, self.receivers, self.message.as_string())
+
+    def smtp_send_attachments(self, subject: str, html_content: str, file_paths: list):
+        """
+        发送带附件的邮件
+        :param subject: 邮件主题
+        :param html_content: 邮件正文内容
+        :param file_paths: 附件文件路径，传入一个列表，具体查看 test/test_email.py
+        """
+        self.smtp_connect()
+        self.message = MIMEMultipart()
+        self.message["From"] = formataddr((Header(config.SMTP_FROM[0], 'utf-8').encode(), config.SMTP_FROM[1]))
+        self.message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        self.message["Subject"] = Header(subject, 'utf-8')
+
+        html_part = MIMEText(html_content, "html", "utf-8")
+        self.message.attach(html_part)
+
+        # 遍历附件列表并附加
+        for file_path in file_paths:
+            try:
+                with open(file_path, "rb") as attachment_file:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment_file.read())
+                encoders.encode_base64(part)
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename={file_path.split('/')[-1]}"  # 仅文件名
+                )
+                self.message.attach(part)
+            except FileNotFoundError:
+                raise FileNotFoundError(f"Attachment file {file_path} not found.")
+
         self.smtp_obj.sendmail(self.sender, self.receivers, self.message.as_string())
