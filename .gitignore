@@ -5,3 +5,9 @@
 /todo.md
 /laundry_data.json
 /.DS_Store
+
+# Django
+*.log
+local_setting.py
+db.sqlite3
+db.sqlite3-journal
