@@ -11,7 +11,6 @@ from pywinauto import Application
 from src.config import logger, requires_init
 
 
-
 class Window:
     def __init__(self, title):
         self.title = title

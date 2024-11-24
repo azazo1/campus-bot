@@ -80,5 +80,16 @@ Python/
 ```shell
 pip install -r requirements.txt
 ```
+请确保 `UISpy.exe` 位于项目根目录下(这一点项目中已经包含, 请您再次检查).
+
+```text
+ecnu-campus-plugin/
+|-- configuration.toml
+|-- UISpy.exe
+|-- src/
+    |-- config
+    |--  ....
+```
+
 
 
