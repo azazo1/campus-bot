@@ -65,7 +65,6 @@ def _load_email(config: dict):
     host = "smtp.qq.com" # smtp server
     pass = "password" # SMTP 服务器的 Token
     user = "sender_email @ qq.com" # 用来发邮件的邮箱
-    from = ["name", "email"] # 发件人的名字和邮箱
     to = ["name", "email"] # 收件人的名字和邮箱
     ```
     """
@@ -73,7 +72,7 @@ def _load_email(config: dict):
     SMTP_HOST = config["smtp"]["host"]
     SMTP_PASS = config["smtp"]["pass"]
     SMTP_USER = config["smtp"]["user"]
-    SMTP_FROM = (config["smtp"]["from"][0], config["smtp"]["from"][1])
+    SMTP_FROM = (SMTP_USER.split("@", 1)[0], SMTP_USER)
     SMTP_TO = (config["smtp"]["to"][0], config["smtp"]["to"][1])
 
 
