@@ -80,9 +80,9 @@ class Wechat(Window):
                 logger.info("Clicking on WeChat taskbar icon...")
                 wechat_icon.Click(simulateMove=False)
             else:
-                logger.info("WeChat taskbar icon not found!")
+                logger.error("WeChat taskbar icon not found!")
         except Exception as e:
-            logger.info(f"Failed to click taskbar icon: {e}")
+            logger.error(f"Failed to click taskbar icon: {e}")
 
     @requires_init
     def show_main_window(self, retry_count=3):
@@ -98,7 +98,7 @@ class Wechat(Window):
             self._connect()
             self.wechat_window.maximize()
         except Exception as e:
-            logger.info(f"Failed to show main window, Error: {e}")
+            logger.error(f"Failed to show main window, Error: {e}")
 
             # 如果没有成功打开微信, 就点击任务栏来打开
             try:
@@ -108,7 +108,7 @@ class Wechat(Window):
                 self.PID = self._get_we_chat_pid('WeChat.exe')
                 self.show_main_window(retry_count - 1)
             except Exception as e:
-                logger.info(f"Failed to click taskbar icon: {e}")
+                logger.error(f"Failed to click taskbar icon: {e}")
 
     @requires_init
     def close_main_window(self):
@@ -119,7 +119,7 @@ class Wechat(Window):
             self._connect()
             self.wechat_window.close()
         except Exception as e:
-            logger.info(f"Failed to close main window, Error: {e}")
+            logger.error(f"Failed to close main window, Error: {e}")
 
     @requires_init
     def locate_search_box(self) -> tuple or None:
@@ -148,7 +148,7 @@ class Wechat(Window):
                 return box_location
 
             except Exception as e:
-                logger.info(f"Failed to locate search box, Error: {e}")
+                logger.error(f"Failed to locate search box, Error: {e}")
                 return None
 
     @requires_init
@@ -164,7 +164,7 @@ class Wechat(Window):
         """
         使用正则表达式提取 temp.ini 中的数字, 并转换为坐标元组
         :param coors_str:
-        :return:
+        :return: 坐标元组
         """
         numbers = re.findall(r'\d+', coors_str)
         if len(numbers) == 4:
@@ -201,7 +201,7 @@ class Wechat(Window):
         logger.info(f"Input content: {content}, then press enter key.")
 
     @requires_init
-    def _copy_file_to_clipboard(self, file_path):
+    def _copy_image_to_clipboard(self, file_path):
         """
         将图片复制到剪贴板
         :param file_path: 图片文件路径
@@ -220,7 +220,26 @@ class Wechat(Window):
 
             logger.info("Successfully copy the file into clipboard.")
         except Exception as e:
-            logger.info(f"Failed to copy the file into clipboard: {e}")
+            logger.error(f"Failed to copy the file into clipboard: {e}")
+
+    @requires_init
+    def _copy_file_to_clipboard(self, file_path):
+        """
+        将文件复制到剪贴板
+        :param file_path: 文件路径
+        """
+        try:
+            buffer = ctypes.create_unicode_buffer(file_path)
+
+            # 将文件路径数据设置到剪贴板
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_HDROP, buffer)
+            win32clipboard.CloseClipboard()
+
+            logger.info("Successfully copy the file into clipboard.")
+        except Exception as e:
+            logger.error(f"Failed to copy the file into clipboard: {e}")
 
     @requires_init
     def send_message(self, name: str, content: str):
@@ -236,7 +255,7 @@ class Wechat(Window):
         logger.info(f"Send message to {name}: {content}")
 
     @requires_init
-    def send_file(self, name: str, path: str):
+    def send_image(self, name: str, path: str):
         """
         封装好的接口, 直接向某个人发送图片或文件
         :param name: 发送对象的名称
@@ -245,6 +264,6 @@ class Wechat(Window):
         self.show_main_window()
         self.click_search_box()
         self.content_enter(name)
-        self._copy_file_to_clipboard(path)
+        self._copy_image_to_clipboard(path)
         send_keys("^v")
         send_keys("{ENTER}")

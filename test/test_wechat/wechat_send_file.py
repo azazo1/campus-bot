@@ -18,9 +18,15 @@ def main():
 def main2():
     init()
     wechat = Wechat()
-    wechat.send_file("WechatTest", "assets/smtp_open.jpg")
+    wechat.send_image("WechatTest", "assets/ecnu_logo.png")
+
+def main3():
+    init()
+    wechat = Wechat()
+    wechat._copy_file_to_clipboard("assets/ecnu_logo.png")
 
 
 if __name__ == '__main__':
     # main()
-    main2()
+    # main2()
+    main3()
