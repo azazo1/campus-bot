@@ -1,9 +1,18 @@
 import ctypes
+import io
 import os
+import re
+import time
 
 import psutil
+import pyautogui
+import pyperclip
 import uiautomation as automation
+import win32clipboard
+from PIL import Image
 from pywinauto import Application
+from pywinauto.keyboard import send_keys
+from pywinauto import mouse
 
 from src.config import logger, requires_init
 
@@ -152,15 +161,92 @@ class Wechat(Window):
         self._connect()
         self.wechat_window.print_control_identifiers()
 
-    @requires_init
     @staticmethod
-    def click_search_box(self, coors, name):
+    def _parse_coordinates(coors_str: str) -> tuple:
+        """
+        使用正则表达式提取 temp.ini 中的数字, 并转换为坐标元组
+        :param coors_str:
+        :return:
+        """
+        numbers = re.findall(r'\d+', coors_str)
+        if len(numbers) == 4:
+            return tuple(map(int, numbers))
+        raise ValueError("Invalid coordinate format")
+
+    @requires_init
+    def click_search_box(self):
         """
         点击搜索框, 输入名称, 并按 Enter 键
         """
+        if not os.path.exists("temp.ini"):
+            self.locate_search_box()
+        else:
+            with open("temp.ini", "r") as f:
+                coors_str = f.read().strip()
+
+            coors = Wechat._parse_coordinates(coors_str)
+            search_box_center_x = (coors[0] + coors[2]) // 2  # (L + R) / 2
+            search_box_center_y = (coors[1] + coors[3]) // 2  # (T + B) / 2
+            pyautogui.moveTo(search_box_center_x, search_box_center_y)
+            pyautogui.click()
+            logger.info("Clicked on search box.")
+
+    @requires_init
+    def content_enter(self, content: str):
+        """
+        输入内容, 并按回车键
+        :param content: 输入的内容
+        """
+        automation.SendKeys(content)
+        time.sleep(0.05)  # Add a delay to ensure the content is inputted correctly
+        automation.SendKeys("{ENTER}")
+        logger.info(f"Input content: {content}, then press enter key.")
+
+    @requires_init
+    def _copy_file_to_clipboard(self, file_path):
+        """
+        将图片复制到剪贴板
+        :param file_path: 图片文件路径
+        """
         try:
-            automation.Click(coors)
-            automation.SendKeys(name)
-            automation.SendKeys('{ENTER}')
+            image = Image.open(file_path)
+            output = io.BytesIO()
+            image.convert("RGB").save(output, "BMP")
+            bmp_data = output.getvalue()[14:]  # BMP 数据需要跳过 14 字节的文件头
+            output.close()
+
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_DIB, bmp_data)
+            win32clipboard.CloseClipboard()
+
+            logger.info("Successfully copy the file into clipboard.")
         except Exception as e:
-            logger.info(f"Failed to click search box: {e}")
+            logger.info(f"Failed to copy the file into clipboard: {e}")
+
+    @requires_init
+    def send_message(self, name: str, content: str):
+        """
+        这里是全部封装好的接口, 直接对某一个人发送消息
+        :param name: 发送对象的名称
+        :param content: 发送的内容
+        """
+        self.show_main_window()
+        self.click_search_box()
+        self.content_enter(name)
+        self.content_enter(content)
+        logger.info(f"Send message to {name}: {content}")
+
+    @requires_init
+    def send_file(self, name: str, path: str):
+        """
+        封装好的接口, 直接向某个人发送图片或文件
+        :param name: 发送对象的名称
+        :param path: 图片路径
+        """
+        self.show_main_window()
+        self.click_search_box()
+        self.content_enter(name)
+        self._copy_file_to_clipboard(path)
+        send_keys("^v")
+        send_keys("{ENTER}")

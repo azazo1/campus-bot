@@ -8,3 +8,4 @@ pywinauto==0.6.8
 psutil==5.9.8
 uiautomation==2.0.19
 pyzbar==0.1.9
+pyautogui==0.9.54
