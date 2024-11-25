@@ -1,5 +1,6 @@
 from src.config import init
 from src.wechat.open import Wechat
+from pywinauto.keyboard import send_keys
 
 
 def main():
@@ -9,13 +10,17 @@ def main():
     wechat.locate_search_box()
     wechat.click_search_box()
     wechat.content_enter("WechatTest")
-    wechat.content_enter("Send A Test Message Successfully!")
+    wechat._copy_image_to_clipboard("assets/ecnu_logo.png")
+    send_keys("^v")
+    send_keys("{ENTER}")
+
 
 def main2():
     init()
     wechat = Wechat()
-    wechat.send_message("WechatTest", "Send A Test Message Successfully!")
+    wechat.send_file("WechatTest", "assets/smtp_open.jpg")
+
 
 if __name__ == '__main__':
-    main()
+    # main()
     main2()

@@ -1,12 +1,18 @@
 import ctypes
+import io
 import os
 import re
 import time
 
 import psutil
 import pyautogui
+import pyperclip
 import uiautomation as automation
+import win32clipboard
+from PIL import Image
 from pywinauto import Application
+from pywinauto.keyboard import send_keys
+from pywinauto import mouse
 
 from src.config import logger, requires_init
 
@@ -192,6 +198,55 @@ class Wechat(Window):
         :param content: 输入的内容
         """
         automation.SendKeys(content)
-        time.sleep(0.05) # Add a delay to ensure the content is inputted correctly
+        time.sleep(0.05)  # Add a delay to ensure the content is inputted correctly
         automation.SendKeys("{ENTER}")
         logger.info(f"Input content: {content}, then press enter key.")
+
+    @requires_init
+    def _copy_file_to_clipboard(self, file_path):
+        """
+        将图片复制到剪贴板
+        :param file_path: 图片文件路径
+        """
+        try:
+            image = Image.open(file_path)
+            output = io.BytesIO()
+            image.convert("RGB").save(output, "BMP")
+            bmp_data = output.getvalue()[14:]  # BMP 数据需要跳过 14 字节的文件头
+            output.close()
+
+            win32clipboard.OpenClipboard()
+            win32clipboard.EmptyClipboard()
+            win32clipboard.SetClipboardData(win32clipboard.CF_DIB, bmp_data)
+            win32clipboard.CloseClipboard()
+
+            logger.info("Successfully copy the file into clipboard.")
+        except Exception as e:
+            logger.info(f"Failed to copy the file into clipboard: {e}")
+
+    @requires_init
+    def send_message(self, name: str, content: str):
+        """
+        这里是全部封装好的接口, 直接对某一个人发送消息
+        :param name: 发送对象的名称
+        :param content: 发送的内容
+        """
+        self.show_main_window()
+        self.click_search_box()
+        self.content_enter(name)
+        self.content_enter(content)
+        logger.info(f"Send message to {name}: {content}")
+
+    @requires_init
+    def send_file(self, name: str, path: str):
+        """
+        封装好的接口, 直接向某个人发送图片或文件
+        :param name: 发送对象的名称
+        :param path: 图片路径
+        """
+        self.show_main_window()
+        self.click_search_box()
+        self.content_enter(name)
+        self._copy_file_to_clipboard(path)
+        send_keys("^v")
+        send_keys("{ENTER}")
