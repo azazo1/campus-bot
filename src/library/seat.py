@@ -1,7 +1,7 @@
 """
 座位对象表示, 见 query_seats_example.json 文件.
 """
-from functools import reduce
+import math
 from typing import Self
 
 from src.config import requires_init, logger
@@ -56,6 +56,13 @@ class Seat:
     def __getitem__(self, item):
         return self.raw[item]
 
+    def distance_to(self, other: Self) -> float:
+        """获取两个距离之间的百分比坐标距离."""
+        return math.hypot((self.x - other.x), (self.y - other.y))
+
+    def is_available(self) -> bool:
+        return self.status == 1
+
 
 class SeatFinder:
     """
@@ -83,8 +90,21 @@ class SeatFinder:
                 logger.warn("seat-finder: seats are not from the same area.")
                 return
 
-    def find_most_isolated(self) -> Seat:
+    def find_most_isolated(self) -> Seat | None:
         """
         寻找周围空闲数量最多的座位.
+
+        但如果没有空座位, 返回 None.
         """
-        
+        # 此算法的性能和正确性还有待考量.
+        max_distance = 0
+        target_seat = None
+        for seat in self.seats:
+            if not seat.is_available():
+                continue
+            # 找距离所有非空闲座位最远的.
+            distance = sum([seat.distance_to(seat1) for seat1 in self.seats if not seat1.is_available()])
+            if distance > max_distance:
+                max_distance = distance
+                target_seat = seat
+        return target_seat

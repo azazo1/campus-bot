@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, Callable
 
 import requests
 from requests import Response
@@ -51,12 +51,12 @@ class QuickSelect:
 
     def get_premises_of(self, id_: int) -> int:
         """
-        返回一个 id 所述的校区.
+        返回一个 id 所属的校区.
 
         Returns:
-            0: 普陀校区.
-            1: 闵行校区.
-            -1: id 参数无效, 或者在网站未来的变更导致校区名称改变.
+            - 0 => 普陀校区.
+            - 1 => 闵行校区.
+            - -1 => id 参数无效, 或者在网站未来的变更导致校区名称改变.
         """
         obj = self.get_by_id(id_)
         if obj is None:
@@ -90,16 +90,22 @@ class QuickSelect:
             sum_ += int(self.get_by_id(area_id)["free_num"])
         return sum_
 
-    def get_most_free_seats_area(self):
+    def get_most_free_seats_area(self, filter_func: Callable[[int], bool] = lambda *a: True):
         """
         获取拥有最多空闲座位的区域.
 
+        Parameters:
+            filter_func: 用于筛选区域, 参数为区域的 id, 只有让 filter_func 返回 True 的区域才会被选择.
+
         Returns:
             - 返回空闲座位最多的区域的 id.
+            - 如果筛选过后没有区域符合要求, 返回 -1.
         """
         max_num = 0
         max_id = -1
         for area_id in self.areas:
+            if not filter_func(area_id):
+                continue
             n = self.get_by_id(area_id)["free_num"]
             if n > max_num:
                 max_num = n
@@ -224,12 +230,12 @@ class LibraryQuery:
         ret_data = self.check_login_and_extract_data(response, expected_code=1)
         return Seat.from_response(ret_data)
 
-    def query_date(self, id_: int) -> list[Day]:
+    def query_date(self, area_id: int) -> list[Day]:
         """
         查询某个区域可用的预约时间.
 
         Parameters:
-            id_(int): 要查询的区域在 QuickSelect 中的 id 值.
+            area_id(int): 要查询的区域在 QuickSelect 中的 id 值.
 
         url: https://seat-lib.ecnu.edu.cn/api/Seat/date
 
@@ -239,7 +245,7 @@ class LibraryQuery:
         """
         response = self._post(
             "https://seat-lib.ecnu.edu.cn/api/Seat/date",
-            payload={"build_id": f"{id_}"}
+            payload={"build_id": f"{area_id}"}
         )
         ret_data = self.check_login_and_extract_data(
             response,

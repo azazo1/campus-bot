@@ -1,6 +1,6 @@
 import os
 import pickle
-from src.config import init
+from src.config import init, logger
 from src.library.login import get_login_cache
 from src.library.query import LibraryQuery
 
@@ -22,20 +22,20 @@ def quick_select(q: LibraryQuery):
     qs = q.quick_select()
     id_ = qs.get_most_free_seats_area()
     most_free_seats = qs.get_by_id(id_)
-    print(most_free_seats)
+    logger.info(most_free_seats)
     storey = qs.get_by_id(int(most_free_seats["parentId"]))
-    print(storey)
+    logger.info(storey)
     premises = qs.get_by_id(int(storey["parentId"]))
-    print(premises)
-    print(qs.get_premises_of(id_))
-    print(qs.get_premises_of(21))
+    logger.info(premises)
+    logger.info(qs.get_premises_of(id_))
+    logger.info(qs.get_premises_of(21))
 
 
 def query_date(q: LibraryQuery):
     qs = q.quick_select()
     id_ = qs.get_most_free_seats_area()
     days = q.query_date(id_)
-    print(days)
+    logger.info(days)
 
 
 def query_seats(q: LibraryQuery):
@@ -43,7 +43,7 @@ def query_seats(q: LibraryQuery):
     id_ = qs.get_most_free_seats_area()
     days = q.query_date(id_)
     ret = q.query_seats(id_, days[0].times[0])
-    print(ret)
+    logger.info(ret)
 
 
 def main():
