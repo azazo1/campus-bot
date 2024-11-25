@@ -2,13 +2,17 @@
 微信窗口获取.
 """
 from __future__ import annotations
+
+import csv
 import ctypes
+import io
+import subprocess
 import time
 from asyncio import InvalidStateError
 from typing import Self
-
-import psutil
 import uiautomation
+
+from src.config import logger, requires_init
 
 
 class WeChatError(Exception):
@@ -89,6 +93,7 @@ def reserve_cursor_focus(func):
     return wrapper
 
 
+@requires_init
 def get_pid_by_name(name: str, ignore_case=False) -> int:
     """
     查找并获取进程 pid, 如果有多个同名进程, 只会返回第一个匹配名称的进程 pid.
@@ -100,14 +105,16 @@ def get_pid_by_name(name: str, ignore_case=False) -> int:
     Returns:
         如果找不到该进程, 返回 -1.
     """
-    for proc in psutil.process_iter():
-        if ignore_case:
-            if proc.name().lower() == name.lower():
-                return proc.pid
-        else:
-            if proc.name() == name:
-                return proc.pid
-    return -1
+    try:
+        # 可以运行这里的 cmd 命令来理解这几行代码.
+        p = subprocess.Popen(f"tasklist /FI \"IMAGENAME eq {name}\" /NH /FO csv",
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # 这里已经等待了子进程结束.
+        stdout, stderr = p.communicate()  # type: bytes, bytes
+        return int(next(csv.reader(io.StringIO(stdout.decode('utf-8'))))[1])
+    except Exception as e:
+        logger.error(f"get_pid_by_name: {e}")
+        return -1
 
 
 _wechat: uiautomation.WindowControl | None = None  # 全局缓存的微信窗口对象.

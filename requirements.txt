@@ -4,6 +4,5 @@ selenium-wire==5.1.0
 blinker==1.4.0
 requests~=2.32.0
 Pillow==11.0.0
-psutil==5.9.8
 uiautomation==2.0.19
 pyzbar==0.1.9

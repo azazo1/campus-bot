@@ -4,6 +4,7 @@ import unittest
 
 from src.config import init, logger
 from src.wechat import wx
+from src.wechat.pc import get_pid_by_name
 
 
 class TestWechat(unittest.TestCase):
@@ -18,7 +19,9 @@ class TestWechat(unittest.TestCase):
         wx.search("WechatTest")
 
     def test_bench_get_pid_by_name(self):
-        timeit.main(['-s','from src.wechat.pc import get_pid_by_name', "get_pid_by_name('wechat.exe', True)"])
+        timeit.main(['-s', 'from src.wechat.pc import get_pid_by_name',
+                     "get_pid_by_name('wechat.exe', True)"])
+        logger.info(get_pid_by_name("wechat.exe", True))
 
     def tearDown(self):
         pass
