@@ -1,10 +1,7 @@
 import ctypes
-import time
-from ctypes import wintypes
+import os
 
 import psutil
-import subprocess
-import win32gui
 import uiautomation as automation
 from pywinauto import Application
 
@@ -17,7 +14,7 @@ class Window:
         self.hwnd = None
 
     @staticmethod
-    def GetWeChatPID(name: str) -> int:
+    def _get_we_chat_pid(name: str) -> int:
         """
         获取微信在系统中的进程 PID
         :param name:
@@ -56,6 +53,13 @@ class Window:
 class Wechat(Window):
     def __init__(self):
         super().__init__(u"微信")  # 微信窗口的标题为“微信”
+        self._connect()
+
+    def _connect(self):
+        self.PID = self._get_we_chat_pid('WeChat.exe')
+        self.app = Application(backend="uia").connect(process=self.PID)
+        # 使用 UI Automation 技术，而不是使用传统的 Win32 API
+        self.wechat_window = self.app[u"微信"]  # 使用 Unicode 字符处理
 
     @requires_init
     def click_taskbar_icon(self):
@@ -73,23 +77,10 @@ class Wechat(Window):
         except Exception as e:
             logger.info(f"Failed to click taskbar icon: {e}")
 
-    def close_window(self, uia=None):
-        """
-        关闭当前已打开的聊天窗口, 确保打开目标聊天框之前, 没有干扰的聊天窗口.
-        :param uia: UI 自动化库实例
-        """
-        while win32gui.FindWindow('ChatWnd', None):
-            if not uia:
-                raise ValueError("UI Automation instance (uia) is required.")
-            uia.WindowControl(ClassName='ChatWnd').SwitchToThisWindow()
-            uia.WindowControl(ClassName='ChatWnd').ButtonControl(Name='关闭').Click(simulateMove=False)
-
     @requires_init
-    def show_main_window(self, PID: int, retry_count=3):
+    def show_main_window(self, retry_count=3):
         """
         显示微信主窗口并最大化, 保证每一台电脑运行时均能够成功点击.
-
-        :param PID: 微信进程的 PID
 
         .. note:
             这种方式是最好的, 因为即使你已经打开了微信, 或拖动了微信，都能够保证最后处于打开状态.
@@ -97,31 +88,79 @@ class Wechat(Window):
             重新获得了 PID 之后, 再次尝试连接 PID.
         """
         try:
-            app = Application(backend="uia").connect(process=PID)
-            # 使用 UI Automation 技术，而不是使用传统的 Win32 API
-            wechat_window = app[u"微信"]  # 使用 Unicode 字符处理
-            wechat_window.maximize()
+            self._connect()
+            self.wechat_window.maximize()
         except Exception as e:
             logger.info(f"Failed to show main window, Error: {e}")
 
             # 如果没有成功打开微信, 就点击任务栏来打开
             try:
                 self.click_taskbar_icon()
-                PID = self.GetWeChatPID('WeChat.exe')
-                self.show_main_window(PID, retry_count - 1)
+                # 因为之前没有打开 WeChat.exe 获得 PID, 所以这里再获取一次
+                # 这里递归调用, 但不会无限循环, 因为 retry_count 会递减
+                self.PID = self._get_we_chat_pid('WeChat.exe')
+                self.show_main_window(retry_count - 1)
             except Exception as e:
                 logger.info(f"Failed to click taskbar icon: {e}")
 
     @requires_init
-    def close_main_window(self, PID: int):
+    def close_main_window(self):
         """
         关闭微信主窗口
-
-        :param PID: 微信进程的 PID
         """
         try:
-            app = Application(backend="uia").connect(process=PID)
-            wechat_window = app[u"微信"]
-            wechat_window.close()
+            self._connect()
+            self.wechat_window.close()
         except Exception as e:
             logger.info(f"Failed to close main window, Error: {e}")
+
+    @requires_init
+    def locate_search_box(self) -> tuple or None:
+        """
+        定位微信左上角的搜索框, 并返回其坐标, 以便后续操作
+
+        Tips:
+        此操作只在程序第一次运行时执行, 加入了一个 temp.ini 文件, 以便下次运行时直接读取坐标, 而不用再次定位, 节省时间
+        这是因为每个人电脑的分辨率不一致, 所以需要定位搜索框的位置
+
+        :return: 搜索框的坐标
+        """
+        if os.path.exists("temp.ini"):
+            return None
+        else:
+            try:
+                self._connect()
+                search_box = self.wechat_window.child_window(title=u"搜索", control_type="Edit")
+                search_box.draw_outline()  # 描边
+                box_location = search_box.rectangle()  # 返回位置信息
+                logger.info(box_location)
+
+                with open("temp.ini", "w") as f:
+                    f.write(str(box_location))
+
+                return box_location
+
+            except Exception as e:
+                logger.info(f"Failed to locate search box, Error: {e}")
+                return None
+
+    @requires_init
+    def show_identifiers(self):
+        """
+        输出微信窗口的全部控件的属性
+        """
+        self._connect()
+        self.wechat_window.print_control_identifiers()
+
+    @requires_init
+    @staticmethod
+    def click_search_box(self, coors, name):
+        """
+        点击搜索框, 输入名称, 并按 Enter 键
+        """
+        try:
+            automation.Click(coors)
+            automation.SendKeys(name)
+            automation.SendKeys('{ENTER}')
+        except Exception as e:
+            logger.info(f"Failed to click search box: {e}")
