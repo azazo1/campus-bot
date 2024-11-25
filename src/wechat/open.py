@@ -6,13 +6,11 @@ import time
 
 import psutil
 import pyautogui
-import pyperclip
 import uiautomation as automation
 import win32clipboard
 from PIL import Image
 from pywinauto import Application
 from pywinauto.keyboard import send_keys
-from pywinauto import mouse
 
 from src.config import logger, requires_init
 

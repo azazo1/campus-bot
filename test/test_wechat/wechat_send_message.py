@@ -17,5 +17,5 @@ def main2():
     wechat.send_message("WechatTest", "Send A Test Message Successfully!")
 
 if __name__ == '__main__':
-    main()
+    # main()
     main2()

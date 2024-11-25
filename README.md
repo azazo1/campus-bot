@@ -81,9 +81,11 @@ Python/
 
 <img src="./assets/wechat_taskbar.png" alt="Wechat Taskbar" width="400">
 
-如果不做本步骤, 便需要您长期将微信置于最前端.
+如果不做本步骤, 便需要您长期将微信置于最前端, 最好再将微信图标置于开始菜单旁.
 
-请将您想要发送到的联系人的名称设置地较为唯一, 避免出现发错人的情况.
+<img src="./assets/wechat_startmenu.png" alt="Wechat Startmenu" width="400">
+
+请将您想要发送到的联系人设置为不容易重名的昵称, 避免出现发错人的情况.
 
 ## 环境准备
 进入项目目录, 运行:
