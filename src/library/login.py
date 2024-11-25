@@ -162,7 +162,7 @@ def _get_qrcode(driver: Edge, timeout: float) -> tuple[str, str]:
 @requires_init
 def get_login_cache(
         timeout: float = 24 * 60,
-        qrcode_html_callback: Callable[[str, str], None] = lambda s: None
+        qrcode_html_callback: Callable[[str, str], None] = lambda s1, s2: None
 ) -> Optional[LoginCache]:
     """
     使用浏览器的进行图书馆的登录操作,
