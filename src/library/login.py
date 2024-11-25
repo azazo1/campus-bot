@@ -1,10 +1,13 @@
 """
 半自动化登录 ecnu 统一认证.
 """
-import time
+import base64
+import io
 import traceback
 from typing import Optional, Callable
 
+from pyzbar import pyzbar
+from PIL import Image
 import textwrap
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
@@ -48,7 +51,7 @@ QRCODE_HTML = """<!DOCTYPE html>
 <body>
 <div>Scan the qrcode below to login ECNU.</div>
 <img src="{img}" alt="qrcode image here."/>
-<div>Or copy this url in wechat:</div>
+<div>Or open this url in wechat:</div>
 <div>{url}</div>
 </body>
 </html>
@@ -137,17 +140,23 @@ def _get_qrcode(driver: Edge, timeout: float) -> tuple[str, str]:
     """
     获取统一登陆界面中的登录二维码.
 
-    :return: (登录二维码的生成网址, 登录二维码 base64 数据(其可直接放入 img 元素的 src 字段))
+    :return: (登录二维码扫描出来的网址, 登录二维码 base64 数据(其可直接放入 img 元素的 src 字段))
     """
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, QRCODE_IMG))
     )
     img_base64_data = driver.execute_script(EXTRACT_QRCODE_JS)
-    img_src = driver.execute_script(EXTRACT_QRCODE_SRC_JS)
+    img_base64 = base64.b64decode(img_base64_data.split(",")[1])
+    img = Image.open(io.BytesIO(img_base64))
+    decoded = pyzbar.decode(img)
+    try:
+        url = decoded[0].data.decode("utf-8")
+    except Exception:
+        url = driver.execute_script(EXTRACT_QRCODE_SRC_JS)
     logger.debug("qrcode base64 data: "
                  + img_base64_data[:min(30, len(img_base64_data))] + "...")
-    logger.debug("qrcode src: " + img_src)
-    return img_src, img_base64_data
+    logger.debug("qrcode content: " + url)
+    return url, img_base64_data
 
 
 @requires_init
@@ -176,17 +185,19 @@ def get_login_cache(
 
         # 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
         _click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
-        img_src, img_base64_data = _get_qrcode(driver, timeout)
+        url, img_base64_data = _get_qrcode(driver, timeout)
         qrcode_html_callback(FIRST_QRCODE_TITLE,
-                             QRCODE_HTML.format(img=img_base64_data, url=img_src, title=FIRST_QRCODE_TITLE))
+                             QRCODE_HTML.format(img=img_base64_data, url=url,
+                                                title=FIRST_QRCODE_TITLE))
 
         logger.info("library site waiting for login...")
         while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
             # 二维码超时刷新.
             logger.info("ecnu login qrcode updated.")
-            img_src, img_base64_data = _get_qrcode(driver, timeout)
+            url, img_base64_data = _get_qrcode(driver, timeout)
             qrcode_html_callback(UPDATED_QRCODE_TITLE,
-                                 QRCODE_HTML.format(img=img_base64_data, url=img_src, title=UPDATED_QRCODE_TITLE))
+                                 QRCODE_HTML.format(img=img_base64_data, url=url,
+                                                    title=UPDATED_QRCODE_TITLE))
 
         # 等待图书馆网页加载完成.
         # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.
