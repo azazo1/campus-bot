@@ -11,19 +11,29 @@ import psutil
 import uiautomation
 
 
-class WeChatNotForegroundError(Exception):
-    """微信不在前台"""
+class WeChatError(Exception):
     pass
 
 
-class ProcessNotFoundError(Exception):
+class WeChatNotInTaskbarError(WeChatError):
+    """微信窗口不在任务栏"""
+
+    def __init__(self):
+        super().__init__("WeChat is not in taskbar.")
+
+
+class WeChatProcessNotFoundError(WeChatError):
     """没有微信进程"""
-    pass
+
+    def __init__(self):
+        super().__init__("WeChat process not found.")
 
 
-class WeChatNotLoginError(Exception):
+class WeChatNotLoginError(WeChatError):
     """微信没有登录"""
-    pass
+
+    def __init__(self):
+        super().__init__("WeChat not login.")
 
 
 class ReserveCursorFocus:
@@ -115,16 +125,16 @@ def get_wechat_window_control() -> uiautomation.WindowControl:
         微信主窗口 WindowControl 对象.
 
     Raises:
-        ProcessNotFoundError: 微信没启动.
+        WeChatProcessNotFoundError: 微信没启动.
         WeChatNotLoginError: 微信没有登录, 如果电脑上有微信多开可能出现预期外的情况.
-        WeChatNotForegroundError: 微信不在前台.
+        WeChatNotInTaskbarError: 微信窗口不在任务栏, 而是在后台运行.
     """
     global _wechat
     if _wechat is not None and _wechat.Refind(0, 0, False):
         # 如果微信窗口还存在, 返回缓存的微信窗口.
         return _wechat
     if get_pid_by_name("Wechat.exe", True) < 0:
-        raise ProcessNotFoundError("Wechat.exe")
+        raise WeChatProcessNotFoundError()
     wechat_main = uiautomation.WindowControl(searchDepth=1, Name="微信",
                                              ClassName="WeChatMainWndForPC")
     wechat_login = uiautomation.PaneControl(searchDepth=1, Name="微信",
@@ -135,7 +145,7 @@ def get_wechat_window_control() -> uiautomation.WindowControl:
         _wechat = wechat_main
         return wechat_main
     # 进入此处说明微信正在运行且不是未登录状态, 并且任务栏没有微信窗口, 那么就说明微信在后台.
-    raise WeChatNotForegroundError()
+    raise WeChatNotInTaskbarError()
 
 
 def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
@@ -158,14 +168,14 @@ def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl
         微信主窗口 WindowControl 对象.
 
     Raises:
-        ProcessNotFoundError: 微信没启动.
+        WeChatProcessNotFoundError: 微信没启动.
         WeChatNotLoginError: 微信没有登录, 如果电脑上有微信多开可能出现预期外的情况.
         InvalidStateError: 异常情况, 微信在运行, 但是无法找到并打开微信窗口,
             导致这种情况的可能原因是用户在脚本执行操作的时候动了鼠标.
     """
     try:
         return get_wechat_window_control()
-    except WeChatNotForegroundError:
+    except WeChatNotInTaskbarError:
         # 到此处表明微信正在运行, 但是不在前台运行.
         taskbar = taskbar or Taskbar.get_taskbar()
         icon = taskbar.find_icon("微信")
