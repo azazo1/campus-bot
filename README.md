@@ -75,21 +75,18 @@ Python/
 
 <img src="./assets/chrome_json.png" alt="Chrome Json" width="550">
 
+### UI 配置
+
+请取消自动隐藏任务栏, 并将微信拖动至收纳栏之外, 以便于程序的正常运行. 如下图所示:
+
+<img src="./assets/wechat_taskbar.png" alt="Wechat Taskbar" width="400">
+
+如果不做本步骤, 便需要您长期将微信置于最前端.
+
+请将您想要发送到的联系人的名称设置地较为唯一, 避免出现发错人的情况.
+
 ## 环境准备
 进入项目目录, 运行:
 ```shell
 pip install -r requirements.txt
 ```
-请确保 `UISpy.exe` 位于项目根目录下(这一点项目中已经包含, 请您再次检查).
-
-```text
-ecnu-campus-plugin/
-|-- configuration.toml
-|-- UISpy.exe
-|-- src/
-    |-- config
-    |--  ....
-```
-
-
-

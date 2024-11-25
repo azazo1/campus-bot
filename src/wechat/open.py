@@ -1,7 +1,10 @@
 import ctypes
 import os
+import re
+import time
 
 import psutil
+import pyautogui
 import uiautomation as automation
 from pywinauto import Application
 
@@ -152,15 +155,43 @@ class Wechat(Window):
         self._connect()
         self.wechat_window.print_control_identifiers()
 
-    @requires_init
     @staticmethod
-    def click_search_box(self, coors, name):
+    def _parse_coordinates(coors_str: str) -> tuple:
+        """
+        使用正则表达式提取 temp.ini 中的数字, 并转换为坐标元组
+        :param coors_str:
+        :return:
+        """
+        numbers = re.findall(r'\d+', coors_str)
+        if len(numbers) == 4:
+            return tuple(map(int, numbers))
+        raise ValueError("Invalid coordinate format")
+
+    @requires_init
+    def click_search_box(self):
         """
         点击搜索框, 输入名称, 并按 Enter 键
         """
-        try:
-            automation.Click(coors)
-            automation.SendKeys(name)
-            automation.SendKeys('{ENTER}')
-        except Exception as e:
-            logger.info(f"Failed to click search box: {e}")
+        if not os.path.exists("temp.ini"):
+            self.locate_search_box()
+        else:
+            with open("temp.ini", "r") as f:
+                coors_str = f.read().strip()
+
+            coors = Wechat._parse_coordinates(coors_str)
+            search_box_center_x = (coors[0] + coors[2]) // 2  # (L + R) / 2
+            search_box_center_y = (coors[1] + coors[3]) // 2  # (T + B) / 2
+            pyautogui.moveTo(search_box_center_x, search_box_center_y)
+            pyautogui.click()
+            logger.info("Clicked on search box.")
+
+    @requires_init
+    def content_enter(self, content: str):
+        """
+        输入内容, 并按回车键
+        :param content: 输入的内容
+        """
+        automation.SendKeys(content)
+        time.sleep(0.05) # Add a delay to ensure the content is inputted correctly
+        automation.SendKeys("{ENTER}")
+        logger.info(f"Input content: {content}, then press enter key.")
