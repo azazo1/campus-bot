@@ -6,6 +6,7 @@
 /laundry_data.json
 /.DS_Store
 /UISpy.exe
+@AutomationLog.txt
 
 # Django
 *.log
