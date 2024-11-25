@@ -1,10 +1,5 @@
 """
-Windows 微信消息自动化脚本.
-
-测试环境:
-- Windows 11.
-- 系统语言为中文.
-- 微信 3.9.10.27
+微信窗口获取.
 """
 from __future__ import annotations
 import ctypes
@@ -61,7 +56,7 @@ class ReserveCursorFocus:
     def restore(self):
         uiautomation.ControlFromHandle(self.focus).SetFocus()
         uiautomation.SetCursorPos(*self.cursor)
-        time.sleep(0.01)  # 确保焦点已经完全转移, 否则再次调用 GetForegroundWindow 会返回 None.
+        time.sleep(0.1)  # 确保焦点已经完全转移, 否则再次调用 GetForegroundWindow 会返回 None.
 
     def __enter__(self):
         self.save()
@@ -105,9 +100,14 @@ def get_pid_by_name(name: str, ignore_case=False) -> int:
     return -1
 
 
-def wechat_window() -> uiautomation.WindowControl:
+_wechat: uiautomation.WindowControl | None = None  # 全局缓存的微信窗口对象.
+
+
+def get_wechat_window_control() -> uiautomation.WindowControl:
     """
-    获取微信主窗口 Control.
+    获取微信主窗口 Control, 而且第一次调用之后会缓存返回值,
+    可以多次调用此方法而不会产生多次重复查询操作.
+    当微信窗口消失的时候缓存失效, 此时会重新查询.
 
     但是此方法无法获取在后台运行的微信.
 
@@ -119,31 +119,36 @@ def wechat_window() -> uiautomation.WindowControl:
         WeChatNotLoginError: 微信没有登录, 如果电脑上有微信多开可能出现预期外的情况.
         WeChatNotForegroundError: 微信不在前台.
     """
+    global _wechat
+    if _wechat is not None and _wechat.Refind(0, 0, False):
+        # 如果微信窗口还存在, 返回缓存的微信窗口.
+        return _wechat
     if get_pid_by_name("Wechat.exe", True) < 0:
         raise ProcessNotFoundError("Wechat.exe")
     wechat_main = uiautomation.WindowControl(searchDepth=1, Name="微信",
                                              ClassName="WeChatMainWndForPC")
     wechat_login = uiautomation.PaneControl(searchDepth=1, Name="微信",
-                                              ClassName="WeChatLoginWndForPC")
+                                            ClassName="WeChatLoginWndForPC")
     if wechat_login.Exists(0, 0):
         raise WeChatNotLoginError()  # 在微信的登录界面, 没有登录, 无法使用后续功能.
     if wechat_main.Exists(0, 0):
+        _wechat = wechat_main
         return wechat_main
     # 进入此处说明微信正在运行且不是未登录状态, 并且任务栏没有微信窗口, 那么就说明微信在后台.
     raise WeChatNotForegroundError()
 
 
-def wechat(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
+def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
     """
-    获取微信主窗口 Control.
+    获取微信主窗口 Control, 而且第一次调用之后会缓存返回值,
+    可以多次调用此方法而不会产生多次重复查询操作.
+    当微信窗口消失的时候缓存失效, 此时会重新查询.
 
-    如果微信启动了, 但是窗口没有在任务栏中, 首先在任务栏托盘中点击图标进行窗口唤出.
-    如果任务栏托盘中微信图标没有固定, 那么展开任务栏托盘再寻找微信图标并唤出窗口.
+    查询步骤:
 
-    正常情况下只需要调用此方法一次, 然后缓存 WindowControl 对象,
-    如果后续微信窗口变更了, 只需要调用 WindowControl 的 Refind 方法即可.
-
-    但是有可能微信窗口又回到了任务栏, 此情况需要再次调用此函数.
+    1. 如果任务栏窗口中有微信, 直接获取其 Control.
+    2. 如果微信启动了, 但是窗口没有在任务栏中, 首先在任务栏托盘中点击图标进行窗口唤出.
+    3. 如果任务栏托盘中微信图标没有固定, 那么展开任务栏托盘再寻找微信图标并唤出窗口.
 
     Parameters:
         taskbar: 用于在微信窗口不存在时对任务栏的操作, 如果提供为 None, 则在内部再次创建 Taskbar 对象,
@@ -159,7 +164,7 @@ def wechat(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
             导致这种情况的可能原因是用户在脚本执行操作的时候动了鼠标.
     """
     try:
-        return wechat_window()
+        return get_wechat_window_control()
     except WeChatNotForegroundError:
         # 到此处表明微信正在运行, 但是不在前台运行.
         taskbar = taskbar or Taskbar.get_taskbar()
@@ -172,7 +177,7 @@ def wechat(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
             if not click_rst:
                 # 没有找到微信图标, 通常不会出现此情况.
                 raise InvalidStateError("Can't open wechat window, unknown error.")
-        return wechat_window()
+        return get_wechat_window_control()
 
 
 class Taskbar:
@@ -199,8 +204,7 @@ class Taskbar:
         ))
 
     def find_icon(
-            self,
-            name: str,
+            self, name: str,
             control: uiautomation.Control | None = None
     ) -> uiautomation.ButtonControl | None:
         """
@@ -285,13 +289,3 @@ class Taskbar:
                 return False
             icon.Click(simulateMove=False)
             return True
-
-
-def main():
-    with ReserveCursorFocus():
-        wx = wechat()
-        wx.SetFocus()
-
-
-if __name__ == '__main__':
-    main()
