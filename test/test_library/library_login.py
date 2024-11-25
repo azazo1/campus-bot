@@ -1,6 +1,6 @@
 from src.config import init
 from src.email import EmailSender
-from src.library.login import get_login_cache
+from src.uia.login import get_login_cache
 
 
 def main_email():

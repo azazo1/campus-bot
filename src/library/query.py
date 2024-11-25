@@ -5,7 +5,7 @@ import requests
 from requests import Response
 
 from .date import Day, TimePeriod
-from .login import LoginCache
+from src.uia.login import LoginCache
 from .seat import Seat
 
 

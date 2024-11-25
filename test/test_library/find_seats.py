@@ -2,7 +2,7 @@ import os
 import pickle
 
 from src.config import init, logger
-from src.library.login import get_login_cache
+from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder
 
