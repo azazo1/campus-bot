@@ -1,3 +1,4 @@
+import time
 import timeit
 import unittest
 
@@ -44,6 +45,11 @@ class TestWechat(unittest.TestCase):
         self.assertEqual(vp.Value, "asdf")
 
     def test_bench_locate_chat(self):
-        timeit.main(['-s', 'from src.wechat import wx',
-                     "-r", "10",
-                     "wx.locate_chat()"])
+        wx.search("WechatTest")
+        repeat_times = 10
+        bench_time = timeit.timeit(lambda: wx.locate_chat("WechatTest") and wx.close_window(),
+                                   number=repeat_times)
+        logger.info("%f sec of %d times", bench_time, repeat_times)
+
+    def test_send_message(self):
+        wx.send_message("WechatTest", "HelloWorld1234")

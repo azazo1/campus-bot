@@ -2,9 +2,14 @@
 微信窗口控制.
 """
 from __future__ import annotations
+
+import typing
+
 import uiautomation
-from .pc import get_wechat_window_control, WeChatError, wechat_control
+from .pc import get_wechat_window_control, WeChatError, wechat_control, CLICK_WAIT_TIME
 from ..config import logger, requires_init
+
+SEND_KEYS_WAIT_TIME = 0.3
 
 
 class WeChat:
@@ -21,7 +26,8 @@ class WeChat:
             control = get_wechat_window_control()  # 只对任务栏中的微信窗口操作.
             control.SetFocus()
             (control.ToolBarControl(Depth=4)
-             .ButtonControl(Name="关闭", searchDepth=1).Click(simulateMove=False))
+             .ButtonControl(Name="关闭", searchDepth=1).Click(simulateMove=False,
+                                                              waitTime=CLICK_WAIT_TIME))
         except WeChatError as e:
             logger.debug(f"close_window: {e}")
 
@@ -44,7 +50,7 @@ class WeChat:
         search_edit = wechat_control().EditControl(Depth=7, Name="搜索")
         search_edit.Click(simulateMove=False)
         if uiautomation.SetClipboardText(pattern):
-            search_edit.SendKeys("{Ctrl}a{Ctrl}v{Enter}")
+            search_edit.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
         else:
             logger.error(f"search: failed to set clipboard.")
 
@@ -88,12 +94,35 @@ class WeChat:
 
     @classmethod
     @requires_init
-    def send_message(cls, text: str):
+    def send_message(cls, name: str, text: str):
         """
-        向当前聊天窗口发送文字信息, 请注意先调用 search 来定位聊天窗口.
+        向指定聊天对象发送文字消息.
 
         Parameters:
+            name: 聊天对象名称.
             text: 发送的消息.
+
+        Raises:
+            WeChatError: 见 wechat_control 函数.
+        """
+        try:
+            ec = cls.locate_chat(name) # 尝试直接获取窗口.
+        except LookupError:
+            cls.search(name)
+            ec = cls.locate_chat(name)
+        if uiautomation.SetClipboardText(text):
+            ec.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+        else:
+            logger.error(f"send_message: failed to set clipboard.")
+
+    @classmethod
+    def send_img(cls, name: str, img: str | typing.BinaryIO):
+        """
+        向指定聊天对象发送图片.
+
+        Parameters:
+            name: 聊天对象名称.
+            img: 图片本地路径或者图片文件二进制输入流.
 
         Raises:
             WeChatError: 见 wechat_control 函数.

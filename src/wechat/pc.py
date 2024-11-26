@@ -6,14 +6,13 @@ from __future__ import annotations
 import csv
 import ctypes
 import io
-import os
 import subprocess
 import time
 from asyncio import InvalidStateError
 from typing import Self
 import uiautomation
 
-from src.config import logger, requires_init
+CLICK_WAIT_TIME = 0.1
 
 
 class WeChatError(Exception):
@@ -157,7 +156,8 @@ def get_wechat_window_control() -> uiautomation.WindowControl:
     raise WeChatNotInTaskbarError()
 
 
-def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl:
+def wechat_control(taskbar: Taskbar | None = None,
+                   click_wait_time=CLICK_WAIT_TIME) -> uiautomation.WindowControl:
     """
     获取微信主窗口 Control, 而且第一次调用之后会缓存返回值,
     可以多次调用此方法而不会产生多次重复查询操作.
@@ -172,6 +172,7 @@ def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl
     Parameters:
         taskbar: 用于在微信窗口不存在时对任务栏的操作, 如果提供为 None, 则在内部再次创建 Taskbar 对象,
             可能会增加此函数调用的时间.
+        click_wait_time: 每次模拟鼠标点击后等待的时间.
 
     Returns:
         微信主窗口 WindowControl 对象.
@@ -189,10 +190,10 @@ def wechat_control(taskbar: Taskbar | None = None) -> uiautomation.WindowControl
         taskbar = taskbar or Taskbar.get_taskbar()
         icon = taskbar.find_icon("微信")
         if icon:  # 任务栏固定图标中找到了微信.
-            icon.Click(simulateMove=False)
+            icon.Click(simulateMove=False, waitTime=click_wait_time)
         else:  # 在任务栏隐藏图标中寻找微信.
-            with taskbar.with_icon_expand() as tray:
-                click_rst = tray.click("微信")
+            with taskbar.with_icon_expand(click_wait_time) as tray:
+                click_rst = tray.click("微信", click_wait_time)
             if not click_rst:
                 # 没有找到微信图标, 通常不会出现此情况.
                 raise InvalidStateError("Can't open wechat window, unknown error.")
@@ -252,7 +253,7 @@ class Taskbar:
         else:
             return None
 
-    def with_icon_expand(self):
+    def with_icon_expand(self, click_wait_time=CLICK_WAIT_TIME):
         """
         在展开的任务栏托盘中执行操作.
 
@@ -264,7 +265,7 @@ class Taskbar:
 
         在上下文操作中使用额外操作控制任务栏托盘(比如焦点改变导致托盘缩回)可能会导致意料之外的行为.
         """
-        return self.IconExpandedTray(self)
+        return self.IconExpandedTray(self, click_wait_time=click_wait_time)
 
     class IconExpandedTray:
         """
@@ -278,8 +279,9 @@ class Taskbar:
         ```
         """
 
-        def __init__(self, tb: Taskbar):
+        def __init__(self, tb: Taskbar, click_wait_time=CLICK_WAIT_TIME):
             self.tb = tb
+            self.click_wait_time = click_wait_time
             self.tray_control = uiautomation.PaneControl(
                 ClassName="TopLevelWindowForOverflowXamlIsland",
                 Name="系统托盘溢出窗口。",
@@ -289,14 +291,14 @@ class Taskbar:
         def __enter__(self) -> Self:
             if not self.tray_control.Exists(0, 0):
                 # 如果托盘没展开就点击按钮展开.
-                self.tb.expand_button.Click(simulateMove=False)
+                self.tb.expand_button.Click(simulateMove=False, waitTime=self.click_wait_time)
             return self
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             if self.tray_control.Exists(0, 0):
-                self.tb.expand_button.Click(simulateMove=False)
+                self.tb.expand_button.Click(simulateMove=False, waitTime=self.click_wait_time)
 
-        def click(self, name: str) -> bool:
+        def click(self, name: str, wait_time=CLICK_WAIT_TIME) -> bool:
             """
             点击任务栏托盘中的图标.
 
@@ -306,5 +308,5 @@ class Taskbar:
             icon = self.tb.find_icon(name, self.tray_control)
             if not icon:
                 return False
-            icon.Click(simulateMove=False)
+            icon.Click(simulateMove=False, waitTime=wait_time)
             return True
