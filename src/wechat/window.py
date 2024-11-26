@@ -3,9 +3,12 @@
 """
 from __future__ import annotations
 
+import os
+import tempfile
 import typing
 
 import uiautomation
+
 from .pc import get_wechat_window_control, WeChatError, wechat_control, CLICK_WAIT_TIME
 from ..config import logger, requires_init
 
@@ -104,16 +107,21 @@ class WeChat:
 
         Raises:
             WeChatError: 见 wechat_control 函数.
+
+        Returns:
+            是否成功发送消息.
         """
         try:
-            ec = cls.locate_chat(name) # 尝试直接获取窗口.
+            ec = cls.locate_chat(name)  # 尝试直接获取窗口.
         except LookupError:
             cls.search(name)
             ec = cls.locate_chat(name)
         if uiautomation.SetClipboardText(text):
             ec.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            return True
         else:
             logger.error(f"send_message: failed to set clipboard.")
+            return False
 
     @classmethod
     def send_img(cls, name: str, img: str | typing.BinaryIO):
@@ -126,7 +134,40 @@ class WeChat:
 
         Raises:
             WeChatError: 见 wechat_control 函数.
+
+        Returns:
+            是否成功发送图片.
         """
+        try:
+            ec = cls.locate_chat(name)
+        except LookupError:
+            cls.search(name)
+            ec = cls.locate_chat(name)
+
+        if isinstance(img, str):
+            # img 是图片路径.
+            bitmap = uiautomation.Bitmap.FromFile(img)
+        else:
+            # img 是图片输入流.
+            with tempfile.NamedTemporaryFile(
+                    # suffix=".png", # 这句可不加, 就算没有后缀, FromFile 也能读取图片.
+                    delete_on_close=False  # 选择在上下文结束的时候才删除文件, 以便 FromFile 读取.
+            ) as temp_img:
+                temp_img.write(img.read())  # 估计图片文件不会太大, 直接读取然后写应该没什么问题.
+                temp_img.close()
+                # 这个方法不会加载图片文件, 而是创建一个指向图片文件的 bitmap, 这里需要关闭 temp_img 才能读取.
+                lazy_bitmap = uiautomation.Bitmap.FromFile(temp_img.name)
+                # 让 bitmap 加载到内存.
+                bitmap = uiautomation.Bitmap(lazy_bitmap.Width, lazy_bitmap.Height)
+                bitmap.Paste(0, 0, lazy_bitmap)
+                del lazy_bitmap  # 删除原来的指向临时文件的 bitmap 以便上下文管理器删除临时文件.
+
+        if uiautomation.SetClipboardBitmap(bitmap):
+            ec.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            return True
+        else:
+            logger.error(f"send_img: failed to set clipboard.")
+            return False
 
 
 wx = WeChat  # 使用时直接使用 wx.xxx() 即可.

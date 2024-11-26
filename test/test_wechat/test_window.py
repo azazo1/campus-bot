@@ -52,4 +52,11 @@ class TestWechat(unittest.TestCase):
         logger.info("%f sec of %d times", bench_time, repeat_times)
 
     def test_send_message(self):
-        wx.send_message("WechatTest", "HelloWorld1234")
+        self.assertTrue(wx.send_message("WechatTest", "HelloWorld1234"))
+
+    def test_send_img(self):
+        self.assertTrue(wx.send_message("WechatTest", "1"))
+        self.assertTrue(wx.send_img("WechatTest", "assets/ecnu_logo.png"))
+        self.assertTrue(wx.send_message("WechatTest", "2"))
+        with open("assets/ecnu_logo.png", "rb") as f:
+            self.assertTrue(wx.send_img("WechatTest", f))
