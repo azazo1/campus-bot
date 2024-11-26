@@ -22,11 +22,21 @@ class EmailSender:
         self.debug = debug
         self.smtp_obj: Optional[smtplib.SMTP_SSL] = None
 
+    def __del__(self):
+        self.quit()
+
+    def quit(self):
+        """关闭 smtp 会话, 可多次调用而不报错."""
+        if self.smtp_obj:
+            self.smtp_obj.quit()
+            self.smtp_obj = None
+
     def connect(self):
         """
         连接到 SMTP 服务器, 对于 smtp.qq.com, 每次发送邮件都要重新连接.
         """
         try:
+            self.quit()
             self.smtp_obj = smtplib.SMTP_SSL(config.SMTP_HOST, 465)
             if self.debug:
                 self.smtp_obj.set_debuglevel(1)

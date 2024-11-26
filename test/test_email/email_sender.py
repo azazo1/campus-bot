@@ -17,3 +17,8 @@ class TestEmailSender(unittest.TestCase):
                                       "<h1>Test Attachment Content</h1>",
                                       ["test/test_email/ecnu_logo.png",
                                        "test/test_email/ecnu_logo_2.png"])
+
+    def test_send_open_wx_link(self):
+        email_sender = EmailSender()
+        email_sender.connect()
+        email_sender.send_html_email("Open WX", "<a href='weixin://'>打开微信</a>")
