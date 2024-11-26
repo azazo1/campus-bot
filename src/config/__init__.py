@@ -1,10 +1,13 @@
 import logging
+import os
 import sys
 import warnings
 from logging import Logger
 from typing import Optional
 
 import toml
+
+from src import SRC_DIR
 
 LOG_FILE = "ec-plugin.log"
 CONFIG_FILE = "configuration.toml"
@@ -98,6 +101,9 @@ def _init_logger():
 def init():
     global _initialized
     _init_logger()
+    path = os.path.dirname(SRC_DIR)
+    os.chdir(path)  # 移动到代码项目目录, 防止异常执行位置导致的错误.
+    logging.info(f"Change dir to {path}")  # 使用 logging 防止触发 warning.
     config = _read_config_file()
     _load_email(config)
     _initialized = True

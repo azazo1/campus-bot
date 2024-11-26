@@ -94,14 +94,14 @@ def reserve_cursor_focus(func):
     return wrapper
 
 
-@requires_init
-def get_pid_by_name(name: str, ignore_case=False) -> int:
+def get_pid_by_name(name: str) -> int:
     """
     查找并获取进程 pid, 如果有多个同名进程, 只会返回第一个匹配名称的进程 pid.
 
+    始终忽略大小写.
+
     Parameters:
         name: 要查找的进程名称.
-        ignore_case: 查找是否无视大小写.
 
     Returns:
         如果找不到该进程, 返回 -1.
@@ -142,7 +142,7 @@ def get_wechat_window_control() -> uiautomation.WindowControl:
     if _wechat is not None and _wechat.Refind(0, 0, False):
         # 如果微信窗口还存在, 返回缓存的微信窗口.
         return _wechat
-    if get_pid_by_name("Wechat.exe", True) < 0:
+    if get_pid_by_name("Wechat.exe") < 0:
         raise WeChatProcessNotFoundError()
     wechat_main = uiautomation.WindowControl(searchDepth=1, Name="微信",
                                              ClassName="WeChatMainWndForPC")

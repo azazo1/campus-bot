@@ -1,5 +1,6 @@
 import os
 import pickle
+import unittest
 
 from src.config import init, logger
 from src.uia.login import get_login_cache
@@ -20,18 +21,18 @@ def load_cache():
     return login_cache
 
 
-def main():
-    init()
-    login_cache = load_cache()
-    q = LibraryQuery(login_cache)
-    qs = q.quick_select()
-    area_id = qs.get_most_free_seats_area(filter_func=lambda id_: "中文理科图书借阅" in qs.get_by_id(id_)["name"])
-    t = q.query_date(area_id)[0].times[0]
-    logger.info(f"area name: {qs.get_by_id(area_id)['nameMerge']}, timeperiod: {t}")
-    seats = q.query_seats(area_id, t)
-    sf = SeatFinder(seats)
-    logger.info(sf.find_most_isolated())
+class TestLibrarySeat(unittest.TestCase):
+    def setUp(self):
+        init()
+        self.cache = load_cache()
 
-
-if __name__ == '__main__':
-    main()
+    def test_find_most_isolate_seat(self):
+        q = LibraryQuery(self.cache)
+        qs = q.quick_select()
+        area_id = qs.get_most_free_seats_area(
+            filter_func=lambda id_: "中文理科图书借阅" in qs.get_by_id(id_)["name"])
+        t = q.query_date(area_id)[0].times[0]
+        logger.info(f"area name: {qs.get_by_id(area_id)['nameMerge']}, timeperiod: {t}")
+        seats = q.query_seats(area_id, t)
+        sf = SeatFinder(seats)
+        logger.info(sf.find_most_isolated())
