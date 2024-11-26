@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import ctypes
 import io
+import os
 import subprocess
 import time
 from asyncio import InvalidStateError
@@ -111,9 +112,10 @@ def get_pid_by_name(name: str, ignore_case=False) -> int:
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # 这里已经等待了子进程结束.
         stdout, stderr = p.communicate()  # type: bytes, bytes
+        # 正常情况下输出不会包含中文, 格式为 `"WeChat.exe","3856","Console","1","89,164 K"`.
+        # 只有在找不到进程时才会有中文输出 `信息: 没有运行的任务匹配指定标准。`.
         return int(next(csv.reader(io.StringIO(stdout.decode('utf-8'))))[1])
-    except Exception as e:
-        logger.error(f"get_pid_by_name: {e}")
+    except Exception:
         return -1
 
 
