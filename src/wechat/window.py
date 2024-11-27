@@ -3,7 +3,7 @@
 """
 from __future__ import annotations
 
-import os
+import os.path
 import tempfile
 import typing
 
@@ -11,8 +11,13 @@ import uiautomation
 
 from .pc import get_wechat_window_control, WeChatError, wechat_control, CLICK_WAIT_TIME
 from ..config import logger, requires_init
+from ..cpp.copyfile import copyfile
 
 SEND_KEYS_WAIT_TIME = 0.3
+
+
+class FileIsEmptyError(Exception):
+    pass
 
 
 class WeChat:
@@ -96,6 +101,20 @@ class WeChat:
         raise LookupError(f"failed to locate chat: {name}")
 
     @classmethod
+    def switch_to(cls, name: str) -> uiautomation.EditControl:
+        """
+        获取指定聊天对象聊天框的 EditControl, 不需要提前设置焦点到聊天框.
+
+        Raises:
+            WeChatError: 见 wechat_control 函数.
+        """
+        try:
+            return cls.locate_chat(name)  # 尝试直接获取窗口.
+        except LookupError:
+            cls.search(name)
+            return cls.locate_chat(name)
+
+    @classmethod
     @requires_init
     def send_message(cls, name: str, text: str):
         """
@@ -111,19 +130,13 @@ class WeChat:
         Returns:
             是否成功发送消息.
         """
-        try:
-            ec = cls.locate_chat(name)  # 尝试直接获取窗口.
-        except LookupError:
-            cls.search(name)
-            ec = cls.locate_chat(name)
         if uiautomation.SetClipboardText(text):
-            ec.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
-            return True
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
         else:
             logger.error(f"send_message: failed to set clipboard.")
-            return False
 
     @classmethod
+    @requires_init
     def send_img(cls, name: str, img: str | typing.BinaryIO):
         """
         向指定聊天对象发送图片.
@@ -134,15 +147,7 @@ class WeChat:
 
         Raises:
             WeChatError: 见 wechat_control 函数.
-
-        Returns:
-            是否成功发送图片.
         """
-        try:
-            ec = cls.locate_chat(name)
-        except LookupError:
-            cls.search(name)
-            ec = cls.locate_chat(name)
 
         if isinstance(img, str):
             # img 是图片路径.
@@ -163,11 +168,35 @@ class WeChat:
                 del lazy_bitmap  # 删除原来的指向临时文件的 bitmap 以便上下文管理器删除临时文件.
 
         if uiautomation.SetClipboardBitmap(bitmap):
-            ec.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
-            return True
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
         else:
             logger.error(f"send_img: failed to set clipboard.")
-            return False
+
+    @classmethod
+    @requires_init
+    def send_file(cls, name: str, filepath: str):
+        """
+        向指定聊天对象发送文件, 只能发送单个文件, 不能发送目录, 不能发送空文件.
+
+        微信在发送文件出现问题时会弹出一个窗口, 不过不影响接下来的脚本向其发送消息, 可以直接忽视.
+
+        Parameters:
+            name: 聊天对象名称.
+            filepath: 发送文件的路径.
+
+        Raises:
+            WeChatError: 见 wechat_control 函数.
+            FileNotFoundError: 传入的目录表示的文件不存在或者不是文件.
+            FileIsEmptyError: 文件为空, 无法通过微信发送.
+        """
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError(f"failed to open file: {filepath}.")
+        if os.path.getsize(filepath) == 0:
+            raise FileIsEmptyError(f"{filepath} is empty, can't be sent through wechat.")
+        if copyfile(filepath):
+            logger.error(f"send_file: clipboard operation failed.")
+        else:
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
 
 
 wx = WeChat  # 使用时直接使用 wx.xxx() 即可.

@@ -1,3 +1,4 @@
+import os
 import time
 import timeit
 import unittest
@@ -52,11 +53,15 @@ class TestWechat(unittest.TestCase):
         logger.info("%f sec of %d times", bench_time, repeat_times)
 
     def test_send_message(self):
-        self.assertTrue(wx.send_message("WechatTest", "HelloWorld1234"))
+        wx.send_message("WechatTest", "HelloWorld1234")
 
     def test_send_img(self):
-        self.assertTrue(wx.send_message("WechatTest", "1"))
-        self.assertTrue(wx.send_img("WechatTest", "assets/ecnu_logo.png"))
-        self.assertTrue(wx.send_message("WechatTest", "2"))
+        wx.send_message("WechatTest", "1")
+        wx.send_img("WechatTest", "assets/ecnu_logo.png")
+        wx.send_message("WechatTest", "2")
         with open("assets/ecnu_logo.png", "rb") as f:
-            self.assertTrue(wx.send_img("WechatTest", f))
+            wx.send_img("WechatTest", f)
+
+    def test_send_file(self):
+        for _ in range(10):
+            wx.send_file("WechatTest", __file__)
