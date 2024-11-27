@@ -76,7 +76,8 @@ def _load_email(config: dict):
     SMTP_PASS = config["smtp"]["pass"]
     SMTP_USER = config["smtp"]["user"]
     SMTP_FROM = (SMTP_USER.split("@", 1)[0], SMTP_USER)
-    SMTP_TO = (config["smtp"]["to"][0], config["smtp"]["to"][1])
+    to_ = config["smtp"]["to"]
+    SMTP_TO = (to_.split("@", 1)[0], to_)
 
 
 def _init_logger():

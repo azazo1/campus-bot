@@ -11,7 +11,6 @@ import uiautomation
 
 from .pc import get_wechat_window_control, WeChatError, wechat_control, CLICK_WAIT_TIME
 from ..config import logger, requires_init
-from ..cpp.copyfile import copyfile
 
 SEND_KEYS_WAIT_TIME = 0.3
 
@@ -189,6 +188,7 @@ class WeChat:
             FileNotFoundError: 传入的目录表示的文件不存在或者不是文件.
             FileIsEmptyError: 文件为空, 无法通过微信发送.
         """
+        from src.cpp.copyfile import copyfile  # 延迟导入, 不用此功能时, 可以省略编译步骤.
         if not os.path.isfile(filepath):
             raise FileNotFoundError(f"failed to open file: {filepath}.")
         if os.path.getsize(filepath) == 0:

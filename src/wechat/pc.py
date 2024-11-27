@@ -10,6 +10,7 @@ import subprocess
 import time
 from asyncio import InvalidStateError
 from typing import Self
+
 import uiautomation
 
 CLICK_WAIT_TIME = 0.1
@@ -204,7 +205,8 @@ class Taskbar:
     def __init__(self, taskbar_control: uiautomation.Control):
         self.control = taskbar_control  # 任务栏 control.
         self.expand_button = self._get_expand_tray_button()  # '显示隐藏图标' 按钮.
-        assert self.expand_button.Exists(0, 0)
+        if not self.expand_button.Exists(0, 0):
+            raise LookupError("Taskbar not found.")
 
     def _get_expand_tray_button(self) -> uiautomation.ButtonControl:
         return self.control.ButtonControl(
@@ -218,10 +220,20 @@ class Taskbar:
         """
         >>> Taskbar.get_taskbar() is not None
         True
+
+        获取任务栏控件, 如果 Windows 任务栏会自动隐藏,
+        则会使用 Win + B 快捷键唤出任务栏然后得到控件.
+        得到的任务栏控件在任务栏缩回后失效.
         """
-        return cls(uiautomation.ControlFromHandle(
-            ctypes.windll.user32.FindWindowW("Shell_TrayWnd", None)
-        ))
+        try:
+            return cls(uiautomation.ControlFromHandle(
+                ctypes.windll.user32.FindWindowW("Shell_TrayWnd", None)
+            ))
+        except LookupError:
+            uiautomation.GetRootControl().SendKeys("{Win}b")
+            return cls(uiautomation.ControlFromHandle(
+                ctypes.windll.user32.FindWindowW("Shell_TrayWnd", None)
+            ))
 
     def find_icon(
             self, name: str,
@@ -290,13 +302,13 @@ class Taskbar:
 
         def __enter__(self) -> Self:
             if not self.tray_control.Exists(0, 0):
-                # 如果托盘没展开就点击按钮展开.
-                self.tb.expand_button.Click(simulateMove=False, waitTime=self.click_wait_time)
+                # 如果托盘没展开就使用快捷键展开.
+                uiautomation.GetRootControl().SendKeys("{Win}b{Enter}", waitTime=self.click_wait_time)
             return self
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             if self.tray_control.Exists(0, 0):
-                self.tb.expand_button.Click(simulateMove=False, waitTime=self.click_wait_time)
+                uiautomation.GetRootControl().SendKeys("{Win}b{Enter}", waitTime=self.click_wait_time)
 
         def click(self, name: str, wait_time=CLICK_WAIT_TIME) -> bool:
             """
