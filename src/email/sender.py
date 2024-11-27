@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import smtplib
 from email import encoders
@@ -81,12 +83,15 @@ class EmailSender:
 
         self.smtp_obj.sendmail(self.sender, self.receivers, message.as_string())
 
-    def send_attachments(self, subject: str, html_content: str, file_paths: list):
+    def send_html_with_attachments(self, subject: str, html_content: str,
+                                   files: list[str | tuple[str, str]]):
         """
         发送带附件的邮件
         :param subject: 邮件主题
         :param html_content: 邮件正文内容
-        :param file_paths: 附件文件路径，传入一个列表，具体查看 test/test_email.py
+        :param files: 附件文件列表, 列表元素可以为单独的文件路径, 也可以为 (文件路径, 文件 Content-ID) 元组.
+                指定文件的 Content-ID(不需要尖括号), 以便在 html 中引用,
+                可以设置为 None, 则对应附件不会有 Content-ID.
         """
         self.connect()
         message = MIMEMultipart()
@@ -99,7 +104,13 @@ class EmailSender:
         message.attach(html_part)
 
         # 遍历附件列表并附加
-        for file_path in file_paths:
+        for item in files:
+            if isinstance(item, tuple):
+                file_path = item[0]
+                cid = item[1]
+            else:
+                file_path = item
+                cid = None
             try:
                 with open(file_path, "rb") as attachment_file:
                     part = MIMEBase("application", "octet-stream")
@@ -109,6 +120,8 @@ class EmailSender:
                     "Content-Disposition",
                     f"attachment; filename={os.path.basename(file_path)}"  # 仅文件名
                 )
+                if cid is not None:
+                    part.add_header("Content-ID", f"<{cid}>")
                 message.attach(part)
             except FileNotFoundError:
                 raise FileNotFoundError(f"Attachment file {file_path} not found.")

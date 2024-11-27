@@ -3,6 +3,7 @@
 """
 import base64
 import io
+import tempfile
 import traceback
 from typing import Optional, Callable
 
@@ -13,7 +14,7 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from seleniumwire.webdriver import Edge
+from seleniumwire.webdriver import Edge, EdgeOptions
 
 from src.config import logger, requires_init
 
@@ -42,7 +43,7 @@ let qrcode_img = document.querySelector("{QRCODE_IMG}");
 return qrcode_img.src;
 """
 
-# title, img, url.
+# title, img, url; 提供一个可用的 HTML 模板, 用于可用于邮件提醒.
 QRCODE_HTML = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
@@ -140,7 +141,7 @@ def _get_qrcode(driver: Edge, timeout: float) -> tuple[str, str]:
     """
     获取统一登陆界面中的登录二维码.
 
-    :return: (登录二维码扫描出来的网址, 登录二维码 base64 数据(其可直接放入 img 元素的 src 字段))
+    :return: (登录二维码扫描出来的网址(如果扫描失败则为二维码网址), 登录二维码 base64 数据(其可直接放入 img 元素的 src 字段))
     """
     WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, QRCODE_IMG))
@@ -152,17 +153,28 @@ def _get_qrcode(driver: Edge, timeout: float) -> tuple[str, str]:
     try:
         url = decoded[0].data.decode("utf-8")
     except Exception:
+        logger.error("failed to decode qrcode.")
         url = driver.execute_script(EXTRACT_QRCODE_SRC_JS)
     logger.debug("qrcode base64 data: "
                  + img_base64_data[:min(30, len(img_base64_data))] + "...")
-    logger.debug("qrcode content: " + url)
+    logger.debug("qrcode url: " + url)
     return url, img_base64_data
+
+
+def _get_temp_qrcode_file(img_base64_data: str) -> str:
+    """
+    根据 base64 (Data URI Scheme) 创建临时图片文件, 返回临时文件的路径.
+    """
+    with tempfile.NamedTemporaryFile(mode="w+b", suffix=".png", delete=False) as f:
+        f.write(base64.b64decode(img_base64_data.split(",")[1]))
+    return f.name
 
 
 @requires_init
 def get_login_cache(
         timeout: float = 24 * 60,
-        qrcode_html_callback: Callable[[str, str], None] = lambda s1, s2: None
+        qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2: None,
+        headless=False
 ) -> Optional[LoginCache]:
     """
     使用浏览器的进行图书馆的登录操作,
@@ -172,12 +184,21 @@ def get_login_cache(
 
     quickSelect 请求在此处为查询图书馆座位的请求.
 
-    :param timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.
-    :param qrcode_html_callback: 一个函数, 参数 1 为 html 内容的标题, 参数 2 为带有 ECNU 登录二维码的 html 界面, 此函数用于回调提醒用户登录.
+    Parameters:
+        timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.
+        qrcode_callback: 一个函数, 用于回调提醒用户登录.
+            - 参数 1 为 ECNU uia 登录二维码的临时文件路径, 该文件保存在 %TEMP% 目录下, 脚本不对其进行清理操作.
+            - 参数 2 为二维码解析结果, 如果脚本解析二维码失败则此参数是二维码网址.
+            - 参数 3 为是否是因为二维码超时而刷新产生的回调.
+        headless: Edge 浏览器是否隐藏, 测试发现 headless 之后无法正常工作.
 
-    :return: 如果登陆成功, 返回登录缓存; 如果登录失败或超时, 返回 None.
+    Returns:
+        如果登陆成功, 返回登录缓存; 如果登录失败或超时, 返回 None.
     """
-    driver = Edge()
+    options = EdgeOptions()
+    if headless:
+        options.add_argument("--headless")
+    driver = Edge(options=options)
     try:
         driver.maximize_window()
         driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
@@ -186,18 +207,17 @@ def get_login_cache(
         # 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
         _click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
         url, img_base64_data = _get_qrcode(driver, timeout)
-        qrcode_html_callback(FIRST_QRCODE_TITLE,
-                             QRCODE_HTML.format(img=img_base64_data, url=url,
-                                                title=FIRST_QRCODE_TITLE))
+        file = _get_temp_qrcode_file(img_base64_data)
+        qrcode_callback(file, url, False)
 
         logger.info("library site waiting for login...")
         while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
             # 二维码超时刷新.
+            driver.maximize_window()  # 最大化窗口, 增加成功捕获二维码的可能性.
             logger.info("ecnu login qrcode updated.")
             url, img_base64_data = _get_qrcode(driver, timeout)
-            qrcode_html_callback(UPDATED_QRCODE_TITLE,
-                                 QRCODE_HTML.format(img=img_base64_data, url=url,
-                                                    title=UPDATED_QRCODE_TITLE))
+            file = _get_temp_qrcode_file(img_base64_data)
+            qrcode_callback(file, url, False)
 
         # 等待图书馆网页加载完成.
         # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.

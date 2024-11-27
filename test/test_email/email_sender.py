@@ -13,9 +13,9 @@ class TestEmailSender(unittest.TestCase):
         email_sender.connect()
         email_sender.send_text_email("Test Text Subject", "Hello, World!")
         email_sender.send_html_email("Test Html Subject", "<h1>Hello, World!</h1>")
-        email_sender.send_attachments("Test Attachment Subject",
-                                      "<h1>Test Attachment Content</h1>",
-                                      ["assets/ecnu_logo.png", "assets/ecnu_logo.png"])
+        email_sender.send_html_with_attachments("Test Attachment Subject",
+                                                "<h1>Test Attachment Content</h1>",
+                                                ["assets/ecnu_logo.png", "assets/ecnu_logo.png"])
 
     def test_send_open_wx_link(self):
         email_sender = EmailSender()
