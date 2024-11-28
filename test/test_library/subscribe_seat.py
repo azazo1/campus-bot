@@ -39,4 +39,13 @@ class TestSubscribe(unittest.TestCase):
         time_period = day.times[-1]
         sf = SeatFinder(self.q.query_seats(area_id, time_period))
         seat_id = sf.find_most_isolated().id
-        logger.info(self.s.confirm_subscribe(seat_id, time_period))
+        rst = self.s.confirm(seat_id, time_period)
+        logger.info(rst)
+        return rst
+
+    def test_query_subscribes(self):
+        logger.info(self.s.query_subscribes())
+
+    def test_cancel(self):
+        rst = self.test_confirm_subscribe()
+        self.s.cancel(rst["id"])

@@ -16,7 +16,7 @@ class Subscribe(Request):
     def __init__(self, cache: LoginCache):
         super().__init__(cache)
 
-    def confirm_subscribe(self, seat_id: int, time_period: TimePeriod):
+    def confirm(self, seat_id: int, time_period: TimePeriod):
         """
         预约图书馆座位.
 
@@ -53,3 +53,41 @@ class Subscribe(Request):
             })}
         )
         return self.check_login_and_extract_data(response, 1)
+
+    def query_subscribes(self) -> list | None:
+        """
+        查询当前预约情况.
+
+        url: https://seat-lib.ecnu.edu.cn/api/index/subscribe
+
+        method: POST
+
+        response(json): 见 assets/subscribe.json
+        """
+        response = self.post("https://seat-lib.ecnu.edu.cn/api/index/subscribe")
+        return self.check_login_and_extract_data(response, 1).get("data")
+
+    def cancel(self, subscribe_id: int) -> None:
+        """
+        取消特定的预约.
+
+        url: https://seat-lib.ecnu.edu.cn/api/Space/cancel
+
+        method: POST
+
+        payload(json): {
+            "id": int, // 预约 id.
+        }
+
+        response(json): {
+            "code": 1,
+            "msg": "取消成功"
+        }
+
+        不报错即为成功执行.
+        """
+        response = self.post(
+            "https://seat-lib.ecnu.edu.cn/api/Space/cancel",
+            payload={"id": subscribe_id}
+        )
+        self.check_login_and_extract_data(response, 1)
