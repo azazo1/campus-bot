@@ -8,7 +8,6 @@ import ctypes
 import io
 import subprocess
 import time
-from asyncio import InvalidStateError
 from typing import Self
 
 import uiautomation
@@ -19,6 +18,8 @@ CLICK_WAIT_TIME = 0.1
 class WeChatError(Exception):
     pass
 
+class InvalidStateError(Exception):
+    pass
 
 class WeChatNotInTaskbarError(WeChatError):
     """微信窗口不在任务栏"""

@@ -30,7 +30,7 @@ class TestLibrarySeat(unittest.TestCase):
         q = LibraryQuery(self.cache)
         qs = q.quick_select()
         area_id = qs.get_most_free_seats_area(
-            filter_func=lambda id_: "中文理科图书借阅" in qs.get_by_id(id_)["name"])
+            filter_func=lambda area: "中文理科图书借阅" in area["name"])
         t = q.query_date(area_id)[0].times[0]
         logger.info(f"area name: {qs.get_by_id(area_id)['nameMerge']}, timeperiod: {t}")
         seats = q.query_seats(area_id, t)

@@ -60,6 +60,11 @@ QRCODE_HTML = """<!DOCTYPE html>
 UPDATED_QRCODE_TITLE = "ECNU Login QRCode Updated"
 FIRST_QRCODE_TITLE = "Login to ECNU"
 
+class LoginError(Exception):
+    """登录缓存失效时触发."""
+
+    def __init__(self, msg: str = ""):
+        super().__init__(msg)
 
 class LoginCache:
     """图书馆 quickSelect api 的必须登录缓存."""
@@ -173,7 +178,7 @@ def _get_temp_qrcode_file(img_base64_data: str) -> str:
 @requires_init
 def get_login_cache(
         timeout: float = 24 * 60,
-        qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2: None,
+        qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None,
         headless=False
 ) -> Optional[LoginCache]:
     """
@@ -183,6 +188,8 @@ def get_login_cache(
     如果登录失败或者超时抑或者是没有检测到 quickSelect 请求, 返回 None.
 
     quickSelect 请求在此处为查询图书馆座位的请求.
+
+    todo 暂时只支持了图书馆内登录缓存的获取, 其他 ecnu 功能正在开发.
 
     Parameters:
         timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.

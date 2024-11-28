@@ -105,8 +105,10 @@ class SeatFinder:
             if not seat.is_available():
                 continue
             # 找距离所有非空闲座位最远的.
-            distance = sum([seat.distance_to(seat1) for seat1 in self.seats if not seat1.is_available()])
-            if distance > max_distance:
+            distance = sum([
+                seat.distance_to(seat1) for seat1 in self.seats if not seat1.is_available()
+            ])
+            if target_seat is None or distance > max_distance:
                 max_distance = distance
                 target_seat = seat
         return target_seat

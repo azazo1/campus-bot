@@ -1,25 +1,21 @@
-import json
-from typing import Optional, Callable
+from __future__ import annotations
 
-import requests
+from typing import Optional, Callable
 from requests import Response
 
+from . import Request
 from .date import Day, TimePeriod
-from src.uia.login import LoginCache
+from src.uia.login import LoginCache, LoginError
 from .seat import Seat
-
-
-class LoginError(Exception):
-    """登录缓存失效时触发."""
-
-    def __init__(self, msg: str = ""):
-        super().__init__(msg)
+from ..config import logger, requires_init
 
 
 class QuickSelect:
     """
     表示 quickSelect 请求返回的 json 中的 data 字段.
     包含可选 预约日期(day), 校区(premises), 楼层(storey), 区域(area) 的速览信息.
+
+    见 assets/quick_select_example.json 查看各个种类的 json 对象拥有的字段.
     """
 
     def __init__(self, data: dict):
@@ -81,7 +77,7 @@ class QuickSelect:
         """
         return self.storage.get(id_)
 
-    def get_free_seats_num(self):
+    def get_free_seats_num(self) -> int:
         """
         获取可预约座位的总数.
         """
@@ -90,12 +86,28 @@ class QuickSelect:
             sum_ += int(self.get_by_id(area_id)["free_num"])
         return sum_
 
-    def get_most_free_seats_area(self, filter_func: Callable[[int], bool] = lambda *a: True):
+    def get_area_by(self, func: Callable[[dict], bool]) -> int:
+        """
+        获取第一个符合 func 要求的区域 id
+
+        Parameters:
+            func: 回调筛选函数, 参数是区域的 dict, 返回值为区域是否符合要求.
+
+        Returns:
+            第一个符合要求的区域 id, 如果没有符合要求的区域, 返回 -1.
+        """
+        for area_id in self.areas:
+            if func(self.get_by_id(area_id)):
+                return area_id
+        return -1
+
+    def get_most_free_seats_area(
+            self, filter_func: Callable[[dict], bool] = lambda *a: True) -> int:
         """
         获取拥有最多空闲座位的区域.
 
         Parameters:
-            filter_func: 用于筛选区域, 参数为区域的 id, 只有让 filter_func 返回 True 的区域才会被选择.
+            filter_func: 用于筛选区域, 参数为区域的 dict, 只有让 filter_func 返回 True 的区域才会被选择.
 
         Returns:
             - 返回空闲座位最多的区域的 id.
@@ -104,7 +116,7 @@ class QuickSelect:
         max_num = 0
         max_id = -1
         for area_id in self.areas:
-            if not filter_func(area_id):
+            if not filter_func(self.get_by_id(area_id)):
                 continue
             n = self.get_by_id(area_id)["free_num"]
             if n > max_num:
@@ -113,56 +125,22 @@ class QuickSelect:
         return max_id
 
 
-class LibraryQuery:
+class LibraryQuery(Request):
     def __init__(self, cache: LoginCache):
-        self.cache = cache
-
-    def _post(self, url: str, headers: dict = None, payload: dict = None):
-        """
-        提交 POST 请求并自动附加以下内容:
-
-        headers:
-            Authorization: ...
-            Content-Type: application/json
-
-        cookies: ...
-
-        payload(json): {
-            "authorization": ...,
-        }
-        """
-        headers_ = {"Authorization": self.cache.authorization, "Content-Type": "application/json"}
-        if headers is not None:
-            headers_.update(headers)
-        data_ = {'authorization': self.cache.authorization}
-        if payload is not None:
-            data_.update(payload)
-        return requests.post(
-            url,
-            headers=headers_,
-            json=payload,  # 这里不能选择 data 的形参, 因为 data 形参对应的是 x-www-form-urlencodeed.
-            cookies=self.cache.cookies,
-        )
-
-    def _get(self, url: str):
-        return requests.get(
-            url,
-            headers={"Authorization": self.cache.authorization},
-            cookies=self.cache.cookies,
-        )
+        super().__init__(cache)
 
     @classmethod
+    @requires_init
     def check_login_and_extract_data(cls, response: Response,
-                                     expected_code: int = 0) -> dict | list:
-        if response.status_code != 200:
-            raise LoginError(f"response status code: {response.status_code}.")
-        if "json" not in response.headers["content-type"]:
-            raise LoginError("request was redirected, which means you didn't login.")
-        ret = json.loads(response.text)
-        if ret["code"] != expected_code:
-            raise LoginError(f"result code: {ret['code']}, {ret}.")
+                                     expected_code: int = 0,
+                                     raise_exception=True) -> dict | list:
+        ret = super().check_login_and_extract_data(response, expected_code, raise_exception)
         rst = ret.get("data")
-        assert rst is not None, "error in response, no data."
+        if rst is None:
+            if raise_exception:
+                raise KeyError("error in response, no data.")
+            else:
+                logger.error("check_login_and_extract_data: error in response, no data.")
         return rst
 
     def quick_select(self) -> QuickSelect:
@@ -186,7 +164,7 @@ class LibraryQuery:
             "2", ...
           ],
           "premisesIds": [ // 校区 id.
-            "1" //
+            "1"
           ],
           "noiseId": "..." // 座位噪声水平.
         }
@@ -195,7 +173,7 @@ class LibraryQuery:
             - 如果请求成功, 返回 QuickSelect 对象.
             - 如果出现了登录信息失效.
         """
-        response = self._post(
+        response = self.post(
             "https://seat-lib.ecnu.edu.cn/reserve/index/quickSelect",
             payload={"id": "1", "members": 0}
         )
@@ -221,12 +199,12 @@ class LibraryQuery:
           "endTime": "[%H:%M]", // 从可选时间段中选取的结束时间.
         }
         """
-        response = self._post("https://seat-lib.ecnu.edu.cn/api/Seat/seat",
-                              payload={"area": area_id,
-                                       "segment": time_period["id"],
-                                       "day": time_period.day["day"],
-                                       "startTime": time_period["start"],
-                                       "endTime": time_period["end"], })
+        response = self.post("https://seat-lib.ecnu.edu.cn/api/Seat/seat",
+                             payload={"area": area_id,
+                                      "segment": time_period["id"],
+                                      "day": time_period.day["day"],
+                                      "startTime": time_period["start"],
+                                      "endTime": time_period["end"], })
         ret_data = self.check_login_and_extract_data(response, expected_code=1)
         return Seat.from_response(ret_data)
 
@@ -243,7 +221,7 @@ class LibraryQuery:
           "build_id": "[int]",
         }
         """
-        response = self._post(
+        response = self.post(
             "https://seat-lib.ecnu.edu.cn/api/Seat/date",
             payload={"build_id": f"{area_id}"}
         )
