@@ -16,7 +16,7 @@ class TestWechat(unittest.TestCase):
         wx.close_window()
 
     def test_search(self):
-        wx.search("WechatTest")
+        wx.search("文件传输助手")
 
     def test_bench_get_pid_by_name(self):
         timeit.main(['-s', 'from src.wechat.pc import get_pid_by_name',
@@ -41,27 +41,27 @@ class TestWechat(unittest.TestCase):
 
         以上情况可结合测试.
         """
-        ec = wx.locate_chat("WechatTest")
+        ec = wx.locate_chat("文件传输助手")
         vp = ec.GetValuePattern()
         self.assertEqual(vp.Value, "asdf")
 
     def test_bench_locate_chat(self):
-        wx.search("WechatTest")
+        wx.search("文件传输助手")
         repeat_times = 10
-        bench_time = timeit.timeit(lambda: wx.locate_chat("WechatTest") and wx.close_window(),
+        bench_time = timeit.timeit(lambda: wx.locate_chat("文件传输助手") and wx.close_window(),
                                    number=repeat_times)
         logger.info("%f sec of %d times", bench_time, repeat_times)
 
     def test_send_message(self):
-        wx.send_message("WechatTest", "HelloWorld1234")
+        wx.send_message("文件传输助手", "HelloWorld1234")
 
     def test_send_img(self):
-        wx.send_message("WechatTest", "1")
-        wx.send_img("WechatTest", "assets/ecnu_logo.png")
-        wx.send_message("WechatTest", "2")
+        wx.send_message("文件传输助手", "1")
+        wx.send_img("文件传输助手", "assets/ecnu_logo.png")
+        wx.send_message("文件传输助手", "2")
         with open("assets/ecnu_logo.png", "rb") as f:
-            wx.send_img("WechatTest", f)
+            wx.send_img("文件传输助手", f)
 
     def test_send_file(self):
         for _ in range(10):
-            wx.send_file("WechatTest", __file__)
+            wx.send_file("文件传输助手", __file__)

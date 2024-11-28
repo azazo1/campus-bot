@@ -33,7 +33,7 @@ class LoginTest(unittest.TestCase):
             self.fail()
 
     def test_wechat_notice_login(self):
-        chat = "WechatTest"
+        chat = "文件传输助手"
 
         def cb(file, url, _):
             wx.send_message(chat, "请点击链接或者扫描二维码登录 ECNU 统一认证")
