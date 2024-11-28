@@ -1,6 +1,8 @@
 """
 座位对象表示, 见 query_seats_example.json 文件.
 """
+from __future__ import annotations
+
 import math
 from typing import Self
 
