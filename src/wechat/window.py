@@ -9,10 +9,8 @@ import typing
 
 import uiautomation
 
-from .pc import get_wechat_window_control, WeChatError, wechat_control, CLICK_WAIT_TIME
+from .pc import get_wechat_window_control, WeChatError, wechat_control, WAIT_TIME
 from ..config import logger, requires_init
-
-SEND_KEYS_WAIT_TIME = 0.3
 
 
 class FileIsEmptyError(Exception):
@@ -20,6 +18,21 @@ class FileIsEmptyError(Exception):
 
 
 class WeChat:
+    @classmethod
+    def open_window(cls):
+        """
+        唤出微信窗口并微信控件.
+
+        这一步通常不是必须的, 此类下所有方法进行对微信的操作都会自动按需唤出微信窗口.
+
+        Raises:
+            WeChatError: 见 wechat_control
+
+        Returns:
+            微信控件.
+        """
+        return wechat_control()
+
     @classmethod
     @requires_init
     def close_window(cls):
@@ -34,7 +47,7 @@ class WeChat:
             control.SetFocus()
             (control.ToolBarControl(Depth=4)
              .ButtonControl(Name="关闭", searchDepth=1).Click(simulateMove=False,
-                                                              waitTime=CLICK_WAIT_TIME))
+                                                              waitTime=WAIT_TIME))
         except WeChatError as e:
             logger.debug(f"close_window: {e}")
 
@@ -55,9 +68,9 @@ class WeChat:
         """
         wechat_control().SetFocus()
         search_edit = wechat_control().EditControl(Depth=7, Name="搜索")
-        search_edit.Click(simulateMove=False)
+        search_edit.Click(simulateMove=False, waitTime=WAIT_TIME)
         if uiautomation.SetClipboardText(pattern):
-            search_edit.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            search_edit.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
             logger.error(f"search: failed to set clipboard.")
 
@@ -130,7 +143,7 @@ class WeChat:
             是否成功发送消息.
         """
         if uiautomation.SetClipboardText(text):
-            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
             logger.error(f"send_message: failed to set clipboard.")
 
@@ -167,7 +180,7 @@ class WeChat:
                 del lazy_bitmap  # 删除原来的指向临时文件的 bitmap 以便上下文管理器删除临时文件.
 
         if uiautomation.SetClipboardBitmap(bitmap):
-            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
             logger.error(f"send_img: failed to set clipboard.")
 
@@ -196,7 +209,7 @@ class WeChat:
         if copyfile(filepath):
             logger.error(f"send_file: clipboard operation failed.")
         else:
-            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=SEND_KEYS_WAIT_TIME)
+            cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
 
 
 wx = WeChat  # 使用时直接使用 wx.xxx() 即可.

@@ -1,5 +1,3 @@
-import os
-import time
 import timeit
 import unittest
 
@@ -12,8 +10,10 @@ class TestWechat(unittest.TestCase):
     def setUp(self):
         init()  # 自动移动到项目目录.
 
-    def test_close_window(self):
-        wx.close_window()
+    def test_open_close_window(self):
+        for _ in range(3):
+            wx.open_window()
+            wx.close_window()
 
     def test_search(self):
         wx.search("文件传输助手")
