@@ -105,6 +105,8 @@ def _init_logger():
 
 def init():
     global _initialized
+    if _initialized:
+        return
     path = os.path.dirname(SRC_DIR)
     os.chdir(path)  # 移动到代码项目目录, 防止异常执行位置导致的错误.
     _init_logger()
