@@ -1,7 +1,7 @@
 import unittest
 
 from src.config import init
-from src.wechat.pc import Taskbar, wechat_control
+from src.wechat.pc import Taskbar, wechat_control, ReserveCursorFocus
 
 
 class TestPC(unittest.TestCase):
@@ -10,8 +10,9 @@ class TestPC(unittest.TestCase):
 
     def test_click_tray_icon(self):
         tb = Taskbar.get_taskbar()
-        with tb.with_icon_expand() as tray:
-            tray.click("微信")
+        with ReserveCursorFocus(reserve_cursor=False):
+            with tb.with_icon_expand() as tray:
+                self.assertTrue(tray.click("微信"))
 
     def test_wx(self):
         wechat_control()

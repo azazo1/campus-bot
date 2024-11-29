@@ -62,7 +62,14 @@ class ReserveCursorFocus:
     >>> reserve.restore() # 此行可调用多次.
     """
 
-    def __init__(self):
+    def __init__(self, reserve_cursor=True, reserve_focus=True):
+        """
+        Parameters:
+            reserve_cursor: 是否保存鼠标位置.
+            reserve_focus: 是否保存焦点.
+        """
+        self.reserve_cursor = reserve_cursor
+        self.reserve_focus = reserve_focus
         self.cursor: tuple[int, int] = (-1, -1)
         self.focus: int = -1
         self.save()
@@ -72,8 +79,10 @@ class ReserveCursorFocus:
         self.focus = uiautomation.GetForegroundWindow()
 
     def restore(self):
-        uiautomation.ControlFromHandle(self.focus).SetFocus()
-        uiautomation.SetCursorPos(*self.cursor)
+        if self.reserve_focus:
+            uiautomation.ControlFromHandle(self.focus).SetFocus()
+        if self.reserve_cursor:
+            uiautomation.SetCursorPos(*self.cursor)
         time.sleep(0.1)  # 确保焦点已经完全转移, 否则再次调用 GetForegroundWindow 会返回 None.
 
     def __enter__(self):
@@ -320,10 +329,8 @@ class Taskbar:
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             if self.tray_control.Exists(0, 0):
-                control = uiautomation.GetRootControl()
-                control.SetFocus()
-                control.SendKeys(
-                    "{Win}b{Enter}",
+                uiautomation.GetRootControl().SendKeys(
+                    "{Win}t",  # 在托盘打开的时候按 win b 无效.
                     waitTime=self.wait_time
                 )
 

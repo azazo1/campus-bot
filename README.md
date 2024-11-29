@@ -49,3 +49,6 @@ pip install -r requirements.txt
 
 使用 python 运行 [copyfile_setup.py](src/cpp/copyfile_build/copyfile_setup.py), 来编译 C++ 代码,
 不编译则无法使用脚本向微信发送文件功能.
+
+[//]: # (todo 更加细节的文档, 比如 SMTP 具体配置操作, webdriver 喂奶配置教程)
+[//]: # (todo 添加编写自己的 plugins 的教程.)

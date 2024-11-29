@@ -1,5 +1,7 @@
 """
 图书馆座位提醒模块.
+
+todo 研讨间预约, 不要放在 library 下, 放在 studyroom 包, https://studyroom.ecnu.edu.cn/
 """
 from __future__ import annotations
 import json

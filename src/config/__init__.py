@@ -43,13 +43,15 @@ class WrapLogger:
     def wrap(self, l: Logger):
         self._logger = l
 
-    @requires_init
     def __getattr__(self, item):
+        if not _logger_initialized:
+            warnings.warn("logger not initialized.")
         # getattribute 魔法方法在任何时候都会触发, 而不是找不到时才触发.
         return self._logger.__getattribute__(item)
 
 
 logger = WrapLogger()
+_logger_initialized = False
 _initialized = False
 
 
@@ -81,6 +83,7 @@ def _load_email(config: dict):
 
 
 def _init_logger():
+    global _logger_initialized
     logger_ = logging.Logger("ec-plugin")
     logger_.setLevel(logging.DEBUG)
 
@@ -92,19 +95,20 @@ def _init_logger():
     logger_.addHandler(stream_handler)
 
     file_handler = logging.FileHandler(LOG_FILE)
-    file_handler.setLevel(logging.WARN)
+    file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     logger_.addHandler(file_handler)
 
     logger.wrap(logger_)
+    _logger_initialized = True
 
 
 def init():
     global _initialized
-    _init_logger()
     path = os.path.dirname(SRC_DIR)
     os.chdir(path)  # 移动到代码项目目录, 防止异常执行位置导致的错误.
-    logging.info(f"Change dir to {path}")  # 使用 logging 防止触发 warning.
+    _init_logger()
+    logger.info(f"Change dir to {path}")
     config = _read_config_file()
     _load_email(config)
     _initialized = True
