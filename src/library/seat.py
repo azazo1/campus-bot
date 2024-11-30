@@ -6,8 +6,6 @@ from __future__ import annotations
 import math
 from typing import Self
 
-from src.config import requires_init, logger
-
 
 class Seat:
     """
@@ -79,7 +77,6 @@ class SeatFinder:
         self.seats = seats
         self._check_seats()
 
-    @requires_init
     def _check_seats(self):
         """
         检查自身的座位是否都是来自图书馆同一区域.
@@ -89,8 +86,7 @@ class SeatFinder:
             if area_id is None:
                 area_id = seat.area_id
             elif area_id != seat.area_id:
-                logger.warn("seat-finder: seats are not from the same area.")
-                return
+                raise ValueError("seat-finder: seats are not from the same area.")
 
     def find_most_isolated(self) -> Seat | None:
         """

@@ -5,9 +5,8 @@ from requests import Response
 
 from . import Request
 from .date import Day, TimePeriod
-from src.uia.login import LoginCache, LoginError
+from src.uia.login import LoginCache
 from .seat import Seat
-from ..config import logger, requires_init
 
 
 class QuickSelect:
@@ -130,17 +129,12 @@ class LibraryQuery(Request):
         super().__init__(cache)
 
     @classmethod
-    @requires_init
     def check_login_and_extract_data(cls, response: Response,
-                                     expected_code: int = 0,
-                                     raise_exception=True) -> dict | list:
-        ret = super().check_login_and_extract_data(response, expected_code, raise_exception)
+                                     expected_code: int = 0) -> dict | list:
+        ret = super().check_login_and_extract_data(response, expected_code)
         rst = ret.get("data")
         if rst is None:
-            if raise_exception:
-                raise KeyError("error in response, no data.")
-            else:
-                logger.error("check_login_and_extract_data: error in response, no data.")
+            raise KeyError("error in response, no data.")
         return rst
 
     def quick_select(self) -> QuickSelect:
