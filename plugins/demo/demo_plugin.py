@@ -12,19 +12,19 @@ from src.plugin import (register_plugin, PluginConfig, Routine,
                  routine=Routine.SECONDLY)
 class DemoPlugin(Plugin):
     def on_load(self, ctx: PluginContext):
-        logger.info("demo plugin known it is loaded.")
+        ctx.get_logger().info("demo plugin known it is loaded.")
 
     def on_unload(self, ctx: PluginContext):
         pass
 
     def on_register(self, ctx: PluginContext):
-        logger.info("demo plugin known it is registered.")
+        ctx.get_logger().info("demo plugin known it is registered.")
 
     def on_config_load(self, ctx: PluginContext, cfg: PluginConfig):
-        logger.info("demo cfg: {}".format(cfg.serialize()))
+        ctx.get_logger().info("demo cfg: {}".format(cfg.serialize()))
 
     def on_config_save(self, ctx: PluginContext, cfg: PluginConfig):
         pass
 
     def on_routine(self, ctx: PluginContext):
-        logger.info("demo plugin routine.")
+        ctx.get_logger().info("demo plugin routine.")

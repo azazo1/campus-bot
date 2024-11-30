@@ -2,14 +2,12 @@ import logging
 import os
 import sys
 import warnings
-from logging import Logger
-from typing import Optional
-
 import toml
 
 from src import SRC_DIR
 
 LOG_FILE = "ec-plugin.log"
+LOGGER_NAME = "ec-plugin"
 CONFIG_FILE = "configuration.toml"
 
 SMTP_HOST = ""
@@ -34,23 +32,14 @@ def requires_init(f):
     return wrapper
 
 
-class WrapLogger:
-    """Logger 包装类, 和 Logger 类方法相同, 只不过可以有未初始化状态, 解决提前导入的 logger 变量为 None 的情况."""
-
-    def __init__(self):
-        self._logger: Optional[Logger] = None
-
-    def wrap(self, l: Logger):
-        self._logger = l
-
-    def __getattr__(self, item):
+class MyLogger(logging.Logger):
+    def handle(self, record):
         if not _logger_initialized:
-            warnings.warn("logger not initialized.")
-        # getattribute 魔法方法在任何时候都会触发, 而不是找不到时才触发.
-        return self._logger.__getattribute__(item)
+            warnings.warn("project logger not initialized.")
+        super().handle(record)
 
 
-logger = WrapLogger()
+logger = MyLogger(LOGGER_NAME)
 _logger_initialized = False
 _initialized = False
 
@@ -84,22 +73,20 @@ def _load_email(config: dict):
 
 def _init_logger():
     global _logger_initialized
-    logger_ = logging.Logger("ec-plugin")
-    logger_.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(logging.DEBUG)
     stream_handler.setFormatter(formatter)
-    logger_.addHandler(stream_handler)
+    logger.addHandler(stream_handler)
 
     file_handler = logging.FileHandler(LOG_FILE)
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
-    logger_.addHandler(file_handler)
+    logger.addHandler(file_handler)
 
-    logger.wrap(logger_)
     _logger_initialized = True
 
 

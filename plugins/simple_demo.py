@@ -1,4 +1,3 @@
-from src.config import logger
 from src.plugin import register_plugin, Plugin, PluginContext, PluginConfig, TextItem
 
 
@@ -6,4 +5,4 @@ from src.plugin import register_plugin, Plugin, PluginContext, PluginConfig, Tex
                  configuration=PluginConfig().add(TextItem("username", "admin")))
 class SimpleDemoPlugin(Plugin):
     def on_register(self, ctx: PluginContext):
-        logger.info("simple demo known it's registered")
+        ctx.get_logger().info("simple demo known it's registered")

@@ -51,6 +51,12 @@ class Register:
     @classmethod
     @requires_init
     def add_registry(cls, registry: Registry):
+        if not (registry.name and all(c.isalpha() or c == "_" for c in registry.name)):
+            raise ValueError(
+                f"Invalid plugin name: "
+                f"{repr(registry.name)}, "
+                f"plugin name must consist of English letters or underscores."
+            )
         if registry.name in cls.__registered_plugins.keys():
             raise ValueError(f"plugin: {registry.name} already registered.")
         registry.instance = registry.plugin_cls()
@@ -82,9 +88,12 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         routine: Routine = None,
 ):
     """
-    注册插件, 只有被注册的插件才会被加载.
+    注册插件, 只有被注册的插件才会可能被加载, 被装饰的类将会注册到 PluginLoader 中准备加载.
 
-    被装饰的类将会注册到 PluginLoader 中准备加载.
+    Parameters:
+        name: 插件名称, 只能是英文字母和下划线的排列组合.
+        configuration: 插件需要的配置项集合, 注册后插件可获取项目读取到的对应格式的配置数据.
+        routine: 插件期望的回调周期.
 
     Example:
 
