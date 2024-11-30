@@ -3,11 +3,15 @@
 """
 from __future__ import annotations
 
+import datetime
 import os
 import sys
+import traceback
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional
+
+import toml
 
 from src import SRC_DIR_PATH
 from src.config import requires_init, logger
@@ -36,7 +40,8 @@ class Registry:
         self.plugin_cls = plugin_cls
         self.config = plugin_config
         self.routine = routine
-        self.instance = None  # 类型应为 self.plugin_cls
+        self.last_routine = datetime.datetime.fromtimestamp(0)
+        self.instance: Plugin = None  # 类型应为 self.plugin_cls
         self.ctx = PluginContext(name)
 
 
@@ -49,12 +54,21 @@ class Register:
         if registry.name in cls.__registered_plugins.keys():
             raise ValueError(f"plugin: {registry.name} already registered.")
         registry.instance = registry.plugin_cls()
-        registry.instance.on_register(registry.ctx)
         cls.__registered_plugins.update({registry.name: registry})
         logger.info(f"plugin: {registry.name} registered.")
+        registry.instance.on_register(registry.ctx)
+
+    @classmethod
+    def plugin_registry(cls, plugin_name: str):
+        return cls.__registered_plugins[plugin_name]
+
+    @classmethod
+    def iter_registry(cls):
+        return iter(cls.__registered_plugins.values())
 
 
 class Routine(Enum):
+    SECONDLY = auto()
     MINUTELY = auto()
     HOURLY = auto()
     DAILY = auto()
@@ -125,16 +139,18 @@ class Plugin:
     def on_config_load(self, ctx: PluginContext, cfg: PluginConfig):
         """
         事件函数, 插件的配置被加载时触发, 插件需要在此处读取加载的配置.
+        如果插件配置在注册时指定为 None 则此方法不会被触发, 同理于 on_config_save.
 
         Parameters:
             ctx: 插件上下文.
-            cfg: 插件配置, 和注册时的插件配置不是同一个对象, 但是配置项相同,
-                 且拥有加载得到的值.
+            cfg: 插件配置, 和注册时的插件配置不是同一个对象, 但是配置项相同, 且拥有加载得到的值.
+                 不过可能由于插件配置未保存过, 无法从文件中加载, 当前值仍然为默认值.
         """
 
     def on_config_save(self, ctx: PluginContext, cfg: PluginConfig):
         """
         事件函数, 插件的配置被保存时触发.
+        如果插件配置注册时指定为 None, 则此方法不会被触发.
 
         Parameters:
             ctx: 插件上下文.
@@ -144,6 +160,10 @@ class Plugin:
     def on_routine(self, ctx: PluginContext):
         """
         事件函数, 插件注册时指定的 routine 对应的时间到达时触发.
+
+        请不要在此处长时间阻塞, 否则其他插件将无法得到回调.
+
+        此回调方法不是在整点进行回调, 而是间隔时间大于指定时间后的一个时刻进行回调, 不能以此进行计时.
         """
 
 
@@ -174,11 +194,12 @@ def _import_module(module_name: str, file_path: str | Path):
 
 
 class PluginLoader:
-    IMPORT_PATH = [
+    __IMPORT_PATH = [
         SRC_DIR_PATH.parent / "src" / "plugin" / "intrinsic",  # 内部模块在先.
         SRC_DIR_PATH.parent / "plugins",
     ]
-    IMPORTED_MODULE = {}
+    __IMPORTED_MODULE = {}  # 用于防止二次导入, 不是实例变量, 因为如果 PluginLoader 被销毁重建, 插件不用再注册.
+    __CONFIG_FILE_PATH = SRC_DIR_PATH.parent / "plugin_config.toml"
     __instantiated = False
 
     def __new__(cls, *args, **kwargs):
@@ -190,18 +211,18 @@ class PluginLoader:
         return obj
 
     def __init__(self):
-        pass
+        self.loaded_plugins: set[str] = set()
 
     @requires_init
     def import_plugins(self):
         """
-        导入插件, 只会导入选定路径下的首层模块, 模块内调用 register_plugin 来注册模块.
+        导入并注册插件, 只会导入选定路径下的首层模块, 模块内调用 register_plugin 来注册模块.
 
         _import_module 不支持模块结构, 如果被导入模块内部如果要导入子模块, 必须使用相对于选定路径的方式来导入.
 
         被导入的插件不能延迟导入其他模块, 必须在其被导入的时候导入其他所需的模块, 否则可能出现找不到指定模块的错误.
         """
-        for path in self.IMPORT_PATH:
+        for path in self.__IMPORT_PATH:
             for s in os.listdir(path):
                 s = Path(path, s)
                 sub_init = s.joinpath("__init__.py")
@@ -210,15 +231,101 @@ class PluginLoader:
                     p = sub_init
                 elif s.is_file() and s.suffix == ".py" and s.stem != "__init__":
                     n = s.stem
-                    p = path
+                    p = s
                 else:
                     continue
-                if n not in self.IMPORTED_MODULE.keys():
+                if n not in self.__IMPORTED_MODULE.keys():
                     # 不导入重复的模块.
                     with TempSysPath(path):  # 为了插件能导入子模块.
-                        self.IMPORTED_MODULE[n] = _import_module(n, p)
+                        self.__IMPORTED_MODULE[n] = _import_module(n, p)
                     logger.info(f"module: {n} imported.")
                 else:
                     logger.info(f"module: "
                                 f"{n} not imported for "
                                 f"its name duplicates with previous one.")
+
+    @classmethod
+    def _check_time_reached(cls, now: datetime.datetime,
+                            last_routine: datetime.datetime,
+                            routine: Routine):
+        if routine == Routine.SECONDLY:
+            if now - last_routine > datetime.timedelta(seconds=1):
+                return True
+        elif routine == Routine.MINUTELY:
+            if now - last_routine > datetime.timedelta(minutes=1):
+                return True
+        elif routine == Routine.HOURLY:
+            if now - last_routine > datetime.timedelta(hours=1):
+                return True
+        elif routine == Routine.DAILY:
+            if now - last_routine > datetime.timedelta(days=1):
+                return True
+        elif routine == Routine.WEEKLY:
+            if now - last_routine > datetime.timedelta(weeks=1):
+                return True
+        return False
+
+    def load_config(self):
+        logger.info("plugin_loader: loading config.")
+        if os.path.exists(self.__CONFIG_FILE_PATH):
+            with open(self.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+                serializable = toml.load(f)
+        else:
+            serializable = {}
+
+        for registry in Register.iter_registry():
+            if registry.config is None:
+                continue
+            serializable_part = serializable.get(registry.name)  # 通过插件名称获取对应的配置部分.
+            if serializable_part is not None:
+                registry.config.from_serializable(serializable_part)
+            registry.instance.on_config_load(registry.ctx, registry.config.clone())
+
+    def save_config(self):
+        logger.info("plugin_loader: saving config.")
+        serializable = {}
+        for registry in Register.iter_registry():
+            if registry.config is None:
+                continue
+            serializable[registry.name] = registry.config.serialize()
+            registry.instance.on_config_save(registry.ctx, registry.config.clone())
+        with open(self.__CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            toml.dump(serializable, f)
+
+    def poll(self):
+        """轮询调用各个插件"""
+        now = datetime.datetime.now()
+        for plugin_name in self.loaded_plugins:
+            registry = Register.plugin_registry(plugin_name)
+            if self._check_time_reached(now, registry.last_routine, registry.routine):
+                registry.last_routine = now
+                try:
+                    registry.instance.on_routine(registry.ctx)
+                except Exception:
+                    logger.error(f"Error when calling {plugin_name} routine:\n"
+                                 f"{traceback.format_exc()}")
+
+    def load_plugin(self, plugin_name: str):
+        """已经注册的插件需要被加载才能执行 on_routine 等内容"""
+        logger.info(f"plugin_loader: loading plugin {plugin_name}.")
+        registry = Register.plugin_registry(plugin_name)
+        registry.instance.on_load(registry.ctx)
+        self.loaded_plugins.add(plugin_name)
+
+    def unload_plugin(self, plugin_name: str):
+        """停止插件运行, 可能源自用户意愿和插件加载器停止运行."""
+        logger.info(f"plugin_loader: unloading plugin {plugin_name}.")
+        registry = Register.plugin_registry(plugin_name)
+        registry.instance.on_unload(registry.ctx)
+        self.loaded_plugins.remove(plugin_name)
+
+    def __del__(self):
+        self.__instantiated = False
+        self.close()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        for plugin_name in self.loaded_plugins.copy():
+            self.unload_plugin(plugin_name)

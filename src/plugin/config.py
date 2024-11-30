@@ -23,7 +23,6 @@ from __future__ import annotations
 import datetime
 from abc import abstractmethod, ABC
 from copy import deepcopy
-from functools import reduce
 from typing import Callable, TypeVar, Generic
 
 
@@ -85,7 +84,7 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
 
     def default_value(self) -> T:
         """获取此配置项的默认值"""
-        return self._default_value
+        return deepcopy(self._default_value)
 
     def current_value(self) -> T:
         """返回配置项当前的值"""
@@ -94,7 +93,7 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
     def set_value(self, value: T):
         """设置配置项当前数据"""
         if not self.check_type(value):
-            raise ValueError(f"invalid value type: {type(value)}.")
+            raise ValueError(f"invalid value type: {type(value)} from {repr(value)}.")
         if not self.assert_value(value):
             raise ValueError(f"value didn't pass the value assertion: {repr(value)}")
         # noinspection PyAttributeOutsideInit
@@ -188,6 +187,14 @@ class PluginConfig:
         """把所有配置项转换成可序列化内容"""
         return {k: v.serialize() for k, v in self._items.items()}
 
+    def from_serializable(self, obj: dict):
+        """从可序列化对象中恢复所有配置项的值"""
+        for k in obj.keys():
+            self._items[k].from_serializable(obj[k])
+
     def clone(self) -> PluginConfig:
         """返回自身拷贝"""
         return deepcopy(self)
+
+    def __iter__(self):
+        return iter(self._items.values())

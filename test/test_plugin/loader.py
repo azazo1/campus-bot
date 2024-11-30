@@ -1,3 +1,4 @@
+import time
 import unittest
 
 from src.config import init
@@ -11,3 +12,14 @@ class TestLoader(unittest.TestCase):
 
     def test_register_plugin(self):
         self.loader.import_plugins()
+
+    def test_loader_all(self):
+        self.loader.import_plugins()
+        self.loader.load_config()
+        self.loader.load_plugin("demo")
+        self.loader.load_plugin("simple_demo")
+        for i in range(3):
+            self.loader.poll()
+            time.sleep(1)
+        self.loader.save_config()
+        self.loader.close()
