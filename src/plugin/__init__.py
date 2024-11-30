@@ -200,6 +200,7 @@ class PluginLoader:
     ]
     __IMPORTED_MODULE = {}  # 用于防止二次导入, 不是实例变量, 因为如果 PluginLoader 被销毁重建, 插件不用再注册.
     __CONFIG_FILE_PATH = SRC_DIR_PATH.parent / "plugin_config.toml"
+    CONFIG_HEAD_LINE = "# comments will be removed, don't write comments here."
     __instantiated = False
 
     def __new__(cls, *args, **kwargs):
@@ -290,6 +291,7 @@ class PluginLoader:
             serializable[registry.name] = registry.config.serialize()
             registry.instance.on_config_save(registry.ctx, registry.config.clone())
         with open(self.__CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(self.CONFIG_HEAD_LINE + "\n")
             toml.dump(serializable, f)
 
     def poll(self):
@@ -306,14 +308,18 @@ class PluginLoader:
                                  f"{traceback.format_exc()}")
 
     def load_plugin(self, plugin_name: str):
-        """已经注册的插件需要被加载才能执行 on_routine 等内容"""
+        """已经注册的插件需要被加载才能执行 on_routine 等内容, 跳过已经加载的插件"""
+        if plugin_name in self.loaded_plugins:
+            return
         logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         registry = Register.plugin_registry(plugin_name)
         registry.instance.on_load(registry.ctx)
         self.loaded_plugins.add(plugin_name)
 
     def unload_plugin(self, plugin_name: str):
-        """停止插件运行, 可能源自用户意愿和插件加载器停止运行."""
+        """停止插件运行, 可能源自用户意愿和插件加载器停止运行, 如果插件没被加载, 不做任何事"""
+        if plugin_name not in self.loaded_plugins:
+            return
         logger.info(f"plugin_loader: unloading plugin {plugin_name}.")
         registry = Register.plugin_registry(plugin_name)
         registry.instance.on_unload(registry.ctx)
