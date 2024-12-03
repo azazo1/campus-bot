@@ -5,7 +5,7 @@ from requests import Response
 
 from . import Request
 from .date import Day, TimePeriod
-from src.uia.login import LoginCache
+from src.uia.login import LibCache
 from .seat import Seat
 
 
@@ -125,7 +125,7 @@ class QuickSelect:
 
 
 class LibraryQuery(Request):
-    def __init__(self, cache: LoginCache):
+    def __init__(self, cache: LibCache):
         super().__init__(cache)
 
     @classmethod

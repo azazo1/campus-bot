@@ -40,7 +40,7 @@ class LoginTest(unittest.TestCase):
             wx.send_message(chat, url)
             wx.send_img(chat, file)
 
-        login_cache = get_login_cache(timeout=60, qrcode_callback=cb, headless=False)
+        login_cache = get_login_cache(timeout=60, qrcode_callback=cb)
         if login_cache:
             wx.send_message(chat, "登录成功")
         else:

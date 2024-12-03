@@ -7,13 +7,13 @@ https://seat-lib.ecnu.edu.cn/api/Seat/confirm 执行预约操作, 此操作涉�
 from __future__ import annotations
 
 from src.library.date import TimePeriod
-from src.uia.login import LoginCache
+from src.uia.login import LibCache
 from . import Request
 from .encrypt import Encryptor
 
 
 class Subscribe(Request):
-    def __init__(self, cache: LoginCache):
+    def __init__(self, cache: LibCache):
         super().__init__(cache)
 
     def confirm(self, seat_id: int, time_period: TimePeriod):

@@ -6,7 +6,7 @@ from src.config import init, logger
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder
 from src.library.subscribe import Subscribe
-from src.uia.login import get_login_cache
+from src.uia.login import get_login_cache, LibCache
 
 LOGIN_CACHE_FILE = "login-cache.pickle"
 
@@ -26,8 +26,8 @@ class TestSubscribe(unittest.TestCase):
     def setUp(self):
         init()
         self.cache = load_cache()
-        self.q = LibraryQuery(self.cache)
-        self.s = Subscribe(self.cache)
+        self.q = LibraryQuery(self.cache.get_cache(LibCache))
+        self.s = Subscribe(self.cache.get_cache(LibCache))
 
     def test_confirm_subscribe(self):
         """成功运行此测试后, 请检查自己的图书馆内的预约, 及时取消防止造成违规"""

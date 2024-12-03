@@ -3,7 +3,7 @@ import pickle
 import unittest
 
 from src.config import init, logger
-from src.uia.login import get_login_cache
+from src.uia.login import get_login_cache, LibCache
 from src.library.query import LibraryQuery
 
 LOGIN_CACHE_FILE = "login-cache.pickle"
@@ -24,7 +24,7 @@ class LibraryQueryTest(unittest.TestCase):
     def setUp(self):
         init()
         self.cache = load_cache()
-        self.q = LibraryQuery(self.cache)
+        self.q = LibraryQuery(self.cache.get_cache(LibCache))
 
     def test_quick_select(self):
         qs = self.q.quick_select()

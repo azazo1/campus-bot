@@ -3,7 +3,7 @@ import pickle
 import unittest
 
 from src.config import init, logger
-from src.uia.login import get_login_cache
+from src.uia.login import get_login_cache, LibCache
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder
 
@@ -27,7 +27,7 @@ class TestLibrarySeat(unittest.TestCase):
         self.cache = load_cache()
 
     def test_find_most_isolate_seat(self):
-        q = LibraryQuery(self.cache)
+        q = LibraryQuery(self.cache.get_cache(LibCache))
         qs = q.quick_select()
         area_id = qs.get_most_free_seats_area(
             filter_func=lambda area: "中文理科图书借阅" in area["name"])

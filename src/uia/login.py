@@ -1,11 +1,13 @@
 """
 半自动化登录 ecnu 统一认证.
 """
+from __future__ import annotations
+
 import base64
 import io
 import tempfile
 import traceback
-from typing import Optional, Callable
+from typing import Optional, Callable, Sequence, Any, Self, Type, TypeVar
 
 from pyzbar import pyzbar
 from PIL import Image
@@ -60,13 +62,15 @@ QRCODE_HTML = """<!DOCTYPE html>
 UPDATED_QRCODE_TITLE = "ECNU Login QRCode Updated"
 FIRST_QRCODE_TITLE = "Login to ECNU"
 
+
 class LoginError(Exception):
     """登录缓存失效时触发."""
 
     def __init__(self, msg: str = ""):
         super().__init__(msg)
 
-class LoginCache:
+
+class LibCache:
     """图书馆 quickSelect api 的必须登录缓存."""
 
     def __init__(self, authorization: str, cookies: dict):
@@ -82,10 +86,79 @@ class LoginCache:
         auth_display = textwrap.shorten(self.authorization, width=10)
         cookies_display = {k: textwrap.shorten(v, 10) for k, v in self.cookies.items()}
 
-        return f"LoginCache(authorization='{auth_display}', cookies={cookies_display})"
+        return f"LibCache(authorization='{auth_display}', cookies={cookies_display})"
+
+    @classmethod
+    def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
+        """从 WebDriver 中获取 LibCache, 需要 driver 处于 ECNU 登录状态"""
+        driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
+        # 等待图书馆网页加载完成.
+        logger.debug("library site waiting for page loading...")
+        WebDriverWait(driver, timeout).until(
+            EC.url_matches("https://seat-lib.ecnu.edu.cn/")
+        )
+        # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.
+        click_element(driver, EXPAND_ALL_SPAN, timeout)
+        click_element(driver, PUTUO_DISTRICT_SPAN, timeout)
+
+        req = driver.wait_for_request("quickSelect", 60)
+        c = {}
+        for cookie in driver.get_cookies():
+            c[cookie["name"]] = cookie["value"]
+        logger.info("got library login cache.")
+        return cls(req.headers["authorization"], c)
 
 
-def _click_element(driver: Edge, selector: str, timeout: float = 10):
+class PortalCache:
+    def __init__(self, authorization: str):
+        self.authorization = authorization
+
+    def __repr__(self):
+        auth_display = textwrap.shorten(self.authorization, width=10)
+        return f"PortalCache(authorization='{auth_display}')"
+
+    @classmethod
+    def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
+        driver.get("https://portal2023.ecnu.edu.cn/portal/home")
+        logger.debug("portal site waiting for page loading...")
+        WebDriverWait(driver, timeout).until(
+            EC.url_matches("https://portal2023.ecnu.edu.cn/")
+        )
+        req = driver.wait_for_request("calendar-new", 60)
+        logger.info(f"got portal login cache.")
+        return cls(req.headers['Authorization'])
+
+
+T = TypeVar("T")
+
+
+class LoginCache:
+    def __init__(self):
+        self.cache = {}
+
+    def add_cache(self, cache: T):
+        """将某个类型的 Cache 添加进集合, 同一类型的 Cache 会相互挤占"""
+        self.cache[type(cache)] = cache
+
+    def get_cache(self, cache_cls: Type[T]) -> T | None:
+        """
+        通过类型来获取对应的 Cache.
+
+        Parameters:
+            cache_cls: Cache 对象的类型.
+
+        Examples:
+
+        >>> LoginCache().get_cache(PortalCache)
+        None
+        """
+        return self.cache.get(cache_cls)
+
+    def __repr__(self):
+        return f"LoginCache{list(self.cache.values())}"
+
+
+def click_element(driver: Edge, selector: str, timeout: float = 10):
     """
     在 driver 中点击元素, 如果元素不存在, 那么等待一段时间.
     :param driver: driver.
@@ -101,7 +174,7 @@ def _click_element(driver: Edge, selector: str, timeout: float = 10):
     """)
 
 
-def _attribute_changes(css_selector: str, attribute_name: str):
+def attribute_changes(css_selector: str, attribute_name: str):
     """
     Expected Conditions 方法.
 
@@ -135,7 +208,7 @@ def _wait_qrcode_update_or_login(driver: Edge, timeout: float) -> bool:
     login_url = "https://seat-lib.ecnu.edu.cn"
     WebDriverWait(driver, timeout).until(
         EC.any_of(
-            _attribute_changes(QRCODE_IMG, "src"),
+            attribute_changes(QRCODE_IMG, "src"),
             EC.url_matches(login_url),
         )
     )
@@ -175,72 +248,68 @@ def _get_temp_qrcode_file(img_base64_data: str) -> str:
     return f.name
 
 
+def get_default_grabbers():
+    return [LibCache.grab_from_driver, PortalCache.grab_from_driver]
+
+
 @requires_init
 def get_login_cache(
+        cache_grabbers: Sequence[Callable[[Edge], Any]] = tuple(get_default_grabbers()),
         timeout: float = 24 * 60,
         qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None,
-        headless=False
 ) -> Optional[LoginCache]:
     """
     使用浏览器的进行图书馆的登录操作,
     并获取相应的登录缓存, 以供爬虫部分使用.
 
-    如果登录失败或者超时抑或者是没有检测到 quickSelect 请求, 返回 None.
-
-    quickSelect 请求在此处为查询图书馆座位的请求.
+    如果登录失败或者超时, 返回 None.
 
     todo 暂时只支持了图书馆内登录缓存的获取, 其他 ecnu 功能正在开发.
 
     Parameters:
+        cache_grabbers: 一系列函数, 用于从 seleniumwire 的 EdgeDriver 中获取 Cache 对象.
+            这些函数满足: 第一个参数, 是 Edge 的 WebDriver 对象, 返回值为元组 (Cache 名称, Cache 对象).
+            可以使用 get_default_grabbers() + [...] 的方式填充参数.
         timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.
         qrcode_callback: 一个函数, 用于回调提醒用户登录.
             - 参数 1 为 ECNU uia 登录二维码的临时文件路径, 该文件保存在 %TEMP% 目录下, 脚本不对其进行清理操作.
             - 参数 2 为二维码解析结果, 如果脚本解析二维码失败则此参数是二维码网址.
             - 参数 3 为是否是因为二维码超时而刷新产生的回调.
-        headless: Edge 浏览器是否隐藏, 测试发现 headless 之后无法正常工作.
 
     Returns:
         如果登陆成功, 返回登录缓存; 如果登录失败或超时, 返回 None.
     """
-    options = EdgeOptions()
-    if headless:
-        options.add_argument("--headless")
-    driver = Edge(options=options)
+    driver = Edge()
     try:
         driver.maximize_window()
-        driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
+        driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")
         # 此时重定向至 ecnu 统一认证界面, 用户登录后返回至 seat-lib.ecnu.edu.cn 域名下.
 
         # 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
-        _click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
+        click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
         url, img_base64_data = _get_qrcode(driver, timeout)
         file = _get_temp_qrcode_file(img_base64_data)
         qrcode_callback(file, url, False)
 
-        logger.info("library site waiting for login...")
+        logger.info("uia waiting for login.")
         while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
             # 二维码超时刷新.
             driver.maximize_window()  # 最大化窗口, 增加成功捕获二维码的可能性.
-            logger.info("ecnu login qrcode updated.")
+            logger.info("uia login qrcode updated.")
             url, img_base64_data = _get_qrcode(driver, timeout)
             file = _get_temp_qrcode_file(img_base64_data)
             qrcode_callback(file, url, False)
 
-        # 等待图书馆网页加载完成.
-        # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.
-        logger.debug("library site waiting for page loading...")
-        _click_element(driver, EXPAND_ALL_SPAN, timeout)
-        _click_element(driver, PUTUO_DISTRICT_SPAN, timeout)
-
-        # 提取 quickSelect 请求的请求头和 cookies.
-        req = driver.wait_for_request("quickSelect", 60)
-        c = {}
-        for cookie in driver.get_cookies():
-            c[cookie["name"]] = cookie["value"]
-        logger.info("got library login cache.")
-        cache = LoginCache(req.headers["authorization"], c)
-        logger.debug(f"login cache: {cache}")
-        return cache
+        # 提取 cache.
+        login_cache = LoginCache()
+        for cache_grabber in cache_grabbers:
+            try:
+                cache = cache_grabber(driver)
+                login_cache.add_cache(cache)
+            except Exception as e:
+                logger.error(f"Exception during grabbing cache: {type(e)}, {e}")
+        logger.debug(f"login cache: {login_cache}")
+        return login_cache
     except TimeoutException:
         logger.error(traceback.format_exc())
     finally:

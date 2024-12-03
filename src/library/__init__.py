@@ -8,7 +8,7 @@ import json
 import requests
 from requests import Response
 
-from src.uia.login import LoginCache, LoginError
+from src.uia.login import LoginError, LibCache
 
 
 class Request:
@@ -18,7 +18,7 @@ class Request:
     Examples:
         >>> # 以下代码仅供参考, 无法运行.
         >>> class A(Request):
-        ...     def __init__(self, cache: LoginCache):
+        ...     def __init__(self, cache: LibCache):
         ...         super().__init__(cache)
         ...     def do_something(self):
         ...         self.post(...)
@@ -28,7 +28,7 @@ class Request:
 
     """
 
-    def __init__(self, cache: LoginCache):
+    def __init__(self, cache: LibCache):
         self.cache = cache
 
     @classmethod

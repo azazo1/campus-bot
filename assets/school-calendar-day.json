@@ -1,0 +1,1355 @@
+{
+    "data": {
+        "schoolCalendarDay": [
+            {
+                "createTime": 1730100971,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1753372800,
+                "id": "577fd621-4c31-4330-9fa6-affbe02b80f4",
+                "memo": "暑期短学期结束",
+                "sign": null,
+                "signEndTime": 1753432846,
+                "signStartTime": 1753429246,
+                "updateTime": 1730101260,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100948,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1751212800,
+                "id": "07d8e43e-7cea-4985-9655-eda5d8924029",
+                "memo": "暑期短学期开始",
+                "sign": null,
+                "signEndTime": 1751272819,
+                "signStartTime": 1751269219,
+                "updateTime": 1730101241,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100921,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1748620800,
+                "id": "d4247593-7a83-4e28-ba43-cf490e930728",
+                "memo": "端午节",
+                "sign": null,
+                "signEndTime": 1748676915,
+                "signStartTime": 1748676915,
+                "updateTime": 1730100921,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100903,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1746028800,
+                "id": "7849a42c-41c5-4901-a9e4-16f143bf83c4",
+                "memo": "劳动节",
+                "sign": null,
+                "signEndTime": 1746084893,
+                "signStartTime": 1746084893,
+                "updateTime": 1730100903,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100879,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1745337600,
+                "id": "7149e96e-4142-46ea-ad7c-f564faafa466",
+                "memo": "校园主题活动日（不停课）",
+                "sign": null,
+                "signEndTime": 1745397269,
+                "signStartTime": 1745393669,
+                "updateTime": 1730100879,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100860,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1743696000,
+                "id": "fd493644-31ae-4662-925b-1d7298a0c381",
+                "memo": "清明节",
+                "sign": null,
+                "signEndTime": 1743752048,
+                "signStartTime": 1743752048,
+                "updateTime": 1730100860,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100718,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1741363200,
+                "id": "85ffeac9-d712-4d88-a513-f8b1c854bfc0",
+                "memo": "妇女节",
+                "sign": null,
+                "signEndTime": 1741422796,
+                "signStartTime": 1741419196,
+                "updateTime": 1730100826,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100698,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1750348800,
+                "id": "a449cecf-952b-4595-ac23-8fc69c1f9c72",
+                "memo": "教学周结束",
+                "sign": null,
+                "signEndTime": 1750408290,
+                "signStartTime": 1750404690,
+                "updateTime": 1730100698,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100656,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1739721600,
+                "id": "7e3e64fc-0d12-4e0e-87df-7dd156feefe9",
+                "memo": "正式上课，教学周开始",
+                "sign": null,
+                "signEndTime": 1739781065,
+                "signStartTime": 1739777465,
+                "updateTime": 1730100678,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100600,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1739635200,
+                "id": "6d90a8bf-fdb1-4b01-9d10-cb691c77f166",
+                "memo": "缴费、注册（含辅修专业）",
+                "sign": null,
+                "signEndTime": 1708072184,
+                "signStartTime": 1708068584,
+                "updateTime": 1730100600,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100600,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1739635200,
+                "id": "d087b45c-b6c2-4d7a-aaa8-c0fa2020d417",
+                "memo": "缴费、注册（含辅修专业）",
+                "sign": null,
+                "signEndTime": 1739694584,
+                "signStartTime": 1739690984,
+                "updateTime": 1730100600,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100577,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1739548800,
+                "id": "a81ac2af-268f-4a47-8f91-330032206702",
+                "memo": "寒假结束",
+                "sign": null,
+                "signEndTime": 1739608164,
+                "signStartTime": 1739604564,
+                "updateTime": 1730100577,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100551,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1738080000,
+                "id": "23ece739-8f4b-4afe-b251-999012dd0962",
+                "memo": "春节",
+                "sign": null,
+                "signEndTime": 1738139342,
+                "signStartTime": 1738135742,
+                "updateTime": 1730100551,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100533,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1737302400,
+                "id": "a8b55aab-df7d-4d5f-87b4-1ce8d2b7fbc9",
+                "memo": "寒假开始",
+                "sign": null,
+                "signEndTime": 1737361722,
+                "signStartTime": 1737358122,
+                "updateTime": 1730100533,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100511,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1737043200,
+                "id": "f1b19578-7684-4c00-9937-90b64a41e276",
+                "memo": "考试周结束",
+                "sign": null,
+                "signEndTime": 1737102497,
+                "signStartTime": 1737098897,
+                "updateTime": 1730100511,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100492,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1736697600,
+                "id": "3d2d10f6-7b3e-4118-bed7-ab8045ab8e5e",
+                "memo": "考试周开始",
+                "sign": null,
+                "signEndTime": 1736756879,
+                "signStartTime": 1736753279,
+                "updateTime": 1730100492,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100473,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1735660800,
+                "id": "8fa40744-d803-43cf-833f-7dafd01ce972",
+                "memo": "元旦",
+                "sign": null,
+                "signEndTime": 1735720054,
+                "signStartTime": 1735716454,
+                "updateTime": 1730100473,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100449,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1736438400,
+                "id": "c616806b-607b-4dc1-bc7a-c80ce3f12a20",
+                "memo": "教学周结束",
+                "sign": null,
+                "signEndTime": 1736497631,
+                "signStartTime": 1736494031,
+                "updateTime": 1730100449,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100379,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1729612800,
+                "id": "377b802c-e13e-4e18-8975-7358750c7752",
+                "memo": "运动会、校园主题活动日",
+                "sign": null,
+                "signEndTime": 1729671974,
+                "signStartTime": 1729668374,
+                "updateTime": 1730100379,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100370,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1729526400,
+                "id": "b4c5f97e-af68-4a3b-9722-d6d9897d9ab6",
+                "memo": "运动会",
+                "sign": null,
+                "signEndTime": 1729585564,
+                "signStartTime": 1729581964,
+                "updateTime": 1730100370,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100359,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1728403200,
+                "id": "c0fb3e49-0cc1-4083-88fb-00acd55b5725",
+                "memo": "校庆学术报告活动（下午）",
+                "sign": null,
+                "signEndTime": 1728462349,
+                "signStartTime": 1728458749,
+                "updateTime": 1730100359,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100331,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1727712000,
+                "id": "db64ca07-5081-44fd-89c1-7e4a5acf20b4",
+                "memo": "国庆节",
+                "sign": null,
+                "signEndTime": 1727771125,
+                "signStartTime": 1727767525,
+                "updateTime": 1730100331,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100317,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1726502400,
+                "id": "0ba2ca0d-4955-4cb7-a6c7-2523228bc8d5",
+                "memo": "中秋节",
+                "sign": null,
+                "signEndTime": 1726561511,
+                "signStartTime": 1726557911,
+                "updateTime": 1730100317,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100305,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1726416000,
+                "id": "b74e2790-1a01-450d-b71c-8a96273c11eb",
+                "memo": "正式上课（新生）",
+                "sign": null,
+                "signEndTime": 1726475098,
+                "signStartTime": 1726471498,
+                "updateTime": 1730100305,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100291,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1725811200,
+                "id": "190ecad0-9463-4294-a662-fa412f07520d",
+                "memo": "教学周开始，正式上课（老生）",
+                "sign": null,
+                "signEndTime": 1725870391,
+                "signStartTime": 1725866791,
+                "updateTime": 1730100410,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730100272,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1725724800,
+                "id": "7dbdc55a-3cd2-4abc-89b7-4b9f780f073d",
+                "memo": "老生缴费、注册（含辅修专业）",
+                "sign": null,
+                "signEndTime": 1725784708,
+                "signStartTime": 1725781108,
+                "updateTime": 1730101127,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730099877,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1725552000,
+                "id": "9daca7a2-0d0f-4b2c-bb04-66a6d7bd4b42",
+                "memo": "研究生新生报到",
+                "sign": null,
+                "signEndTime": 1725610670,
+                "signStartTime": 1725607070,
+                "updateTime": 1730099877,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1730099861,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1724947200,
+                "id": "005ee570-38be-4055-b3f4-2095a482f8eb",
+                "memo": "本科生新生报道",
+                "sign": null,
+                "signEndTime": 1725002246,
+                "signStartTime": 1725002246,
+                "updateTime": 1730099861,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1703650104,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1705852800,
+                "id": "2bec39c9-292d-4665-95b1-dc749fce2e87",
+                "memo": "寒假开始",
+                "sign": null,
+                "signEndTime": 1705852800,
+                "signStartTime": 1705852800,
+                "updateTime": 1703650104,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1703644280,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1705766400,
+                "id": "1b4a3bfe-853b-4f2d-9967-a0be7342f43f",
+                "memo": "寒假预备周结束",
+                "sign": null,
+                "signEndTime": 1705766400,
+                "signStartTime": 1705766400,
+                "updateTime": 1703644280,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889514,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1725638400,
+                "id": "ce0b6b6e-0e5b-49ad-9a2d-b9f0d862d72b",
+                "memo": "暑假结束",
+                "sign": null,
+                "signEndTime": 1725638400,
+                "signStartTime": 1725638400,
+                "updateTime": 1693889514,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889502,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1721923200,
+                "id": "2e63c57c-2769-491d-8899-3cfe52654c19",
+                "memo": "本科暑期短学期结束",
+                "sign": null,
+                "signEndTime": 1721923200,
+                "signStartTime": 1721923200,
+                "updateTime": 1693889502,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889489,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1719763200,
+                "id": "938429d0-c842-417d-8571-92098487be17",
+                "memo": "暑假开始、本科暑期短学期开始",
+                "sign": null,
+                "signEndTime": 1719763200,
+                "signStartTime": 1719763200,
+                "updateTime": 1693889489,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889480,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1719504000,
+                "id": "f3a41097-cfc9-4b55-abda-199566029275",
+                "memo": "考试周结束",
+                "sign": null,
+                "signEndTime": 1719504000,
+                "signStartTime": 1719504000,
+                "updateTime": 1693889480,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889471,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1719158400,
+                "id": "d50dc694-ca36-4cd5-b049-e5babe976f3a",
+                "memo": "考试周开始",
+                "sign": null,
+                "signEndTime": 1719158400,
+                "signStartTime": 1719158400,
+                "updateTime": 1693889471,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889460,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1718899200,
+                "id": "7d152f26-0558-4f72-a0c7-008b44d89921",
+                "memo": "教学周结束",
+                "sign": null,
+                "signEndTime": 1718899200,
+                "signStartTime": 1718899200,
+                "updateTime": 1693889460,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889448,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1717948800,
+                "id": "abb1ac0f-d219-4ad1-9001-69a34ab314f4",
+                "memo": "端午节",
+                "sign": null,
+                "signEndTime": 1717948800,
+                "signStartTime": 1717948800,
+                "updateTime": 1693889448,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889436,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1714492800,
+                "id": "fe31ef23-b223-4190-ba85-c9895c8a8cd4",
+                "memo": "劳动节",
+                "sign": null,
+                "signEndTime": 1714492800,
+                "signStartTime": 1714492800,
+                "updateTime": 1693889436,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889423,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1713283200,
+                "id": "d4baf8b3-9c91-43f0-8896-50ef57d65eb8",
+                "memo": "校园主题活动日（不停课）",
+                "sign": null,
+                "signEndTime": 1713283200,
+                "signStartTime": 1713283200,
+                "updateTime": 1693889423,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889413,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1712160000,
+                "id": "52eb5243-ca65-4c7f-8609-a647b0b83470",
+                "memo": "清明节",
+                "sign": null,
+                "signEndTime": 1712160000,
+                "signStartTime": 1712160000,
+                "updateTime": 1693889413,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889401,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1709827200,
+                "id": "33e7d98c-fd89-4c68-994e-1448402ad462",
+                "memo": "妇女节",
+                "sign": null,
+                "signEndTime": 1709827200,
+                "signStartTime": 1709827200,
+                "updateTime": 1693889401,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889390,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1708876800,
+                "id": "ea6a35f2-4175-4d86-bff3-ff734b4efed4",
+                "memo": "教学周开始",
+                "sign": null,
+                "signEndTime": 1708876800,
+                "signStartTime": 1708876800,
+                "updateTime": 1693889390,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889381,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1708790400,
+                "id": "66456a05-dbf5-4252-9c4d-99dcc7b9b716",
+                "memo": "缴费、注册（含辅修专业",
+                "sign": null,
+                "signEndTime": 1708790400,
+                "signStartTime": 1708790400,
+                "updateTime": 1693889381,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889373,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1708704000,
+                "id": "a83eeec5-90ab-41c6-893e-df4987aaaf0d",
+                "memo": "寒假结束",
+                "sign": null,
+                "signEndTime": 1708704000,
+                "signStartTime": 1708704000,
+                "updateTime": 1693889373,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889354,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1707494400,
+                "id": "bf096e50-a0da-484c-9151-38fbb093ca5a",
+                "memo": "春节",
+                "sign": null,
+                "signEndTime": 1707494400,
+                "signStartTime": 1707494400,
+                "updateTime": 1693889354,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889341,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1705248000,
+                "id": "263522dd-9674-42c6-afa2-8bb134109900",
+                "memo": "寒假预备周开始",
+                "sign": null,
+                "signEndTime": 1705248000,
+                "signStartTime": 1705248000,
+                "updateTime": 1703644242,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889327,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1704988800,
+                "id": "316ec4c8-ed24-47d4-bd67-7a214566952b",
+                "memo": "考试周结束",
+                "sign": null,
+                "signEndTime": 1704988800,
+                "signStartTime": 1704988800,
+                "updateTime": 1693889327,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889319,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1704643200,
+                "id": "e7a687f1-f56f-4713-a097-09432bb6e231",
+                "memo": "考试周开始",
+                "sign": null,
+                "signEndTime": 1704643200,
+                "signStartTime": 1704643200,
+                "updateTime": 1693889319,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889305,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1704384000,
+                "id": "69dd879e-d30a-439a-add3-8f9711fbd9f4",
+                "memo": "教学周结束",
+                "sign": null,
+                "signEndTime": 1704384000,
+                "signStartTime": 1704384000,
+                "updateTime": 1693889305,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889291,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1704038400,
+                "id": "48d2f979-81d4-4ec2-8899-4f03b2c82f55",
+                "memo": "元旦",
+                "sign": null,
+                "signEndTime": 1704038400,
+                "signStartTime": 1704038400,
+                "updateTime": 1693889291,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889277,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1698163200,
+                "id": "6f37daff-c72f-48c9-b910-52d4537c5e6c",
+                "memo": "运动会、校园主题活动日",
+                "sign": null,
+                "signEndTime": 1698163200,
+                "signStartTime": 1698163200,
+                "updateTime": 1693889277,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889270,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1698076800,
+                "id": "6715752d-da02-450c-aa63-ea638592b232",
+                "memo": "运动会",
+                "sign": null,
+                "signEndTime": 1698076800,
+                "signStartTime": 1698076800,
+                "updateTime": 1693889270,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889253,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1696953600,
+                "id": "ec2077b4-8239-4fe5-b45a-d46e7e5613b6",
+                "memo": "校区学术报告活动（下午）",
+                "sign": null,
+                "signEndTime": 1696953600,
+                "signStartTime": 1696953600,
+                "updateTime": 1693889253,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889229,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1696089600,
+                "id": "6000ca5d-6e5e-44cd-b3e3-f0a07024bccd",
+                "memo": "国庆节",
+                "sign": null,
+                "signEndTime": 1696089600,
+                "signStartTime": 1696089600,
+                "updateTime": 1693889229,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889215,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1695916800,
+                "id": "597b9a15-8c08-4550-96a7-261a23452475",
+                "memo": "中秋节",
+                "sign": null,
+                "signEndTime": 1695916800,
+                "signStartTime": 1695916800,
+                "updateTime": 1693889215,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889199,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1694966400,
+                "id": "924c4d5c-a74c-488f-a242-ef77af3cc5cd",
+                "memo": "正式上课（新生）",
+                "sign": null,
+                "signEndTime": 1694966400,
+                "signStartTime": 1694966400,
+                "updateTime": 1693889199,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889186,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1694361600,
+                "id": "4b71d38a-ba7f-48ca-af53-22ff114ab0d4",
+                "memo": "教学周开始，入学教育、军训（新生）",
+                "sign": null,
+                "signEndTime": 1694361600,
+                "signStartTime": 1694361600,
+                "updateTime": 1693889186,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889175,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1694275200,
+                "id": "f67b6d9f-e950-42c5-82fd-37160f9b9aac",
+                "memo": "老生缴费、注册（含辅修专业），新生报到",
+                "sign": null,
+                "signEndTime": 1694275200,
+                "signStartTime": 1694275200,
+                "updateTime": 1693889175,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889165,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1694102400,
+                "id": "5a7d4de3-c4af-4002-a3c1-e326d2c0b16a",
+                "memo": "灵活周结束（学生缓补考、集中实习实践等）",
+                "sign": null,
+                "signEndTime": 1694102400,
+                "signStartTime": 1694102400,
+                "updateTime": 1693889165,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889151,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1693756800,
+                "id": "87016f84-590a-43e4-ac9e-9916132701c0",
+                "memo": "灵活周开始（学生缓补考、集中实习实践等）",
+                "sign": null,
+                "signEndTime": 1693756800,
+                "signStartTime": 1693756800,
+                "updateTime": 1693889151,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889065,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1694188800,
+                "id": "36fedcb0-0440-4932-bae1-5162a4a92e1d",
+                "memo": "暑假结束",
+                "sign": null,
+                "signEndTime": 1694188800,
+                "signStartTime": 1694188800,
+                "updateTime": 1693889065,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889057,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1690473600,
+                "id": "383f04ac-84c1-46e9-a674-da94de2b977f",
+                "memo": "本科暑期短学期结束",
+                "sign": null,
+                "signEndTime": 1690473600,
+                "signStartTime": 1690473600,
+                "updateTime": 1693889057,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889048,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1688313600,
+                "id": "2af81109-3418-4e0f-a482-33be48801576",
+                "memo": "暑假开始、本科暑期短学期开始",
+                "sign": null,
+                "signEndTime": 1688313600,
+                "signStartTime": 1688313600,
+                "updateTime": 1693889048,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889037,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1688054400,
+                "id": "dc476cf9-2b3a-433a-8b3a-78fd2535abed",
+                "memo": "考试周结束",
+                "sign": null,
+                "signEndTime": 1688054400,
+                "signStartTime": 1688054400,
+                "updateTime": 1693889037,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889026,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1687708800,
+                "id": "f237afad-8b14-41e0-8e75-13cc341fe10a",
+                "memo": "考试周开始",
+                "sign": null,
+                "signEndTime": 1687708800,
+                "signStartTime": 1687708800,
+                "updateTime": 1693889026,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693889001,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1687363200,
+                "id": "b1523b27-079e-4984-9b70-01be327847ba",
+                "memo": "端午节",
+                "sign": null,
+                "signEndTime": 1687363200,
+                "signStartTime": 1687363200,
+                "updateTime": 1693889012,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693888984,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1682870400,
+                "id": "6e3cf89b-911e-41b2-81fa-7369830e2e66",
+                "memo": "劳动节",
+                "sign": null,
+                "signEndTime": 1682870400,
+                "signStartTime": 1682870400,
+                "updateTime": 1693888984,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693888972,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1682438400,
+                "id": "895f86d3-5257-4490-8a6d-e523043d2cb5",
+                "memo": "校园主题活动日（不停课）",
+                "sign": null,
+                "signEndTime": 1682438400,
+                "signStartTime": 1682438400,
+                "updateTime": 1693888972,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693888955,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1678204800,
+                "id": "5037afe9-ef5e-4cd2-a85b-702b500f4b1c",
+                "memo": "妇女节",
+                "sign": null,
+                "signEndTime": 1678204800,
+                "signStartTime": 1678204800,
+                "updateTime": 1693888955,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693888936,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1677427200,
+                "id": "e98b35c3-b300-4d44-bcc7-a14af0735257",
+                "memo": "教学周开始",
+                "sign": null,
+                "signEndTime": 1677427200,
+                "signStartTime": 1677427200,
+                "updateTime": 1693888936,
+                "__typename": "SchoolCalendarDay"
+            },
+            {
+                "createTime": 1693888917,
+                "creator": {
+                    "account": "GoUDLt7gh1mxWoJmr3yp",
+                    "email": "",
+                    "name": "身份治理平台-管理员",
+                    "openid": "GoUDLt7gh1mxWoJmr3yp",
+                    "phone": "",
+                    "__typename": "User"
+                },
+                "dateSetting": 1677340800,
+                "id": "37c9d1d6-76ad-40b1-992b-9a88885107c9",
+                "memo": "缴费、注册",
+                "sign": null,
+                "signEndTime": 1677340800,
+                "signStartTime": 1677340800,
+                "updateTime": 1693888917,
+                "__typename": "SchoolCalendarDay"
+            }
+        ]
+    }
+}
