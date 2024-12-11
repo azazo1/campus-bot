@@ -33,7 +33,7 @@ __all__ = [
 from src.uia.login import get_login_cache
 
 
-class Registry:
+class Record:
     def __init__(
             self, name: str, plugin_cls,
             plugin_config: Optional[PluginConfig],
@@ -50,31 +50,31 @@ class Registry:
         self.ctx = PluginContext(name)
 
 
-class Register:
-    __registered_plugins: dict[str, Registry] = {}
+class Registry:
+    __registered_plugins: dict[str, Record] = {}
 
     @classmethod
     @requires_init
-    def add_registry(cls, registry: Registry):
-        if not (registry.name and all(c.isalpha() or c == "_" for c in registry.name)):
+    def add_record(cls, record: Record):
+        if not (record.name and all(c.isalpha() or c == "_" for c in record.name)):
             raise ValueError(
                 f"Invalid plugin name: "
-                f"{repr(registry.name)}, "
+                f"{repr(record.name)}, "
                 f"plugin name must consist of English letters or underscores."
             )
-        if registry.name in cls.__registered_plugins.keys():
-            raise ValueError(f"plugin: {registry.name} already registered.")
-        registry.instance = registry.plugin_cls()
-        cls.__registered_plugins.update({registry.name: registry})
-        project_logger.info(f"plugin: {registry.name} registered.")
-        registry.instance.on_register(registry.ctx)
+        if record.name in cls.__registered_plugins.keys():
+            raise ValueError(f"plugin: {record.name} already registered.")
+        record.instance = record.plugin_cls()
+        cls.__registered_plugins.update({record.name: record})
+        project_logger.info(f"plugin: {record.name} registered.")
+        record.instance.on_register(record.ctx)
 
     @classmethod
-    def plugin_registry(cls, plugin_name: str):
+    def plugin_record(cls, plugin_name: str):
         return cls.__registered_plugins[plugin_name]
 
     @classmethod
-    def iter_registry(cls):
+    def iter_record(cls):
         return iter(cls.__registered_plugins.values())
 
 
@@ -119,7 +119,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     def _decorator(cls):
         if not issubclass(cls, Plugin):
             raise ValueError(f"plugin: {cls.__name__} must be a subclass of Plugin.")
-        Register.add_registry(Registry(name, cls, configuration, routine, uia_cache_grabber))
+        Registry.add_record(Record(name, cls, configuration, routine, uia_cache_grabber))
         return lambda cls_: cls_
 
     return _decorator
@@ -303,22 +303,22 @@ class PluginLoader:
         else:
             serializable = {}
 
-        for registry in Register.iter_registry():
-            if registry.config is None:
+        for record in Registry.iter_record():
+            if record.config is None:
                 continue
-            serializable_part = serializable.get(registry.name)  # 通过插件名称获取对应的配置部分.
+            serializable_part = serializable.get(record.name)  # 通过插件名称获取对应的配置部分.
             if serializable_part is not None:
-                registry.config.from_serializable(serializable_part)
-            registry.instance.on_config_load(registry.ctx, registry.config.clone())
+                record.config.from_serializable(serializable_part)
+            record.instance.on_config_load(record.ctx, record.config.clone())
 
     def save_config(self):
         project_logger.info("plugin_loader: saving config.")
         serializable = {}
-        for registry in Register.iter_registry():
-            if registry.config is None:
+        for record in Registry.iter_record():
+            if record.config is None:
                 continue
-            serializable[registry.name] = registry.config.serialize()
-            registry.instance.on_config_save(registry.ctx, registry.config.clone())
+            serializable[record.name] = record.config.serialize()
+            record.instance.on_config_save(record.ctx, record.config.clone())
         with open(self.__CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
             f.write(self.CONFIG_HEAD_LINE + "\n")
             toml.dump(serializable, f)
@@ -327,11 +327,11 @@ class PluginLoader:
         """轮询调用各个插件"""
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
-            registry = Register.plugin_registry(plugin_name)
-            if self._check_time_reached(now, registry.last_routine, registry.routine):
-                registry.last_routine = now
+            record = Registry.plugin_record(plugin_name)
+            if self._check_time_reached(now, record.last_routine, record.routine):
+                record.last_routine = now
                 try:
-                    registry.instance.on_routine(registry.ctx)
+                    record.instance.on_routine(record.ctx)
                 except Exception:
                     project_logger.error(f"Error when calling {plugin_name} routine:\n"
                                  f"{traceback.format_exc()}")
@@ -341,8 +341,8 @@ class PluginLoader:
         if plugin_name in self.loaded_plugins:
             return
         project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
-        registry = Register.plugin_registry(plugin_name)
-        registry.instance.on_load(registry.ctx)
+        record = Registry.plugin_record(plugin_name)
+        record.instance.on_load(record.ctx)
         self.loaded_plugins.add(plugin_name)
 
     def unload_plugin(self, plugin_name: str):
@@ -350,8 +350,8 @@ class PluginLoader:
         if plugin_name not in self.loaded_plugins:
             return
         project_logger.info(f"plugin_loader: unloading plugin {plugin_name}.")
-        registry = Register.plugin_registry(plugin_name)
-        registry.instance.on_unload(registry.ctx)
+        record = Registry.plugin_record(plugin_name)
+        record.instance.on_unload(record.ctx)
         self.loaded_plugins.remove(plugin_name)
 
     def __del__(self):
@@ -376,11 +376,11 @@ class PluginLoader:
         """
         grabbers = []
         for plugin_name in self.loaded_plugins:
-            registry = Register.plugin_registry(plugin_name)
-            grabbers.append(registry.uia_cache_grabber)
+            record = Registry.plugin_record(plugin_name)
+            grabbers.append(record.uia_cache_grabber)
         login_cache = get_login_cache(cache_grabbers=grabbers, qrcode_callback=qrcode_callback)
-        for registry in Register.iter_registry():
-            registry.ctx._uia_cache = login_cache  # 这里给没加载的插件也放置 Cache, 防止插件加载在登录之后的情况使插件无法使用 Cache.
+        for record in Registry.iter_record():
+            record.ctx._uia_cache = login_cache  # 这里给没加载的插件也放置 Cache, 防止插件加载在登录之后的情况使插件无法使用 Cache.
         for plugin_name in self.loaded_plugins:
-            registry = Register.plugin_registry(plugin_name)
-            registry.instance.on_uia_login(registry.ctx)
+            record = Registry.plugin_record(plugin_name)
+            record.instance.on_uia_login(record.ctx)
