@@ -1,4 +1,3 @@
-from src.config import logger
 from src.plugin import (register_plugin, PluginConfig, Routine,
                         TextItem, NumberItem,
                         Plugin, PluginContext)

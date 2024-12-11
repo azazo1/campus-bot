@@ -10,19 +10,26 @@ from email.header import Header
 from email.utils import formataddr
 from typing import Optional
 
-from .. import config
-
 
 class EmailSender:
-    def __init__(self, debug=False):
+    def __init__(self, sender: str, password: str, receiver: str, smtp_host: tuple[str, int],
+                 debug=False):
         """
         初始化邮件发送类
+        :param sender: 发送方邮件地址.
+        :param password: 发送方 smtp 密码.
+        :param receiver: 接收方邮件地址.
+        :param smtp_host: smtp 服务器 地址, 常用的有: ("smtp.qq.com", 465)
         :param debug: 是否开启 SMTP 调试模式
         """
-        self.sender = config.SMTP_USER
-        self.receivers = [config.SMTP_TO[1]]
+        self.sender = sender
+        self.sender_name = self.sender.split('@')[0]
+        self.sender_password = password
+        self.receiver = receiver
+        self.receiver_name = self.receiver.split('@')[0]
         self.debug = debug
         self.smtp_obj: Optional[smtplib.SMTP_SSL] = None
+        self.smtp_host = smtp_host
 
     def __del__(self):
         self.quit()
@@ -39,10 +46,10 @@ class EmailSender:
         """
         try:
             self.quit()
-            self.smtp_obj = smtplib.SMTP_SSL(config.SMTP_HOST, 465)
+            self.smtp_obj = smtplib.SMTP_SSL(self.smtp_host[0], self.smtp_host[1])
             if self.debug:
                 self.smtp_obj.set_debuglevel(1)
-            self.smtp_obj.login(config.SMTP_USER, config.SMTP_PASS)
+            self.smtp_obj.login(self.sender, self.sender_password)
         except Exception as e:
             raise ConnectionError(f"SMTP Connect Error: {e}")
 
@@ -55,12 +62,14 @@ class EmailSender:
         self.connect()
         message = MIMEText(text_content, "plain", "utf-8")
         message["From"] = formataddr((
-            Header(config.SMTP_FROM[0], 'utf-8').encode(),
-            config.SMTP_FROM[1]
+            Header(self.sender_name, 'utf-8').encode(),
+            self.sender
         ))
-        message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        message["To"] = formataddr((
+            Header(self.receiver_name, 'utf-8').encode(), self.receiver
+        ))
         message["Subject"] = Header(subject, 'utf-8')
-        self.smtp_obj.sendmail(self.sender, self.receivers, message.as_string())
+        self.smtp_obj.sendmail(self.sender, [self.receiver], message.as_string())
 
     def send_html_email(self, subject: str, html_content: str):
         """
@@ -72,16 +81,18 @@ class EmailSender:
         # 要发送 HTML 格式的邮件，需要先格式化为 Multipart
         message = MIMEMultipart("alternatives")
         message["From"] = formataddr((
-            Header(config.SMTP_FROM[0], 'utf-8').encode(),
-            config.SMTP_FROM[1]
+            Header(self.sender_name, 'utf-8').encode(),
+            self.sender
         ))
-        message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        message["To"] = formataddr((
+            Header(self.receiver_name, 'utf-8').encode(), self.receiver
+        ))
         message["Subject"] = Header(subject, 'utf-8')
 
         html_part = MIMEText(html_content, "html", "utf-8")
         message.attach(html_part)
 
-        self.smtp_obj.sendmail(self.sender, self.receivers, message.as_string())
+        self.smtp_obj.sendmail(self.sender, [self.receiver], message.as_string())
 
     def send_html_with_attachments(self, subject: str, html_content: str,
                                    files: list[str | tuple[str, str]]):
@@ -95,9 +106,12 @@ class EmailSender:
         """
         self.connect()
         message = MIMEMultipart()
-        message["From"] = formataddr(
-            (Header(config.SMTP_FROM[0], 'utf-8').encode(), config.SMTP_FROM[1]))
-        message["To"] = formataddr((Header(config.SMTP_TO[0], 'utf-8').encode(), config.SMTP_TO[1]))
+        message["From"] = formataddr((
+            Header(self.sender_name, 'utf-8').encode(), self.sender
+        ))
+        message["To"] = formataddr((
+            Header(self.receiver_name, 'utf-8').encode(), self.receiver
+        ))
         message["Subject"] = Header(subject, 'utf-8')
 
         html_part = MIMEText(html_content, "html", "utf-8")
@@ -125,5 +139,4 @@ class EmailSender:
                 message.attach(part)
             except FileNotFoundError:
                 raise FileNotFoundError(f"Attachment file {file_path} not found.")
-
-        self.smtp_obj.sendmail(self.sender, self.receivers, message.as_string())
+        self.smtp_obj.sendmail(self.sender, [self.receiver], message.as_string())
