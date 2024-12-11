@@ -18,6 +18,7 @@ class TestLoader(unittest.TestCase):
         self.loader.load_config()
         self.loader.load_plugin("demo")
         self.loader.load_plugin("simple_demo")
+        self.loader.ecnu_uia_login()
         for i in range(3):
             self.loader.poll()
             time.sleep(1)

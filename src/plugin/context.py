@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 from src import SRC_DIR_PATH
-from src.config import logger
+from src.config import project_logger
 from src.uia.login import LoginCache
 
 
@@ -21,7 +21,8 @@ class PluginContext:
     def __init__(self, name: str):
         self.__name = name  # 插件名称.
         self._logger = logging.Logger(f"plugin-{self.__name}")
-        self._logger.addHandler(ForwardLoggerHandler(logger))
+        self._logger.addHandler(ForwardLoggerHandler(project_logger))
+        self._uia_cache: LoginCache | None = None
 
     def get_plugin_dir(self) -> Path:
         """
@@ -40,6 +41,7 @@ class PluginContext:
     def get_uia_cache(self) -> LoginCache:
         """
         获取 ECNU 统一登陆的登录缓存,
-        需要本地机器登陆过 ECNU 后才能获取有效缓存.
+        需要本地机器登陆过 ECNU 后才能获取有效缓存,
+        在那之前调用此方法会返回 None.
         """
-        # todo
+        return self._uia_cache

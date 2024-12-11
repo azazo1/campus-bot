@@ -2,7 +2,7 @@ import os
 import pickle
 import unittest
 
-from src.config import init, logger
+from src.config import init, project_logger
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder
 from src.library.subscribe import Subscribe
@@ -40,11 +40,11 @@ class TestSubscribe(unittest.TestCase):
         sf = SeatFinder(self.q.query_seats(area_id, time_period))
         seat_id = sf.find_most_isolated().id
         rst = self.s.confirm(seat_id, time_period)
-        logger.info(rst)
+        project_logger.info(rst)
         return rst
 
     def test_query_subscribes(self):
-        logger.info(self.s.query_subscribes())
+        project_logger.info(self.s.query_subscribes())
 
     def test_cancel(self):
         rst = self.test_confirm_subscribe()

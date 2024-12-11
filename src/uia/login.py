@@ -18,7 +18,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge, EdgeOptions
 
-from src.config import logger, requires_init
+from src.config import project_logger, requires_init
 
 # ECNU 统一登陆界面的使用二维码登录按钮.
 QRCODE_BUTTON = '#login-content-right > div.codeBrushing.qr'
@@ -93,7 +93,7 @@ class LibCache:
         """从 WebDriver 中获取 LibCache, 需要 driver 处于 ECNU 登录状态"""
         driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
         # 等待图书馆网页加载完成.
-        logger.debug("library site waiting for page loading...")
+        project_logger.debug("library site waiting for page loading...")
         WebDriverWait(driver, timeout).until(
             EC.url_matches("https://seat-lib.ecnu.edu.cn/")
         )
@@ -105,7 +105,7 @@ class LibCache:
         c = {}
         for cookie in driver.get_cookies():
             c[cookie["name"]] = cookie["value"]
-        logger.info("got library login cache.")
+        project_logger.info("got library login cache.")
         return cls(req.headers["authorization"], c)
 
 
@@ -120,12 +120,12 @@ class PortalCache:
     @classmethod
     def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
         driver.get("https://portal2023.ecnu.edu.cn/portal/home")
-        logger.debug("portal site waiting for page loading...")
+        project_logger.debug("portal site waiting for page loading...")
         WebDriverWait(driver, timeout).until(
             EC.url_matches("https://portal2023.ecnu.edu.cn/")
         )
         req = driver.wait_for_request("calendar-new", 60)
-        logger.info(f"got portal login cache.")
+        project_logger.info(f"got portal login cache.")
         return cls(req.headers['Authorization'])
 
 
@@ -231,11 +231,11 @@ def _get_qrcode(driver: Edge, timeout: float) -> tuple[str, str]:
     try:
         url = decoded[0].data.decode("utf-8")
     except Exception:
-        logger.error("failed to decode qrcode.")
+        project_logger.error("failed to decode qrcode.")
         url = driver.execute_script(EXTRACT_QRCODE_SRC_JS)
-    logger.debug("qrcode base64 data: "
-                 + img_base64_data[:min(30, len(img_base64_data))] + "...")
-    logger.debug("qrcode url: " + url)
+    project_logger.debug("qrcode base64 data: "
+                         + img_base64_data[:min(30, len(img_base64_data))] + "...")
+    project_logger.debug("qrcode url: " + url)
     return url, img_base64_data
 
 
@@ -248,13 +248,9 @@ def _get_temp_qrcode_file(img_base64_data: str) -> str:
     return f.name
 
 
-def get_default_grabbers():
-    return [LibCache.grab_from_driver, PortalCache.grab_from_driver]
-
-
 @requires_init
 def get_login_cache(
-        cache_grabbers: Sequence[Callable[[Edge], Any]] = tuple(get_default_grabbers()),
+        cache_grabbers: Sequence[Callable[[Edge], Any]] = tuple(),
         timeout: float = 24 * 60,
         qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None,
 ) -> Optional[LoginCache]:
@@ -264,12 +260,17 @@ def get_login_cache(
 
     如果登录失败或者超时, 返回 None.
 
-    todo 暂时只支持了图书馆内登录缓存的获取, 其他 ecnu 功能正在开发.
+    Note:
+        此方法应仅由 PluginLoader 调用, 以确保将登录缓存分发到各个插件中.
 
     Parameters:
         cache_grabbers: 一系列函数, 用于从 seleniumwire 的 EdgeDriver 中获取 Cache 对象.
-            这些函数满足: 第一个参数, 是 Edge 的 WebDriver 对象, 返回值为元组 (Cache 名称, Cache 对象).
-            可以使用 get_default_grabbers() + [...] 的方式填充参数.
+            - 这些函数满足: 接收一个参数, 是 Edge 的 WebDriver 对象, 返回值为 Cache 对象.
+            - Cache 对象需为自定义 python 类型, 对于每个不同类型的 Cache 对象,
+              LoginCache 只会保存一个, 见 LoginCache.
+            - 在 LoginCache 中获取此 Cache 对象的方法为 LoginCache#get_cache(T) 方法,
+              提供 Cache 对象的类型即可获取, 当 cache_grabber 报错时, 没有返回值,
+              自然 LoginCache 不会保存其值, 更无从谈起获取.
         timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.
         qrcode_callback: 一个函数, 用于回调提醒用户登录.
             - 参数 1 为 ECNU uia 登录二维码的临时文件路径, 该文件保存在 %TEMP% 目录下, 脚本不对其进行清理操作.
@@ -291,11 +292,11 @@ def get_login_cache(
         file = _get_temp_qrcode_file(img_base64_data)
         qrcode_callback(file, url, False)
 
-        logger.info("uia waiting for login.")
+        project_logger.info("uia waiting for login.")
         while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
             # 二维码超时刷新.
             driver.maximize_window()  # 最大化窗口, 增加成功捕获二维码的可能性.
-            logger.info("uia login qrcode updated.")
+            project_logger.info("uia login qrcode updated.")
             url, img_base64_data = _get_qrcode(driver, timeout)
             file = _get_temp_qrcode_file(img_base64_data)
             qrcode_callback(file, url, False)
@@ -304,14 +305,15 @@ def get_login_cache(
         login_cache = LoginCache()
         for cache_grabber in cache_grabbers:
             try:
-                cache = cache_grabber(driver)
-                login_cache.add_cache(cache)
+                if cache_grabber is not None:
+                    cache = cache_grabber(driver)
+                    login_cache.add_cache(cache)
             except Exception as e:
-                logger.error(f"Exception during grabbing cache: {type(e)}, {e}")
-        logger.debug(f"login cache: {login_cache}")
+                project_logger.error(f"Exception during cache grabbing: {e}\n{traceback.format_exc()}")
+        project_logger.debug(f"login cache: {login_cache}")
         return login_cache
     except TimeoutException:
-        logger.error(traceback.format_exc())
+        project_logger.error(traceback.format_exc())
     finally:
         driver.quit()
     return None

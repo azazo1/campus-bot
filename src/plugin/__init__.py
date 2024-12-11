@@ -9,12 +9,13 @@ import sys
 import traceback
 from enum import Enum, auto
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Callable, Any
 
 import toml
+from seleniumwire.webdriver import Edge
 
 from src import SRC_DIR_PATH
-from src.config import requires_init, logger
+from src.config import requires_init, project_logger
 from src.plugin.config import (PluginConfig, ConfigItem,
                                TextItem, ItemType, DateItem,
                                TimeItem, NumberItem, DatetimeItem)
@@ -29,12 +30,15 @@ __all__ = [
     "PluginConfig", "Plugin", "PluginContext", "PluginLoader",
 ]
 
+from src.uia.login import get_login_cache
+
 
 class Registry:
     def __init__(
             self, name: str, plugin_cls,
             plugin_config: Optional[PluginConfig],
-            routine: Optional[Routine]
+            routine: Optional[Routine],
+            uia_cache_grabber: Callable[[Edge], Any]
     ):
         self.name = name
         self.plugin_cls = plugin_cls
@@ -42,6 +46,7 @@ class Registry:
         self.routine = routine
         self.last_routine = datetime.datetime.fromtimestamp(0)
         self.instance: Plugin = None  # 类型应为 self.plugin_cls
+        self.uia_cache_grabber = uia_cache_grabber
         self.ctx = PluginContext(name)
 
 
@@ -61,7 +66,7 @@ class Register:
             raise ValueError(f"plugin: {registry.name} already registered.")
         registry.instance = registry.plugin_cls()
         cls.__registered_plugins.update({registry.name: registry})
-        logger.info(f"plugin: {registry.name} registered.")
+        project_logger.info(f"plugin: {registry.name} registered.")
         registry.instance.on_register(registry.ctx)
 
     @classmethod
@@ -86,14 +91,19 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         name: str,
         configuration: PluginConfig = None,
         routine: Routine = None,
+        uia_cache_grabber: Callable[[Edge], Any] | None = None
 ):
     """
     注册插件, 只有被注册的插件才会可能被加载, 被装饰的类将会注册到 PluginLoader 中准备加载.
 
     Parameters:
-        name: 插件名称, 只能是英文字母和下划线的排列组合.
+        name: 插件名称, 只能是英文字母和下划线的排列组合, 插件名不能和其他插件重复.
         configuration: 插件需要的配置项集合, 注册后插件可获取项目读取到的对应格式的配置数据.
         routine: 插件期望的回调周期.
+        uia_cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的登录缓存数据,
+                           在 PluginLoader 执行 uia 登录操作时触发,
+                           函数定义方法见 get_login_cache 函数.
+                           此函数返回的 cache 对象
 
     Example:
 
@@ -109,7 +119,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     def _decorator(cls):
         if not issubclass(cls, Plugin):
             raise ValueError(f"plugin: {cls.__name__} must be a subclass of Plugin.")
-        Register.add_registry(Registry(name, cls, configuration, routine))
+        Register.add_registry(Registry(name, cls, configuration, routine, uia_cache_grabber))
         return lambda cls_: cls_
 
     return _decorator
@@ -130,13 +140,11 @@ class Plugin:
         """
         生命周期函数, 插件被加载时触发.
         """
-        pass
 
     def on_unload(self, ctx: PluginContext):
         """
         生命周期函数, 插件被卸载时触发.
         """
-        pass
 
     def on_register(self, ctx: PluginContext):
         """
@@ -173,6 +181,18 @@ class Plugin:
         请不要在此处长时间阻塞, 否则其他插件将无法得到回调.
 
         此回调方法不是在整点进行回调, 而是间隔时间大于指定时间后的一个时刻进行回调, 不能以此进行计时.
+
+        Note:
+            仅被加载的插件能接收到此事件.
+        """
+
+    def on_uia_login(self, ctx: PluginContext):
+        """
+        事件函数, 当 ECNU UIA 成功登录时触发.
+        当被触发后, 使用 ctx.get_uia_cache 可以获取登录缓存.
+
+        Note:
+            仅被加载的插件能接收到此事件.
         """
 
 
@@ -248,9 +268,9 @@ class PluginLoader:
                     # 不导入重复的模块.
                     with TempSysPath(path):  # 为了插件能导入子模块.
                         self.__IMPORTED_MODULE[n] = _import_module(n, p)
-                    logger.info(f"module: {n} imported.")
+                    project_logger.info(f"module: {n} imported.")
                 else:
-                    logger.info(f"module: "
+                    project_logger.info(f"module: "
                                 f"{n} not imported for "
                                 f"its name duplicates with previous one.")
 
@@ -276,7 +296,7 @@ class PluginLoader:
         return False
 
     def load_config(self):
-        logger.info("plugin_loader: loading config.")
+        project_logger.info("plugin_loader: loading config.")
         if os.path.exists(self.__CONFIG_FILE_PATH):
             with open(self.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
                 serializable = toml.load(f)
@@ -292,7 +312,7 @@ class PluginLoader:
             registry.instance.on_config_load(registry.ctx, registry.config.clone())
 
     def save_config(self):
-        logger.info("plugin_loader: saving config.")
+        project_logger.info("plugin_loader: saving config.")
         serializable = {}
         for registry in Register.iter_registry():
             if registry.config is None:
@@ -313,14 +333,14 @@ class PluginLoader:
                 try:
                     registry.instance.on_routine(registry.ctx)
                 except Exception:
-                    logger.error(f"Error when calling {plugin_name} routine:\n"
+                    project_logger.error(f"Error when calling {plugin_name} routine:\n"
                                  f"{traceback.format_exc()}")
 
     def load_plugin(self, plugin_name: str):
         """已经注册的插件需要被加载才能执行 on_routine 等内容, 跳过已经加载的插件"""
         if plugin_name in self.loaded_plugins:
             return
-        logger.info(f"plugin_loader: loading plugin {plugin_name}.")
+        project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         registry = Register.plugin_registry(plugin_name)
         registry.instance.on_load(registry.ctx)
         self.loaded_plugins.add(plugin_name)
@@ -329,7 +349,7 @@ class PluginLoader:
         """停止插件运行, 可能源自用户意愿和插件加载器停止运行, 如果插件没被加载, 不做任何事"""
         if plugin_name not in self.loaded_plugins:
             return
-        logger.info(f"plugin_loader: unloading plugin {plugin_name}.")
+        project_logger.info(f"plugin_loader: unloading plugin {plugin_name}.")
         registry = Register.plugin_registry(plugin_name)
         registry.instance.on_unload(registry.ctx)
         self.loaded_plugins.remove(plugin_name)
@@ -344,3 +364,23 @@ class PluginLoader:
     def close(self):
         for plugin_name in self.loaded_plugins.copy():
             self.unload_plugin(plugin_name)
+
+    def ecnu_uia_login(self,
+                       qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None):
+        """
+        登录到 UIA, 调用此方法会调出 WebDriver 界面, 引导用户登录 ECNU UIA,
+        成功登录后, 各个插件能够获取登录缓存.
+
+        Parameters:
+            qrcode_callback: 见 get_login_cache
+        """
+        grabbers = []
+        for plugin_name in self.loaded_plugins:
+            registry = Register.plugin_registry(plugin_name)
+            grabbers.append(registry.uia_cache_grabber)
+        login_cache = get_login_cache(cache_grabbers=grabbers, qrcode_callback=qrcode_callback)
+        for registry in Register.iter_registry():
+            registry.ctx._uia_cache = login_cache  # 这里给没加载的插件也放置 Cache, 防止插件加载在登录之后的情况使插件无法使用 Cache.
+        for plugin_name in self.loaded_plugins:
+            registry = Register.plugin_registry(plugin_name)
+            registry.instance.on_uia_login(registry.ctx)

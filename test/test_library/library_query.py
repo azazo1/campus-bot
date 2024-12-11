@@ -2,7 +2,7 @@ import os
 import pickle
 import unittest
 
-from src.config import init, logger
+from src.config import init, project_logger
 from src.uia.login import get_login_cache, LibCache
 from src.library.query import LibraryQuery
 
@@ -30,23 +30,23 @@ class LibraryQueryTest(unittest.TestCase):
         qs = self.q.quick_select()
         id_ = qs.get_most_free_seats_area()
         most_free_seats = qs.get_by_id(id_)
-        logger.info(most_free_seats)
+        project_logger.info(most_free_seats)
         storey = qs.get_by_id(int(most_free_seats["parentId"]))
-        logger.info(storey)
+        project_logger.info(storey)
         premises = qs.get_by_id(int(storey["parentId"]))
-        logger.info(premises)
-        logger.info(qs.get_premises_of(id_))
-        logger.info(qs.get_premises_of(21))
+        project_logger.info(premises)
+        project_logger.info(qs.get_premises_of(id_))
+        project_logger.info(qs.get_premises_of(21))
 
     def test_query_date(self):
         qs = self.q.quick_select()
         id_ = qs.get_most_free_seats_area()
         days = self.q.query_date(id_)
-        logger.info(days)
+        project_logger.info(days)
 
     def test_query_seats(self):
         qs = self.q.quick_select()
         id_ = qs.get_most_free_seats_area()
         days = self.q.query_date(id_)
         ret = self.q.query_seats(id_, days[0].times[0])
-        logger.info(ret)
+        project_logger.info(ret)

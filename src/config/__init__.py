@@ -33,26 +33,26 @@ class MyLogger(logging.Logger):
         super().handle(record)
 
 
-logger = MyLogger(LOGGER_NAME)
+project_logger = MyLogger(LOGGER_NAME)
 _logger_initialized = False
 _initialized = False
 
 
 def _init_logger():
     global _logger_initialized
-    logger.setLevel(logging.DEBUG)
+    project_logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(logging.DEBUG)
     stream_handler.setFormatter(formatter)
-    logger.addHandler(stream_handler)
+    project_logger.addHandler(stream_handler)
 
-    file_handler = logging.FileHandler(LOG_FILE)
+    file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    project_logger.addHandler(file_handler)
 
     _logger_initialized = True
 
@@ -64,5 +64,5 @@ def init():
     path = os.path.dirname(SRC_DIR)
     os.chdir(path)  # 移动到代码项目目录, 防止异常执行位置导致的错误.
     _init_logger()
-    logger.info(f"Change dir to {path}")
+    project_logger.info(f"Change dir to {path}")
     _initialized = True

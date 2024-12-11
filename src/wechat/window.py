@@ -10,7 +10,7 @@ import typing
 import uiautomation
 
 from .pc import get_wechat_window_control, WeChatError, wechat_control, WAIT_TIME
-from ..config import logger, requires_init
+from ..config import project_logger, requires_init
 
 
 class FileIsEmptyError(Exception):
@@ -49,7 +49,7 @@ class WeChat:
              .ButtonControl(Name="关闭", searchDepth=1).Click(simulateMove=False,
                                                               waitTime=WAIT_TIME))
         except WeChatError as e:
-            logger.debug(f"close_window: {e}")
+            project_logger.debug(f"close_window: {e}")
 
     @classmethod
     @requires_init
@@ -72,7 +72,7 @@ class WeChat:
         if uiautomation.SetClipboardText(pattern):
             search_edit.SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
-            logger.error(f"search: failed to set clipboard.")
+            project_logger.error(f"search: failed to set clipboard.")
 
     @classmethod
     def locate_chat(cls, name: str | None = None) -> uiautomation.EditControl:
@@ -145,7 +145,7 @@ class WeChat:
         if uiautomation.SetClipboardText(text):
             cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
-            logger.error(f"send_message: failed to set clipboard.")
+            project_logger.error(f"send_message: failed to set clipboard.")
 
     @classmethod
     @requires_init
@@ -182,7 +182,7 @@ class WeChat:
         if uiautomation.SetClipboardBitmap(bitmap):
             cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
         else:
-            logger.error(f"send_img: failed to set clipboard.")
+            project_logger.error(f"send_img: failed to set clipboard.")
 
     @classmethod
     @requires_init
@@ -207,7 +207,7 @@ class WeChat:
         if os.path.getsize(filepath) == 0:
             raise FileIsEmptyError(f"{filepath} is empty, can't be sent through wechat.")
         if copyfile(filepath):
-            logger.error(f"send_file: clipboard operation failed.")
+            project_logger.error(f"send_file: clipboard operation failed.")
         else:
             cls.switch_to(name).SendKeys("{Ctrl}a{Ctrl}v{Enter}", waitTime=WAIT_TIME)
 

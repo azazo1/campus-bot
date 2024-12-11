@@ -1,4 +1,4 @@
 """此文件用于测试 import 是否正常工作"""
-from src.config import logger
+from src.config import project_logger
 
-logger.info("inside demo imported.")
+project_logger.info("inside demo imported.")

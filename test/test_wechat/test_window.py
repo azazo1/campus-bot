@@ -1,7 +1,7 @@
 import timeit
 import unittest
 
-from src.config import init, logger
+from src.config import init, project_logger
 from src.wechat import wx
 from src.wechat.pc import get_pid_by_name
 
@@ -24,8 +24,8 @@ class TestWechat(unittest.TestCase):
                      "get_pid_by_name('wechat.exe')"])
         repeat_times = 10
         bench_time = timeit.timeit(lambda: get_pid_by_name("wechat.exe"), number=repeat_times)
-        logger.info("%f / %d = %f sec/times", bench_time, repeat_times, bench_time / repeat_times)
-        logger.info(get_pid_by_name("wechat.exe"))
+        project_logger.info("%f / %d = %f sec/times", bench_time, repeat_times, bench_time / repeat_times)
+        project_logger.info(get_pid_by_name("wechat.exe"))
 
     def test_locate_chat(self):
         """
@@ -50,7 +50,7 @@ class TestWechat(unittest.TestCase):
         repeat_times = 10
         bench_time = timeit.timeit(lambda: wx.locate_chat("文件传输助手") and wx.close_window(),
                                    number=repeat_times)
-        logger.info("%f sec of %d times", bench_time, repeat_times)
+        project_logger.info("%f sec of %d times", bench_time, repeat_times)
 
     def test_send_message(self):
         wx.send_message("文件传输助手", "HelloWorld1234")

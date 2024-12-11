@@ -2,7 +2,7 @@ import unittest
 
 import win32clipboard
 
-from src.config import logger, init
+from src.config import project_logger, init
 from src.cpp.copyfile_build import copyfile_setup
 
 
@@ -26,4 +26,4 @@ class TestCopyFile(unittest.TestCase):
             try:
                 win32clipboard.CloseClipboard()
             except Exception as e:
-                logger.warning(e)
+                project_logger.warning(e)
