@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import os
 import sys
 import traceback
@@ -34,6 +35,7 @@ from src.uia.login import get_login_cache
 
 
 class Record:
+
     def __init__(
             self, name: str, plugin_cls,
             plugin_config: Optional[PluginConfig],
@@ -44,7 +46,6 @@ class Record:
         self.plugin_cls = plugin_cls
         self.config = plugin_config
         self.routine = routine
-        self.last_routine = datetime.datetime.fromtimestamp(0)
         self.instance: Plugin = None  # 类型应为 self.plugin_cls
         self.cache_grabber = cache_grabber
         self.ctx = PluginContext(name)
@@ -143,6 +144,8 @@ class Plugin:
     def on_unload(self, ctx: PluginContext):
         """
         生命周期函数, 插件被卸载时触发.
+
+        可以在此处对 plugin cache 进行最后修改, 修改会保存到硬盘文件中.
         """
 
     def on_register(self, ctx: PluginContext):
@@ -154,7 +157,7 @@ class Plugin:
 
     def on_config_load(self, ctx: PluginContext, cfg: PluginConfig):
         """
-        事件函数, 插件的配置被加载时触发, 插件需要在此处读取加载的配置.
+        事件函数, 插件的配置被加载时触发(无论插件是否被加载, 此事件都会被触发), 插件需要在此处读取加载的配置.
         最多只会触发一次.
         如果插件配置在注册时指定为 None 则此方法不会被触发, 同理于 on_config_save.
 
@@ -231,6 +234,7 @@ class PluginLoader:
     __IMPORTED_MODULE = {}  # 用于防止二次导入, 不是实例变量, 因为如果 PluginLoader 被销毁重建, 插件不用再注册.
     __CONFIG_FILE_PATH = SRC_DIR_PATH.parent / "plugin_config.toml"
     CONFIG_HEAD_LINE = "# comments will be removed, don't write comments here."
+    __PLUGIN_CACHE_PATH = SRC_DIR_PATH.parent / "plugin_cache.json"  # 给插件提供持续化保存内容的文件, cache 持续化内容不保证不会用户删除, 不应保存重要数据.
     __instantiated = False
 
     def __new__(cls, *args, **kwargs):
@@ -329,8 +333,8 @@ class PluginLoader:
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
-            if self._check_time_reached(now, record.last_routine, record.routine):
-                record.last_routine = now
+            if self._check_time_reached(now, record.ctx.last_routine(), record.routine):
+                record.ctx._plugin_cache._last_routine = now.timestamp()
                 try:
                     record.instance.on_routine(record.ctx)
                 except Exception:
@@ -348,14 +352,27 @@ class PluginLoader:
             if not (exclude and record.name in exclude):
                 self.load_plugin(record.name)
 
+    @classmethod
+    def _touch_plugin_cache(self):
+        if not os.path.exists(self.__PLUGIN_CACHE_PATH):
+            with open(self.__PLUGIN_CACHE_PATH, "w", encoding="utf-8") as w:
+                w.write("{}")
+
     def load_plugin(self, plugin_name: str):
         """已经注册的插件需要被加载才能执行 on_routine 等内容, 跳过已经加载的插件"""
         if plugin_name in self.loaded_plugins:
             return
         project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         record = Registry.plugin_record(plugin_name)
-        record.instance.on_load(record.ctx)
         self.loaded_plugins.add(plugin_name)
+        # 加载 plugin 的 cache, 不是 uia cache.
+        self._touch_plugin_cache()
+        with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
+            record.ctx._plugin_cache._load_from(
+                json.load(cache_file).get(plugin_name)  # 这里读取了整个插件 cache 文件, todo 选择一个更好的加载方式.
+            )
+
+        record.instance.on_load(record.ctx)
 
     def unload_plugin(self, plugin_name: str):
         """停止插件运行, 可能源自用户意愿和插件加载器停止运行, 如果插件没被加载, 不做任何事"""
@@ -365,6 +382,15 @@ class PluginLoader:
         record = Registry.plugin_record(plugin_name)
         record.instance.on_unload(record.ctx)
         self.loaded_plugins.remove(plugin_name)
+        # 保存 plugin_cache.
+        self._touch_plugin_cache()
+        with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
+            obj = json.load(cache_file)
+        with open(self.__PLUGIN_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+            obj[plugin_name] = record.ctx._plugin_cache._serialize()
+            json.dump(obj, cache_file)
+
+        record.ctx._plugin_cache._serialize()
 
     def __del__(self):
         self.__instantiated = False
