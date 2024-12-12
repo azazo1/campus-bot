@@ -246,6 +246,7 @@ class PluginLoader:
         return obj
 
     def __init__(self):
+        self.cache_valid = False
         self.loaded_plugins: set[str] = set()
 
     @requires_init
@@ -329,7 +330,9 @@ class PluginLoader:
             toml.dump(serializable, f)
 
     def poll(self):
-        """轮询调用各个插件"""
+        """
+        轮询调用各个插件.
+        """
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
@@ -419,3 +422,8 @@ class PluginLoader:
             record = Registry.plugin_record(plugin_name)
             record.ctx._uia_cache = login_cache
             record.instance.on_uia_login(record.ctx)
+        self.cache_valid = True
+
+    def invalidate_plugin(self):
+        self.cache_valid = False
+        # todo 安排时间报告 uia cache 失效.
