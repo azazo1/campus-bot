@@ -23,7 +23,11 @@ def is_json_serializable(obj):
 
 
 class PluginCache:
-    """插件持久化保存数据存储对象, 只能存放 json 可序列化对象"""
+    """
+    插件持久化保存数据存储对象, 只能存放 json 可序列化对象,
+    可以把 PluginCache 看成一个`映射`数据结构,
+    但是只允许特定的写入方法对数据进行修改.
+    """
     __OBJ = object()
 
     def __init__(self, name: str):
@@ -59,16 +63,26 @@ class PluginCache:
         return deepcopy(self.__dic[item])
 
     def set(self, key, value):
-        """在此处设置需要持久化的内容, 仅支持可 json 化的对象"""
+        """在此处写入需要持久化的内容, value 仅支持可 json 化的对象, key 只支持字符串"""
+        if not isinstance(key, str):
+            raise TypeError("key must be a string.")
         self._check_serializable(key)
         self._check_serializable(value)
         self.__dic[key] = value
+
+    def remove(self, key):
+        """从 cache 中移除 key 的数据, 如果 key 不在 cache 中, 不会发生任何事"""
+        if key in self.__dic:
+            del self.__dic[key]
 
     def __getitem__(self, item):
         return self.get(item)
 
     def __setitem__(self, key, value):
         self.set(key, value)
+
+    def __delitem__(self, key):
+        self.remove(key)
 
 
 class ForwardLoggerHandler(logging.Handler):
