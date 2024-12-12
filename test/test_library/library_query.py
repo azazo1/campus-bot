@@ -3,7 +3,8 @@ import pickle
 import unittest
 
 from src.config import init, project_logger
-from src.uia.login import get_login_cache, LibCache
+from src.library import LibCache
+from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery
 
 LOGIN_CACHE_FILE = "login-cache.pickle"
@@ -14,7 +15,7 @@ def load_cache():
         with open(LOGIN_CACHE_FILE, "rb") as f:
             login_cache = pickle.load(f)
     else:
-        login_cache = get_login_cache()
+        login_cache = get_login_cache(cache_grabbers=[LibCache.grab_from_driver])
         with open(LOGIN_CACHE_FILE, "wb") as f:
             pickle.dump(login_cache, f)
     return login_cache

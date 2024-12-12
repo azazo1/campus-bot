@@ -4,7 +4,8 @@ import pickle
 import unittest
 
 from src.config import init
-from src.uia.login import get_login_cache, PortalCache
+from src.portal import PortalCache
+from src.uia.login import get_login_cache
 from src.portal.calendar.query import CalendarQuery
 
 LOGIN_CACHE_FILE = "login-cache.pickle"
@@ -15,7 +16,7 @@ def load_cache():
         with open(LOGIN_CACHE_FILE, "rb") as f:
             login_cache = pickle.load(f)
     else:
-        login_cache = get_login_cache()
+        login_cache = get_login_cache(cache_grabbers=[PortalCache.grab_from_driver])
         with open(LOGIN_CACHE_FILE, "wb") as f:
             pickle.dump(login_cache, f)
     return login_cache

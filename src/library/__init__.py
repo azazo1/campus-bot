@@ -5,10 +5,61 @@ todo 研讨间预约, 不要放在 library 下, 放在 studyroom 包, https://st
 """
 from __future__ import annotations
 import json
+import textwrap
+from typing import Self
+
 import requests
 from requests import Response
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from seleniumwire.webdriver import Edge
 
-from src.uia.login import LoginError, LibCache
+from src.config import project_logger
+from src.uia.login import LoginError, click_element
+
+# 图书馆网页中左侧的全部展开按钮.
+EXPAND_ALL_SPAN = '#SeatScreening > div:nth-child(1) > div.content > div > div.header > div.extend > p > span'
+# 图书馆网页中左侧的普陀校区筛选按钮.
+PUTUO_DISTRICT_SPAN = '#SeatScreening > div:nth-child(1) > div.content > div > div.filterCon > div > div:nth-child(1) > div.van-collapse-item__wrapper > div > div > div.selectItem > span'
+
+
+class LibCache:
+    """图书馆 quickSelect api 的必须登录缓存."""
+
+    def __init__(self, authorization: str, cookies: dict):
+        """
+        :param authorization: 认证字符串.
+        :param cookies: seat-lib.ecnu.edu.cn 域名的 cookies, 以 name-value 对储存.
+        """
+        self.authorization = authorization
+        self.cookies = cookies.copy()
+
+    def __repr__(self):
+        # 使用安全的方式展示 authorization 和 cookies，避免内容过长或敏感信息暴露
+        auth_display = textwrap.shorten(self.authorization, width=10)
+        cookies_display = {k: textwrap.shorten(v, 10) for k, v in self.cookies.items()}
+
+        return f"LibCache(authorization='{auth_display}', cookies={cookies_display})"
+
+    @classmethod
+    def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
+        """从 WebDriver 中获取 LibCache, 需要 driver 处于 ECNU 登录状态"""
+        driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
+        # 等待图书馆网页加载完成.
+        project_logger.debug("library site waiting for page loading...")
+        WebDriverWait(driver, timeout).until(
+            EC.url_matches("https://seat-lib.ecnu.edu.cn/")
+        )
+        # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.
+        click_element(driver, EXPAND_ALL_SPAN, timeout)
+        click_element(driver, PUTUO_DISTRICT_SPAN, timeout)
+
+        req = driver.wait_for_request("quickSelect", 60)
+        c = {}
+        for cookie in driver.get_cookies():
+            c[cookie["name"]] = cookie["value"]
+        project_logger.info("got library login cache.")
+        return cls(req.headers["authorization"], c)
 
 
 class Request:
@@ -30,6 +81,8 @@ class Request:
 
     def __init__(self, cache: LibCache):
         self.cache = cache
+        if cache is None:
+            raise ValueError("cache cannot be None.")
 
     @classmethod
     def check_login_and_extract_data(
@@ -57,7 +110,6 @@ class Request:
         if ret["code"] != expected_code:
             raise LoginError(f"result code: {ret['code']}, {ret}.")
         return ret
-
 
     def post(self, url: str, headers: dict = None, payload: dict = None) -> requests.Response:
         """

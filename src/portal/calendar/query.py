@@ -1,8 +1,8 @@
 """
 校历查询.
 """
+from src.portal import PortalCache
 from src.portal.calendar import Request
-from src.uia.login import PortalCache
 
 __all__ = ["CalendarQuery"]
 
@@ -59,12 +59,13 @@ class CalendarQuery(Request):
         查询用户课程规划.
 
         Parameters:
-            start_time, end_time: 筛选器要查询的真实时间时间段, 以毫秒时间戳表示.
+            start_time: 筛选器要查询的真实时间时间段, 以毫秒时间戳表示.
+            end_time: 同 start_time, 时间段结尾.
         """
         rsp = self.query(query=USER_SCHEDULES, variables={
             "filter": {
-                "startTime": {"eq": start_time},
-                "endTime": {"eq": end_time}
+                "startTime": {"eq": int(start_time)},
+                "endTime": {"eq": int(end_time)}
             }
         })
         ret = self.check_login_and_extract_data(rsp)

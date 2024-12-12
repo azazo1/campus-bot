@@ -9,7 +9,7 @@ import sys
 import traceback
 from enum import Enum, auto
 from pathlib import Path
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Sequence
 
 import toml
 from seleniumwire.webdriver import Edge
@@ -38,15 +38,15 @@ class Record:
             self, name: str, plugin_cls,
             plugin_config: Optional[PluginConfig],
             routine: Optional[Routine],
-            uia_cache_grabber: Callable[[Edge], Any]
+            cache_grabber: Callable[[Edge], Any]
     ):
-        self.name = name
+        self.name = name  # 插件名称.
         self.plugin_cls = plugin_cls
         self.config = plugin_config
         self.routine = routine
         self.last_routine = datetime.datetime.fromtimestamp(0)
         self.instance: Plugin = None  # 类型应为 self.plugin_cls
-        self.uia_cache_grabber = uia_cache_grabber
+        self.cache_grabber = cache_grabber
         self.ctx = PluginContext(name)
 
 
@@ -91,7 +91,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         name: str,
         configuration: PluginConfig = None,
         routine: Routine = None,
-        uia_cache_grabber: Callable[[Edge], Any] | None = None
+        cache_grabber: Callable[[Edge], Any] | None = None
 ):
     """
     注册插件, 只有被注册的插件才会可能被加载, 被装饰的类将会注册到 PluginLoader 中准备加载.
@@ -100,10 +100,9 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         name: 插件名称, 只能是英文字母和下划线的排列组合, 插件名不能和其他插件重复.
         configuration: 插件需要的配置项集合, 注册后插件可获取项目读取到的对应格式的配置数据.
         routine: 插件期望的回调周期.
-        uia_cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的登录缓存数据,
-                           在 PluginLoader 执行 uia 登录操作时触发,
+        cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的登录缓存数据,
+                           在 PluginLoader 执行 uia 登录操作时触发, 触发时为已经登录 uia 的状态,
                            函数定义方法见 get_login_cache 函数.
-                           此函数返回的 cache 对象
 
     Example:
 
@@ -119,7 +118,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     def _decorator(cls):
         if not issubclass(cls, Plugin):
             raise ValueError(f"plugin: {cls.__name__} must be a subclass of Plugin.")
-        Registry.add_record(Record(name, cls, configuration, routine, uia_cache_grabber))
+        Registry.add_record(Record(name, cls, configuration, routine, cache_grabber))
         return lambda cls_: cls_
 
     return _decorator
@@ -156,6 +155,7 @@ class Plugin:
     def on_config_load(self, ctx: PluginContext, cfg: PluginConfig):
         """
         事件函数, 插件的配置被加载时触发, 插件需要在此处读取加载的配置.
+        最多只会触发一次.
         如果插件配置在注册时指定为 None 则此方法不会被触发, 同理于 on_config_save.
 
         Parameters:
@@ -166,7 +166,8 @@ class Plugin:
 
     def on_config_save(self, ctx: PluginContext, cfg: PluginConfig):
         """
-        事件函数, 插件的配置被保存时触发.
+        事件函数, 插件的配置被保存时触发, 用户在修改配置然后应用配置的时候触发配置保存操作.
+        可被触发多次, 响应此事件以动态应用配置.
         如果插件配置注册时指定为 None, 则此方法不会被触发.
 
         Parameters:
@@ -271,8 +272,8 @@ class PluginLoader:
                     project_logger.info(f"module: {n} imported.")
                 else:
                     project_logger.info(f"module: "
-                                f"{n} not imported for "
-                                f"its name duplicates with previous one.")
+                                        f"{n} not imported for "
+                                        f"its name duplicates with previous one.")
 
     @classmethod
     def _check_time_reached(cls, now: datetime.datetime,
@@ -334,7 +335,18 @@ class PluginLoader:
                     record.instance.on_routine(record.ctx)
                 except Exception:
                     project_logger.error(f"Error when calling {plugin_name} routine:\n"
-                                 f"{traceback.format_exc()}")
+                                         f"{traceback.format_exc()}")
+
+    def load_all(self, exclude: Sequence[str] = None):
+        """
+        加载所有插件, 除了排除项, 如果排除项中的插件已经被加载, 则该插件不会被卸载.
+
+        Parameters:
+            exclude: 排除项, 默认为空.
+        """
+        for record in Registry.iter_record():
+            if not (exclude and record.name in exclude):
+                self.load_plugin(record.name)
 
     def load_plugin(self, plugin_name: str):
         """已经注册的插件需要被加载才能执行 on_routine 等内容, 跳过已经加载的插件"""
@@ -377,10 +389,9 @@ class PluginLoader:
         grabbers = []
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
-            grabbers.append(record.uia_cache_grabber)
+            grabbers.append(record.cache_grabber)
         login_cache = get_login_cache(cache_grabbers=grabbers, qrcode_callback=qrcode_callback)
-        for record in Registry.iter_record():
-            record.ctx._uia_cache = login_cache  # 这里给没加载的插件也放置 Cache, 防止插件加载在登录之后的情况使插件无法使用 Cache.
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
+            record.ctx._uia_cache = login_cache
             record.instance.on_uia_login(record.ctx)

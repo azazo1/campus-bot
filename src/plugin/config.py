@@ -58,7 +58,7 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
     ):
         """
         Parameters:
-            name: 配置项的名称, 每个插件中的名称需要唯一, 否则在配置项可能无法保存, 但是不同插件可以拥有同一个名称.
+            name: 配置项的名称, 每个插件中的名称需要唯一, 否则在配置项可能无法保存, 但是不同插件可以拥有同一个名称的配置项.
                   只能为英文和下划线, 不能使用数字.
             default_value: 此配置项的默认值.
             description: 配置项的说明.
@@ -169,7 +169,7 @@ class DatetimeItem(ConfigItem[datetime.datetime]):
 
 class PluginConfig:
     """
-    PluginConfig 用于各个 Plugin 给 PluginLoader 提供自己配置项的说明,
+    PluginConfig 用于单个 Plugin 给 PluginLoader 提供自己配置项的说明,
     以便 PluginLoader 在加载 Plugin 的时候加载配置, 同时方便用户进行可视化的配置.
     """
 
@@ -198,3 +198,6 @@ class PluginConfig:
 
     def __iter__(self):
         return iter(self._items.values())
+
+    def get_item(self, name: str) -> ConfigItem:
+        return self._items[name]

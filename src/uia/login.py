@@ -7,26 +7,21 @@ import base64
 import io
 import tempfile
 import traceback
-from typing import Optional, Callable, Sequence, Any, Self, Type, TypeVar
+from typing import Optional, Callable, Sequence, Any, Type, TypeVar
 
 from pyzbar import pyzbar
 from PIL import Image
-import textwrap
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from seleniumwire.webdriver import Edge, EdgeOptions
+from seleniumwire.webdriver import Edge
 
 from src.config import project_logger, requires_init
 
 # ECNU 统一登陆界面的使用二维码登录按钮.
 QRCODE_BUTTON = '#login-content-right > div.codeBrushing.qr'
 QRCODE_IMG = '#login-content-right > app-login-auth-panel > div > div.content-top > app-login-by-corp-wechat-qr > div > div > div.qrcodeImgStyle > rg-page-qr-box > div > img'
-# 图书馆网页中左侧的全部展开按钮.
-EXPAND_ALL_SPAN = '#SeatScreening > div:nth-child(1) > div.content > div > div.header > div.extend > p > span'
-# 图书馆网页中左侧的普陀校区筛选按钮.
-PUTUO_DISTRICT_SPAN = '#SeatScreening > div:nth-child(1) > div.content > div > div.filterCon > div > div:nth-child(1) > div.van-collapse-item__wrapper > div > div > div.selectItem > span'
 
 EXTRACT_QRCODE_JS = f"""
 let qrcode_img = document.querySelector("{QRCODE_IMG}");
@@ -70,65 +65,6 @@ class LoginError(Exception):
         super().__init__(msg)
 
 
-class LibCache:
-    """图书馆 quickSelect api 的必须登录缓存."""
-
-    def __init__(self, authorization: str, cookies: dict):
-        """
-        :param authorization: 认证字符串.
-        :param cookies: seat-lib.ecnu.edu.cn 域名的 cookies, 以 name-value 对储存.
-        """
-        self.authorization = authorization
-        self.cookies = cookies.copy()
-
-    def __repr__(self):
-        # 使用安全的方式展示 authorization 和 cookies，避免内容过长或敏感信息暴露
-        auth_display = textwrap.shorten(self.authorization, width=10)
-        cookies_display = {k: textwrap.shorten(v, 10) for k, v in self.cookies.items()}
-
-        return f"LibCache(authorization='{auth_display}', cookies={cookies_display})"
-
-    @classmethod
-    def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
-        """从 WebDriver 中获取 LibCache, 需要 driver 处于 ECNU 登录状态"""
-        driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
-        # 等待图书馆网页加载完成.
-        project_logger.debug("library site waiting for page loading...")
-        WebDriverWait(driver, timeout).until(
-            EC.url_matches("https://seat-lib.ecnu.edu.cn/")
-        )
-        # 全部展开后按左侧的普陀校区筛选按钮确保网页发送 quickSelect 请求.
-        click_element(driver, EXPAND_ALL_SPAN, timeout)
-        click_element(driver, PUTUO_DISTRICT_SPAN, timeout)
-
-        req = driver.wait_for_request("quickSelect", 60)
-        c = {}
-        for cookie in driver.get_cookies():
-            c[cookie["name"]] = cookie["value"]
-        project_logger.info("got library login cache.")
-        return cls(req.headers["authorization"], c)
-
-
-class PortalCache:
-    def __init__(self, authorization: str):
-        self.authorization = authorization
-
-    def __repr__(self):
-        auth_display = textwrap.shorten(self.authorization, width=10)
-        return f"PortalCache(authorization='{auth_display}')"
-
-    @classmethod
-    def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
-        driver.get("https://portal2023.ecnu.edu.cn/portal/home")
-        project_logger.debug("portal site waiting for page loading...")
-        WebDriverWait(driver, timeout).until(
-            EC.url_matches("https://portal2023.ecnu.edu.cn/")
-        )
-        req = driver.wait_for_request("calendar-new", 60)
-        project_logger.info(f"got portal login cache.")
-        return cls(req.headers['Authorization'])
-
-
 T = TypeVar("T")
 
 
@@ -149,7 +85,9 @@ class LoginCache:
 
         Examples:
 
-        >>> LoginCache().get_cache(PortalCache)
+        >>> from src.portal import PortalCache
+        >>> login_cache: LoginCache # 需要配合 grabber 获取 PortalCache, 存放在 login_cache 中才能获取.
+        >>> login_cache.get_cache(PortalCache) # 需要配合
         None
         """
         return self.cache.get(cache_cls)
@@ -255,8 +193,8 @@ def get_login_cache(
         qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None,
 ) -> Optional[LoginCache]:
     """
-    使用浏览器的进行图书馆的登录操作,
-    并获取相应的登录缓存, 以供爬虫部分使用.
+    使用浏览器的进行 UIA 的登录操作,
+    并获取相应的登录缓存, 以供插件使用.
 
     如果登录失败或者超时, 返回 None.
 
@@ -278,7 +216,7 @@ def get_login_cache(
             - 参数 3 为是否是因为二维码超时而刷新产生的回调.
 
     Returns:
-        如果登陆成功, 返回登录缓存; 如果登录失败或超时, 返回 None.
+        如果登陆成功, 返回 cache_grabbers 获取的所有登录缓存; 如果登录失败或超时, 返回 None.
     """
     driver = Edge()
     try:
@@ -309,7 +247,8 @@ def get_login_cache(
                     cache = cache_grabber(driver)
                     login_cache.add_cache(cache)
             except Exception as e:
-                project_logger.error(f"Exception during cache grabbing: {e}\n{traceback.format_exc()}")
+                project_logger.error(
+                    f"Exception during cache grabbing: {e}\n{traceback.format_exc()}")
         project_logger.debug(f"login cache: {login_cache}")
         return login_cache
     except TimeoutException:

@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Optional, Callable
 from requests import Response
 
-from . import Request
+from . import Request, LibCache
 from .date import Day, TimePeriod
-from src.uia.login import LibCache
 from .seat import Seat
 
 

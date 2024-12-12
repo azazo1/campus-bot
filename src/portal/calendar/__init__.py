@@ -4,12 +4,15 @@
 import requests
 from requests import Response
 
-from src.uia.login import PortalCache, LoginError
+from src.portal import PortalCache
+from src.uia.login import LoginError
 
 
 class Request:
     def __init__(self, cache: PortalCache):
         self.cache = cache
+        if self.cache is None:
+            raise ValueError("cache cannot be None.")
 
     @classmethod
     def check_login_and_extract_data(cls, response: Response) -> dict:
