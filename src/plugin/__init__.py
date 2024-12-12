@@ -92,7 +92,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         name: str,
         configuration: PluginConfig = None,
         routine: Routine = None,
-        cache_grabber: Callable[[Edge], Any] | None = None
+        ecnu_cache_grabber: Callable[[Edge], Any] | None = None
 ):
     """
     注册插件, 只有被注册的插件才会可能被加载, 被装饰的类将会注册到 PluginLoader 中准备加载.
@@ -101,7 +101,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
         name: 插件名称, 只能是英文字母和下划线的排列组合, 插件名不能和其他插件重复.
         configuration: 插件需要的配置项集合, 注册后插件可获取项目读取到的对应格式的配置数据.
         routine: 插件期望的回调周期.
-        cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的登录缓存数据,
+        ecnu_cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的 ECNU 登录缓存数据,
                            在 PluginLoader 执行 uia 登录操作时触发, 触发时为已经登录 uia 的状态,
                            函数定义方法见 get_login_cache 函数.
 
@@ -119,7 +119,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     def _decorator(cls):
         if not issubclass(cls, Plugin):
             raise ValueError(f"plugin: {cls.__name__} must be a subclass of Plugin.")
-        Registry.add_record(Record(name, cls, configuration, routine, cache_grabber))
+        Registry.add_record(Record(name, cls, configuration, routine, ecnu_cache_grabber))
         return lambda cls_: cls_
 
     return _decorator

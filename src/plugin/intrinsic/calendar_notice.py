@@ -14,7 +14,7 @@ from src.portal.calendar.query import CalendarQuery
         )
     ),
     routine=Routine.MINUTELY,
-    cache_grabber=PortalCache.grab_from_driver
+    ecnu_cache_grabber=PortalCache.grab_from_driver
 )
 class CalendarNotice(Plugin):
     def __init__(self):

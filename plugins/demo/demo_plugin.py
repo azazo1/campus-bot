@@ -20,7 +20,7 @@ def grabber(edge: Edge):
                  .add(TextItem("first_name", "Cherry"))
                  .add(NumberItem("age", 18)),
                  routine=Routine.SECONDLY,
-                 cache_grabber=grabber)
+                 ecnu_cache_grabber=grabber)
 class DemoPlugin(Plugin):
     def on_load(self, ctx: PluginContext):
         ctx.get_logger().info("demo plugin known it is loaded.")
