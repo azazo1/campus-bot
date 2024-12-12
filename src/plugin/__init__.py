@@ -390,8 +390,6 @@ class PluginLoader:
             obj[plugin_name] = record.ctx._plugin_cache._serialize()
             json.dump(obj, cache_file)
 
-        record.ctx._plugin_cache._serialize()
-
     def __del__(self):
         self.__instantiated = False
         self.close()
