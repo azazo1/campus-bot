@@ -4,6 +4,7 @@ from src.plugin import register_plugin, PluginConfig, Routine, Plugin, PluginCon
     NumberItem
 from src.portal import PortalCache
 from src.portal.calendar.query import CalendarQuery
+from src.uia.login import LoginError
 
 
 @register_plugin(
@@ -35,10 +36,14 @@ class CalendarNotice(Plugin):
 
     def on_routine(self, ctx: PluginContext):
         now_time = datetime.datetime.now()
-        schedule = self.calendar_query.query_user_schedules(
-            int(now_time.timestamp() * 1000),
-            int((now_time + datetime.timedelta(days=1)).timestamp() * 1000)
-        )
+        try:
+            schedule = self.calendar_query.query_user_schedules(
+                int(now_time.timestamp() * 1000),
+                int((now_time + datetime.timedelta(days=1)).timestamp() * 1000)
+            )
+        except AttributeError | LoginError:
+            ctx.report_cache_invalid()
+            return
         # not yet implemented the function.
         ctx.get_logger().debug(schedule)
         ctx.get_logger().debug(f"{self.time_ahead=}")

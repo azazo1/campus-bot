@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import datetime
-import json
 import logging
 from copy import deepcopy
 from pathlib import Path
+from typing import Callable
 
 from src import SRC_DIR_PATH
 from src.config import project_logger
@@ -102,9 +102,20 @@ class PluginContext:
         self._logger.addHandler(ForwardLoggerHandler(project_logger))
         self._uia_cache: LoginCache | None = None
         self._plugin_cache = PluginCache(self.__name)  # 插件持久化保存数据的位置, 同时也是存放 routine 状态的位置.
+        self._report_cache_invalid: Callable[[], None] = lambda: None
 
     def last_routine(self):
         return datetime.datetime.fromtimestamp(self._plugin_cache._last_routine)
+
+    def report_cache_invalid(self):
+        """
+        插件发现 uia cache 失效的时候, 可以通过此函数报告 PluginLoader,
+        PluginLoader 对新的 UIA 登录会话进行安排.
+        最后再次触发 on_uia_login 事件.
+
+        只有被加载的插件 (on_load 调用开始及之后, on_unload 调用结束之前) 使用此方法报告 uia cache 失效才有作用.
+        """
+        self._report_cache_invalid()
 
     def get_cache(self) -> PluginCache:
         """

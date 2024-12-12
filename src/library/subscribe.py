@@ -7,8 +7,7 @@ https://seat-lib.ecnu.edu.cn/api/Seat/confirm 执行预约操作, 此操作涉�
 from __future__ import annotations
 
 from src.library.date import TimePeriod
-from src.uia.login import LibCache
-from . import Request
+from . import Request, LibCache
 from .encrypt import Encryptor
 
 

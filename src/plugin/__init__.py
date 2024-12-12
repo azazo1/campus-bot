@@ -246,6 +246,7 @@ class PluginLoader:
         return obj
 
     def __init__(self):
+        self.cache_valid = False
         self.loaded_plugins: set[str] = set()
 
     @requires_init
@@ -329,7 +330,9 @@ class PluginLoader:
             toml.dump(serializable, f)
 
     def poll(self):
-        """轮询调用各个插件"""
+        """
+        轮询调用各个插件.
+        """
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
@@ -353,9 +356,9 @@ class PluginLoader:
                 self.load_plugin(record.name)
 
     @classmethod
-    def _touch_plugin_cache(self):
-        if not os.path.exists(self.__PLUGIN_CACHE_PATH):
-            with open(self.__PLUGIN_CACHE_PATH, "w", encoding="utf-8") as w:
+    def _touch_plugin_cache(cls):
+        if not os.path.exists(cls.__PLUGIN_CACHE_PATH):
+            with open(cls.__PLUGIN_CACHE_PATH, "w", encoding="utf-8") as w:
                 w.write("{}")
 
     def load_plugin(self, plugin_name: str):
@@ -365,6 +368,7 @@ class PluginLoader:
         project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         record = Registry.plugin_record(plugin_name)
         self.loaded_plugins.add(plugin_name)
+        record.ctx._report_cache_invalid = self.invalidate_plugin
         # 加载 plugin 的 cache, 不是 uia cache.
         self._touch_plugin_cache()
         with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
@@ -382,6 +386,7 @@ class PluginLoader:
         record = Registry.plugin_record(plugin_name)
         record.instance.on_unload(record.ctx)
         self.loaded_plugins.remove(plugin_name)
+        record.ctx._report_cache_invalid = lambda: None
         # 保存 plugin_cache.
         self._touch_plugin_cache()
         with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
@@ -419,3 +424,9 @@ class PluginLoader:
             record = Registry.plugin_record(plugin_name)
             record.ctx._uia_cache = login_cache
             record.instance.on_uia_login(record.ctx)
+        self.cache_valid = True
+
+    def invalidate_plugin(self):
+        self.cache_valid = False
+        # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
+        # todo 安排时间报告 uia cache 失效.
