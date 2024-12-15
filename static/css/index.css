@@ -1,0 +1,116 @@
+/* 开发使用，将所有板块区分开 */
+* {
+    padding: 0;
+    margin: 0;
+}
+
+header, section, footer {
+    background-color: #ff6b70;
+    border: 5px #000000 solid;
+}
+
+/* 用灰色作为 Header 的背景色 */
+main header {
+    background-color: #454543;
+    height: 40px;
+    width: 100%;
+    position: fixed;
+}
+
+/* 主标题设置为白色 */
+main header h1 {
+    position: absolute; /* 使用子元素 absolute 时，父元素要有 relative  */
+    line-height: 40px;
+
+    font-size: 16px;
+    color: white;
+    left: 2vw;
+
+    /* H1 的文字不能直接删除，在这里添加背景图片，把文字塞到页面外边 */
+    background-image: url(../images/ECNU_Logo.png);
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 146.688px 38.4px;
+
+    padding-left: 160px;
+}
+
+/* Header 的链接设置为白色 */
+main header a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* Header 的链接在鼠标悬停时显示下划线 */
+main header a:hover {
+    text-decoration: underline;
+}
+
+/* 让导览页的链接水平排列 */
+main header li {
+    display: inline;
+    margin-right: 2vw;
+    font-size: 12px;
+}
+
+main header ol {
+    position: absolute;
+    right: 3vw;
+    top: 0;
+    line-height: 40px; /* 使链接垂直居中 */
+}
+
+.welcome {
+    background-color: antiquewhite;
+    color: white;
+    height: 95vh;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* 半透明黑色叠加 */ url(../images/Sakura.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.welcome h1 {
+    font-size: 40px;
+}
+
+.welcome h2 {
+    font-size: 20px;
+}
+
+.welcome p {
+    font-size: 16px;
+    color: #f4ed9e;
+    margin: 10px 0;
+}
+
+.welcome a {
+    color: #f4ed9e;
+    text-decoration: none;
+    border: 1px solid #f4ed9e;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+/* 设置 footer 居中 */
+footer {
+    background-color: #485652;
+    color: white;
+    height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.8em;
+    font-size:12px;
+}
+
+/* 使得 p 与 blockquote 不要占满一整行，去除默认的外边框 */
+footer p, footer blockquote {
+    display: inline-block;
+    margin: 0;
+}

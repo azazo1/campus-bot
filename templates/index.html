@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0">
+    <!-- Initial Scale 参数用于保持页面的宽度 -->
+    <title>ECNU 校园插件管理器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+
+<body>
+<main>
+    <header>
+        <h1>| ECNU 校园插件管理器</h1>
+        <nav>
+            <ol>
+                <li><a href="https://github.com/azazo1/ecnu-campus-plugins">Github</a></li>
+                <li><a href="https://www.bilibili.com/">Bilibili</a></li>
+                <li><a href="https://www.youtube.com/">News</a></li>
+                <li><a href="#">Other</a></li>
+            </ol>
+        </nav>
+    </header>
+    <section class="welcome">
+        <h1>ECNU 插件管理器</h1>
+        <h2>向 ECNU 开炮！</h2>
+        <p>还在为华师大的学业生活烦躁？</p>
+        <p>本插件框架为您提供人性化的服务！</p>
+        <p><a href="{{ url_for('admin') }}">Begin Now</a></p>
+    </section>
+</main>
+
+<footer>
+    <p style="font-size: 16px"> ECNU-Campus-Plugins was created by Azazo1 / Deralive / Nisikin.</p>
+    <p>
+        本网站采用 <a href="https://choosealicense.com/licenses/mit/" target="_blank" rel="noopener noreferrer">MIT 开源协议</a>
+        许可。继续使用本软件即代表您同意该开源协议和声明
+        <a href="https://github.com/azazo1/ecnu-campus-plugins" target="_blank" rel="noopener noreferrer">GitHub</a> 上获取。
+    </p>
+    <p> &copy; 2024. All rights reserved.</p>
+    <blockquote cite="https://www.ecnu.edu.cn/"> 闵行校区：东川路500号 200241 中山北路校区：中山北路3663号 200062<br>总机：86-21-62233333</blockquote>
+</footer>
+</body>
+</html>
