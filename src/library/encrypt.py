@@ -1,7 +1,7 @@
 """
 ECNU 图书馆网站加密实现, 这里的实现可能会根据网络管理员对网站的更改而失效.
 
-加密算法分析见 assets/confirm_subscribe.js
+加密算法分析见 assets/development_need/confirm_subscribe.js
 """
 import base64
 import time

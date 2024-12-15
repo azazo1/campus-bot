@@ -202,7 +202,7 @@ def get_login_cache(
         此方法应仅由 PluginLoader 调用, 以确保将登录缓存分发到各个插件中.
 
     Parameters:
-        cache_grabbers: 一系列函数, 用于从 seleniumwire 的 EdgeDriver 中获取 Cache 对象.
+        cache_grabbers: 一系列函数, 用于从 selenium-wire 的 EdgeDriver 中获取 Cache 对象.
             - 这些函数满足: 接收一个参数, 是 Edge 的 WebDriver 对象, 返回值为 Cache 对象.
             - Cache 对象需为自定义 python 类型, 对于每个不同类型的 Cache 对象,
               LoginCache 只会保存一个, 见 LoginCache.

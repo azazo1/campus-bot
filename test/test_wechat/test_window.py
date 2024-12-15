@@ -57,9 +57,9 @@ class TestWechat(unittest.TestCase):
 
     def test_send_img(self):
         wx.send_message("文件传输助手", "1")
-        wx.send_img("文件传输助手", "assets/ecnu_logo.png")
+        wx.send_img("文件传输助手", "assets/development_need/ecnu_logo.png")
         wx.send_message("文件传输助手", "2")
-        with open("assets/ecnu_logo.png", "rb") as f:
+        with open("assets/development_need/ecnu_logo.png", "rb") as f:
             wx.send_img("文件传输助手", f)
 
     def test_send_file(self):

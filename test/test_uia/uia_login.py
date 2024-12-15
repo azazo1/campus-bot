@@ -7,11 +7,12 @@ from src.wechat import wx
 
 
 class LoginTest(unittest.TestCase):
+    """填入邮箱相关信息后才能运行第一个测试"""
     def setUp(self):
         init()
 
     def test_email_notice_login(self):
-        sender = EmailSender(False)
+        sender = EmailSender(sender="", password="", receiver="", smtp_host=("smtp.qq.com", 465))
         sender.connect()
 
         def cb(file: str, url: str, retry: bool):
