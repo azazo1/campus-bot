@@ -1,13 +1,42 @@
-from flask import Flask, render_template, request
+import toml
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
+# 面包屑字典, 请在每添加一个新页面时更新此字典
 PAGE_TITLES = {
     "/": "首页",
     "/admin/file": "文件管理",
     "/admin/plugins": "插件配置",
     "/admin/reminders": "课前提醒",
 }
+
+CONFIG_FILE = 'plugin_config.toml'
+
+# 加载配置文件
+def load_config():
+    with open(CONFIG_FILE, "r") as f:
+        return toml.load(f)
+
+# 保存配置文件
+def save_config(data):
+    with open(CONFIG_FILE, "w") as f:
+        toml.dump(data, f)
+
+@app.route('/api/get_param', methods=['GET'])
+def get_param():
+    config = load_config()
+    value = config['calendar_notice']['notice_before_class_start']
+    return jsonify({"value": value})
+
+@app.route('/api/set_param', methods=['POST'])
+def set_param():
+    data = request.json
+    new_value = data.get("value", 600)  # 默认值 600
+    config = load_config()
+    config['calendar_notice']['notice_before_class_start'] = int(new_value)
+    save_config(config)
+    return jsonify({"status": "success", "new_value": new_value})
 
 @app.context_processor
 def inject_breadcrumbs() -> dict:
