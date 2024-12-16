@@ -59,7 +59,7 @@ class LatexGenerator:
     def generate_latex(self):
         colors = ["H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9"]
         latex_output = [
-            r"\documentclass[libertinus,en,sharp,landscape]{litetable}",
+            r"\documentclass[libertinus,en,sharp,landscape]{./classtable/litetable}",
             r"\begin{document}",
             r"",
             r"\timelist{",
@@ -67,7 +67,7 @@ class LatexGenerator:
             r"8:45,9:35,10:35,11:25,12:15,13:45,14:35,15:35,16:25,17:15,18:45,19:35,20:25",
             r"}",
             r"",
-            r"\sticker{favicon}",
+            r"\sticker{./classtable/favicon}",
             r"",
             r"\begin{tikzpicture}",
             r"  \makeframe{Timetable -- This Week}"]
