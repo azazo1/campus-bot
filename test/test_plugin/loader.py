@@ -6,20 +6,10 @@ from src.plugin import PluginLoader
 
 
 class TestLoader(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         init()
-        self.loader = PluginLoader()
-
-    def tearDown(self):
-        """
-        清理 PluginLoader 实例, 避免触发 SingleInstanceError.
-
-        Tips: 可以直接从 class TestLoader 类进入, 一次运行多个测试.
-        """
-        if self.loader:
-            self.loader.close()
-            PluginLoader.reset_instance()
-        self.loader = None
+        cls.loader = PluginLoader()
 
     def test_register_plugin(self):
         self.loader.import_plugins()

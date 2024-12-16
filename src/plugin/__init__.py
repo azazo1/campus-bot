@@ -249,13 +249,6 @@ class PluginLoader:
         self.cache_valid = False
         self.loaded_plugins: set[str] = set()
 
-    @classmethod
-    def reset_instance(cls):
-        """
-        重置单例锁, 用于测试场景
-        """
-        cls.__instantiated = False
-
     @requires_init
     def import_plugins(self):
         """

@@ -106,11 +106,9 @@ class LatexGenerator:
         except Exception as e:
             logging.error(f"An error occurred during compilation: {e}")
 
-        temp_files = [f"{self.file_prefix}.aux", f"{self.file_prefix}.log", f"{self.file_name}"]
+        temp_files = [f"{self.file_prefix}.aux", f"{self.file_prefix}.log", f"{self.file_prefix}.out", f"{self.file_name}"]
 
         for temp_file in temp_files:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
                 logging.info(f"Temporary file {temp_file} has been deleted.")
-            else:
-                raise FileNotFoundError(f"Attachment file {temp_file} not found.")

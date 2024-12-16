@@ -3,7 +3,7 @@ import pickle
 import unittest
 from pprint import pprint
 
-from src.classtable.generate_latex_table import LatexGenerator
+from classtable.generate_latex_table import LatexGenerator
 from src.config import init
 from src.portal import PortalCache
 from src.uia.login import get_login_cache
