@@ -28,12 +28,37 @@ query ($filter: ScheduleFilter, $userId: String) {
 }
 """
 
+SCHOOL_CALENDAR = """
+query ($term: Int, $year: Int, $filter: SchoolCalendarFilter) {
+  schoolCalendar(term: $term, year: $year, filter: $filter) {
+    createTime
+    creator {
+      account
+      email
+      name
+      openid
+      phone
+      __typename
+    }
+    endTime
+    id
+    memo
+    startTime
+    term
+    termName
+    updateTime
+    year
+    __typename
+  }
+}
+"""
+
 
 class CalendarQuery(Request):
     def __init__(self, cache: PortalCache):
         super().__init__(cache)
 
-    def query_user_schedules(self, start_time: int, end_time: int):
+    def query_user_schedules(self, start_time: int, end_time: int) -> dict:
         """
         查询用户课程规划.
 
@@ -50,11 +75,12 @@ class CalendarQuery(Request):
         ret = self.check_login_and_extract_data(rsp)
         return ret
 
-    def query_user_class_table(self):
+    def query_user_class_table(self) -> dict:
         """
         查询用户课程表.
-
         Tips: 查询本周和下周, 聚合双周的课程表.
+
+        :return: 用户课程表, 为一个字典.
         """
         now = datetime.datetime.now()
 
@@ -92,7 +118,7 @@ class CalendarQuery(Request):
         return all_courses
 
     @staticmethod
-    def collect_course_info(data):
+    def collect_course_info(data: dict) -> list:
         """
         根据返回的数据，提取简洁的课程信息。
 
@@ -123,3 +149,11 @@ class CalendarQuery(Request):
             })
 
         return result
+
+    def query_school_calendar(self) -> dict:
+        """
+        查询学校日历, 校历无需 filter 参数.
+        """
+        rsp = self.query(query=SCHOOL_CALENDAR, variables={})
+        ret = self.check_login_and_extract_data(rsp)
+        return ret

@@ -29,18 +29,13 @@ class TestCalendar(unittest.TestCase):
         self.cache = load_cache()
         self.calendar = CalendarQuery(self.cache.get_cache(PortalCache))
 
-    def test_calendar(self):
+    def test_user_schedules(self):
         now = datetime.datetime.now()
         pprint(self.calendar.query_user_schedules(
             int(now.timestamp() * 1000),
             int((now + datetime.timedelta(days=1)).timestamp() * 1000),
         ))
 
-    def test_class_table(self):
-        class_table_dict = self.calendar.query_user_class_table()
-        pprint(class_table_dict)
-
-    def test_collector(self):
-        class_table_dict = self.calendar.query_user_class_table()
-        collected_info = CalendarQuery.collect_course_info(class_table_dict)
-        pprint(collected_info)
+    def test_school_calendar(self):
+        school_calendar = self.calendar.query_school_calendar()
+        pprint(school_calendar)
