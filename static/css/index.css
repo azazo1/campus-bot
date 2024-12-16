@@ -27,7 +27,7 @@ main header h1 {
     left: 2vw;
 
     /* H1 的文字不能直接删除，在这里添加背景图片，把文字塞到页面外边 */
-    background-image: url(../images/ECNU_Logo.png);
+    background-image: url(../images/ecnu_logo.png);
     background-repeat: no-repeat;
     background-position: left center;
     background-size: 146.688px 38.4px;
@@ -64,7 +64,7 @@ main header ol {
     background-color: antiquewhite;
     color: white;
     height: 95vh;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* 半透明黑色叠加 */ url(../images/Sakura.jpg);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* 半透明黑色叠加 */ url(../images/sakura.jpg);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
