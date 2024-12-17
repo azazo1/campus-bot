@@ -13,6 +13,7 @@ PAGE_TITLES = {
 
 CONFIG_FILE = 'plugin_config.toml'
 
+# todo 不能这样加载配置文件.
 # 加载配置文件
 def load_config():
     with open(CONFIG_FILE, "r") as f:

@@ -3,6 +3,11 @@ import logging
 import os
 from typing import Optional
 
+from src.config import init
+from src.portal import PortalCache
+from src.portal.calendar.query import CalendarQuery
+from src.uia.login import get_login_cache
+
 # 元组 (start_hour, start_minute, end_hour, end_minute)
 time_slots = [
     ((8, 0), (8, 45)), ((8, 50), (9, 35)), ((9, 50), (10, 35)), ((10, 40), (11, 25)), ((11, 30), (12, 15)),  # 上午
@@ -112,3 +117,14 @@ class LatexGenerator:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
                 logging.info(f"Temporary file {temp_file} has been deleted.")
+
+if __name__ == '__main__':
+    init()
+    cache = get_login_cache()
+    calendar = CalendarQuery(cache.get_cache(PortalCache))
+    class_table_dict = calendar.query_user_class_table()
+    collected_info = CalendarQuery.collect_course_info(class_table_dict)
+    generator = LatexGenerator(collected_info)
+    generator.classify_courses()
+    generator.generate_latex()
+    generator.compile_latex()

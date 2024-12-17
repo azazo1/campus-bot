@@ -173,6 +173,9 @@ class Plugin:
         可被触发多次, 响应此事件以动态应用配置.
         如果插件配置注册时指定为 None, 则此方法不会被触发.
 
+        Note:
+            只有被加载的插件能够接收到此事件.
+
         Parameters:
             ctx: 插件上下文.
             cfg: 插件配置, 修改此处的值不会修改要被保存的配置.
@@ -318,13 +321,17 @@ class PluginLoader:
             record.instance.on_config_load(record.ctx, record.config.clone())
 
     def save_config(self):
+        """
+        保存所有插件的配置.
+        """
         project_logger.info("plugin_loader: saving config.")
         serializable = {}
         for record in Registry.iter_record():
             if record.config is None:
                 continue
             serializable[record.name] = record.config.serialize()
-            record.instance.on_config_save(record.ctx, record.config.clone())
+            if record.name in self.loaded_plugins:
+                record.instance.on_config_save(record.ctx, record.config.clone())
         with open(self.__CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
             f.write(self.CONFIG_HEAD_LINE + "\n")
             toml.dump(serializable, f)
@@ -430,3 +437,33 @@ class PluginLoader:
         self.cache_valid = False
         # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
         # todo 安排时间报告 uia cache 失效.
+
+    def get_plugin_config(self, plugin_name: str):
+        """
+        获取指定插件的 plugin_config, 如果插件没有配置 plugin_config, 返回 None.
+
+        Note:
+            此方法面向持有 PluginLoader 的对象.
+        """
+        return Registry.plugin_record(plugin_name).config
+
+    def get_imported_plugins(self):
+        """
+        获取所有已经导入的 plugin 的名称.
+
+        Note:
+            此方法面向持有 PluginLoader 的对象.
+        """
+        names = []
+        for record in Registry.iter_record():
+            names.append(record.name)
+        return names
+
+    def is_plugin_loaded(self, plugin_name: str):
+        """
+        查看一个 plugin 是否被加载.
+
+        Note:
+            此方法面向持有 PluginLoader 的对象.
+        """
+        return plugin_name in self.loaded_plugins

@@ -41,7 +41,7 @@ class CalendarNotice(Plugin):
                 int(now_time.timestamp() * 1000),
                 int((now_time + datetime.timedelta(days=1)).timestamp() * 1000)
             )
-        except AttributeError | LoginError:
+        except (AttributeError, LoginError):
             ctx.report_cache_invalid()
             return
         # not yet implemented the function.
