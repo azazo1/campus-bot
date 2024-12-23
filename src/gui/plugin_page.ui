@@ -15,17 +15,28 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2">
    <item>
-    <widget class="QListView" name="pluginNameList">
-     <property name="maximumSize">
-      <size>
-       <width>200</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="vl">
+     <item>
+      <widget class="QListView" name="pluginNameList">
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveConfigBtn">
+       <property name="text">
+        <string>保存插件配置</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="pluginConfigContent"/>

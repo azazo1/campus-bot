@@ -1,10 +1,11 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt
+from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt, QModelIndex
 from PySide6.QtGui import QIcon, QImage
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
-    QLabel, QMenu, QAbstractItemView
+    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy
+from sympy import preview
 from werkzeug.serving import select_address_family
 
 from src.config import requires_init
@@ -34,6 +35,9 @@ class MainWindow(QWidget):
         self.ui_plugin_page.setupUi(self.ui.pageContainer.widget(1))
         # ---
         self.alive = True
+        self.plugin_config_modified = False  # 编辑插件配置的时候, 如果修改了配置项但是没有保存.
+        # todo 修改配置内容时标记 modified 为 True.
+
         self.raw_title = self.windowTitle()
         self.icon = QIcon("assets/icon.png")
 
@@ -96,12 +100,25 @@ class MainWindow(QWidget):
             else:
                 QMessageBox.warning(self, "登录失败", "需要重新登录.")
 
+    def notify_plugin_config_save(self):
+        self.plugin_loader.save_config()
+        self.plugin_config_modified = False
+        QMessageBox.information(self, "插件配置保存", "插件配置已生效并保存")
+
     def actions_setup(self):
         self.ui.homePageBtn.clicked.connect(lambda: self.ui.pageContainer.setCurrentIndex(0))
         self.ui.pluginPageBtn.clicked.connect(lambda: self.ui.pageContainer.setCurrentIndex(1))
 
         self.ui_home_page.quitBtn.clicked.connect(self.close)
         self.ui_home_page.uiaLoginBtn.clicked.connect(self.notify_login)
+
+        self.ui_plugin_page.saveConfigBtn.clicked.connect(self.notify_plugin_config_save)
+
+        self.ui_plugin_page.pluginNameList.clicked.connect(self.on_plugin_item_clicked)
+
+    def on_plugin_item_clicked(self, idx: QModelIndex):
+        plugin_name = idx.data()
+        self.build_plugin_config_page(plugin_name)
 
     def init_plugin_loader(self):
         self.plugin_loader.import_plugins()
@@ -121,6 +138,7 @@ class MainWindow(QWidget):
             self.setWindowTitle(
                 self.raw_title
                 + ("" if self.plugin_loader.cache_valid else " (未登录)")
+                + (" (插件配置未保存生效)" if self.plugin_config_modified else "")
             )
             self.tray_icon.setToolTip(self.windowTitle())
 
@@ -130,6 +148,12 @@ class MainWindow(QWidget):
 
     def close(self):
         """退出应用"""
+        if self.plugin_config_modified:
+            rst = QMessageBox.warning(self, "插件配置将丢失",
+                                      "插件配置已被修改, 但是没有生效也没有保存, 退出将导致修改内容丢失.\n是否退出?",
+                                      QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
+            if rst != QMessageBox.StandardButton.Yes:
+                return
         self.alive = False
         self.plugin_timer.stop()
         self.status_timer.stop()
@@ -143,6 +167,45 @@ class MainWindow(QWidget):
         else:
             event.ignore()
             self.hide()  # 隐藏到后台, 通过任务栏窗口重新唤出.
+
+    def build_plugin_config_page(self, plugin_name: str):
+        # 插件配置在用户点击控件时就同步 plugin_loader 中的配置修改, 及时切换插件配置界面也会暂存在内存中.
+        # 但是这些配置没有生效, 需要点击保存按钮才能生效.
+        config = self.plugin_loader.get_plugin_config(plugin_name)
+        v_layout = self.ui_plugin_page.pluginConfigContent
+        while v_layout.count():
+            item = v_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        def get_switch_text(load_it=None):
+            if load_it is None:
+                load_it = not self.plugin_loader.is_plugin_loaded(plugin_name)
+            return "加载" if load_it else "停止"
+
+        def switch_load():
+            text = get_switch_text() + "成功"
+            if self.plugin_loader.is_plugin_loaded(plugin_name):
+                self.plugin_loader.unload_plugin(plugin_name)
+            else:
+                self.plugin_loader.load_plugin(plugin_name)
+            whether_load_btn.setText(get_switch_text())
+            QMessageBox.information(self, text, text)
+
+        title = QLabel(plugin_name)
+        title.setStyleSheet("""font: bold 30px;""")
+        whether_load_btn = QPushButton(get_switch_text())
+        whether_load_btn.clicked.connect(switch_load)
+
+        v_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        v_layout.addWidget(whether_load_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        for cfg_item in config:
+            pass
+        v_layout.addSpacerItem(
+            QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        # todo 添加加载和取消加载按钮.
 
 
 @requires_init

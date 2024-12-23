@@ -441,6 +441,7 @@ class PluginLoader:
     def get_plugin_config(self, plugin_name: str):
         """
         获取指定插件的 plugin_config, 如果插件没有配置 plugin_config, 返回 None.
+        可以对返回对象进行修改.
 
         Note:
             此方法面向持有 PluginLoader 的对象.

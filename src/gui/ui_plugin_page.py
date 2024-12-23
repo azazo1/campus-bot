@@ -16,7 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QListView,
-    QSizePolicy, QVBoxLayout, QWidget)
+    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_PluginPage(object):
     def setupUi(self, PluginPage):
@@ -25,12 +25,22 @@ class Ui_PluginPage(object):
         PluginPage.resize(400, 300)
         self.horizontalLayout = QHBoxLayout(PluginPage)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.vl = QVBoxLayout()
+        self.vl.setObjectName(u"vl")
         self.pluginNameList = QListView(PluginPage)
         self.pluginNameList.setObjectName(u"pluginNameList")
         self.pluginNameList.setMaximumSize(QSize(200, 16777215))
         self.pluginNameList.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
-        self.horizontalLayout.addWidget(self.pluginNameList)
+        self.vl.addWidget(self.pluginNameList)
+
+        self.saveConfigBtn = QPushButton(PluginPage)
+        self.saveConfigBtn.setObjectName(u"saveConfigBtn")
+
+        self.vl.addWidget(self.saveConfigBtn)
+
+
+        self.horizontalLayout.addLayout(self.vl)
 
         self.pluginConfigContent = QVBoxLayout()
         self.pluginConfigContent.setObjectName(u"pluginConfigContent")
@@ -47,5 +57,6 @@ class Ui_PluginPage(object):
 
     def retranslateUi(self, PluginPage):
         PluginPage.setWindowTitle(QCoreApplication.translate("PluginPage", u"\u63d2\u4ef6\u914d\u7f6e", None))
+        self.saveConfigBtn.setText(QCoreApplication.translate("PluginPage", u"\u4fdd\u5b58\u63d2\u4ef6\u914d\u7f6e", None))
     # retranslateUi
 
