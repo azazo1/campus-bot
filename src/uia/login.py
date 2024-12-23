@@ -9,6 +9,7 @@ import tempfile
 import traceback
 from typing import Optional, Callable, Sequence, Any, Type, TypeVar
 
+import toml
 from pyzbar import pyzbar
 from PIL import Image
 from selenium.common import TimeoutException
@@ -18,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge
 
 from src.config import project_logger, requires_init
+from src.uia.submit import submit_login
 
 # ECNU 统一登陆界面的使用二维码登录按钮.
 QRCODE_BUTTON = '#login-content-right > div.codeBrushing.qr'
@@ -186,6 +188,16 @@ def _get_temp_qrcode_file(img_base64_data: str) -> str:
     return f.name
 
 
+def load_password():
+    try:
+        with open("login_info.toml") as f:
+            obj = toml.load(f)
+            return obj["stu_number"], obj["password"]
+    except Exception as e:
+        project_logger.warn(f"failed to load password: {e}")
+        return None
+
+
 @requires_init
 def get_login_cache(
         cache_grabbers: Sequence[Callable[[Edge], Any]] = tuple(),
@@ -197,6 +209,14 @@ def get_login_cache(
     并获取相应的登录缓存, 以供插件使用.
 
     如果登录失败或者超时, 返回 None.
+
+    此函数默认使用二维码提醒登录, 但是如果项目根目录有 login_info.toml 文件,
+    则会从中读取 uia 账号密码, 然后实现全自动登录.
+    toml 文件内容格式:
+    ```toml
+    stu_number = "<学号>"
+    password = "<密码>"
+    ```
 
     Note:
         此方法应仅由 PluginLoader 调用, 以确保将登录缓存分发到各个插件中.
@@ -210,7 +230,7 @@ def get_login_cache(
               提供 Cache 对象的类型即可获取, 当 cache_grabber 报错时, 没有返回值,
               自然 LoginCache 不会保存其值, 更无从谈起获取.
         timeout: 在某个操作等待时间超过 timeout 时, 停止等待, 终止登录逻辑.
-        qrcode_callback: 一个函数, 用于回调提醒用户登录.
+        qrcode_callback: 一个函数, 用于回调提醒用户登录二维码, 如果使用验证码登录则不会触发.
             - 参数 1 为 ECNU uia 登录二维码的临时文件路径, 该文件保存在 %TEMP% 目录下, 脚本不对其进行清理操作.
             - 参数 2 为二维码解析结果, 如果脚本解析二维码失败则此参数是二维码网址.
             - 参数 3 为是否是因为二维码超时而刷新产生的回调.
@@ -224,20 +244,36 @@ def get_login_cache(
         driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")
         # 此时重定向至 ecnu 统一认证界面, 用户登录后返回至 seat-lib.ecnu.edu.cn 域名下.
 
-        # 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
-        click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
-        url, img_base64_data = _get_qrcode(driver, timeout)
-        file = _get_temp_qrcode_file(img_base64_data)
-        qrcode_callback(file, url, False)
-
-        project_logger.info("uia waiting for login.")
-        while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
-            # 二维码超时刷新.
-            driver.maximize_window()  # 最大化窗口, 增加成功捕获二维码的可能性.
-            project_logger.info("uia login qrcode updated.")
+        loaded = load_password()
+        if loaded:
+            # 识别验证码登录.
+            while True:
+                project_logger.info("try automate login...")
+                submit_login(driver, loaded[0], loaded[1], timeout)
+                try:
+                    WebDriverWait(driver, 5).until(
+                        EC.url_matches("https://seat-lib.ecnu.edu.cn")
+                    )
+                    break
+                except TimeoutException:
+                    project_logger.error("failed to load login.")  # 可能是账号密码错误, 可能是验证码不对.
+                    # retry.
+                    driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")
+        else:
+            # 获取 ecnu 统一认证界面的登录二维码并通过邮箱或微信发送给用户.
+            click_element(driver, QRCODE_BUTTON, timeout)  # 确保二维码显示出来.
             url, img_base64_data = _get_qrcode(driver, timeout)
             file = _get_temp_qrcode_file(img_base64_data)
             qrcode_callback(file, url, False)
+
+            project_logger.info("uia waiting for login.")
+            while not _wait_qrcode_update_or_login(driver, timeout):  # 等待用户成功登录或者二维码超时.
+                # 二维码超时刷新.
+                driver.maximize_window()  # 最大化窗口, 增加成功捕获二维码的可能性.
+                project_logger.info("uia login qrcode updated.")
+                url, img_base64_data = _get_qrcode(driver, timeout)
+                file = _get_temp_qrcode_file(img_base64_data)
+                qrcode_callback(file, url, False)
 
         # 提取 cache.
         login_cache = LoginCache()

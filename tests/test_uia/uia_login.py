@@ -1,7 +1,8 @@
 import unittest
 
-from src.config import init
+from src.config import init, project_logger
 from src.email import EmailSender
+from src.portal import PortalCache
 from src.uia.login import get_login_cache, FIRST_QRCODE_TITLE, UPDATED_QRCODE_TITLE, QRCODE_HTML
 from src.wechat import wx
 
@@ -10,6 +11,9 @@ class LoginTest(unittest.TestCase):
     """填入邮箱相关信息后才能运行第一个测试"""
     def setUp(self):
         init()
+
+    def test_login(self):
+        project_logger.info(get_login_cache(cache_grabbers=[PortalCache.grab_from_driver]))
 
     def test_email_notice_login(self):
         sender = EmailSender(sender="", password="", receiver="", smtp_host=("smtp.qq.com", 465))

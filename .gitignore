@@ -7,3 +7,4 @@ ec-plugin.log
 @AutomationLog.txt
 plugin_cache.json
 /timetable.pdf
+login_info.toml
