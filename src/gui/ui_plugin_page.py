@@ -22,13 +22,13 @@ class Ui_PluginPage(object):
     def setupUi(self, PluginPage):
         if not PluginPage.objectName():
             PluginPage.setObjectName(u"PluginPage")
-        PluginPage.resize(488, 393)
+        PluginPage.resize(400, 300)
         self.horizontalLayout = QHBoxLayout(PluginPage)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.pluginNameList = QListView(PluginPage)
         self.pluginNameList.setObjectName(u"pluginNameList")
         self.pluginNameList.setMaximumSize(QSize(200, 16777215))
-        self.pluginNameList.setEditTriggers(QAbstractItemView.EditTrigger.SelectedClicked)
+        self.pluginNameList.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.horizontalLayout.addWidget(self.pluginNameList)
 
@@ -37,6 +37,8 @@ class Ui_PluginPage(object):
 
         self.horizontalLayout.addLayout(self.pluginConfigContent)
 
+        self.horizontalLayout.setStretch(0, 1)
+        self.horizontalLayout.setStretch(1, 2)
 
         self.retranslateUi(PluginPage)
 

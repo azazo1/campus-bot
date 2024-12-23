@@ -53,7 +53,7 @@ class MainWindow(QWidget):
 
     def on_tray_icon_activated(self, reason: QSystemTrayIcon.ActivationReason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
-            self.request_focus() # todo 防止右键显示窗口, 有时会出现这个问题.
+            self.request_focus()
 
     def request_focus(self, *a):
         self.show()
@@ -66,8 +66,9 @@ class MainWindow(QWidget):
         self.tray_icon.setIcon(self.icon)
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
         menu = QMenu()
-        showMainWindow = menu.addAction("显示主窗口")
-        showMainWindow.triggered.connect(self.request_focus)
+        # 不明原因, 有时候右键图标会直接弹出主窗口而不是先显示菜单.
+        # showMainWindow = menu.addAction("显示主窗口")
+        # showMainWindow.triggered.connect(self.request_focus)
         quitApp = menu.addAction("退出")
         quitApp.triggered.connect(self.close)
         self.tray_icon.setContextMenu(menu)
