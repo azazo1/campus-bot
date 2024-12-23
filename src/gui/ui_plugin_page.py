@@ -15,18 +15,20 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QListView, QSizePolicy,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QListView,
+    QSizePolicy, QVBoxLayout, QWidget)
 
 class Ui_PluginPage(object):
     def setupUi(self, PluginPage):
         if not PluginPage.objectName():
             PluginPage.setObjectName(u"PluginPage")
-        PluginPage.resize(400, 300)
+        PluginPage.resize(488, 393)
         self.horizontalLayout = QHBoxLayout(PluginPage)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.pluginNameList = QListView(PluginPage)
         self.pluginNameList.setObjectName(u"pluginNameList")
+        self.pluginNameList.setMaximumSize(QSize(200, 16777215))
+        self.pluginNameList.setEditTriggers(QAbstractItemView.EditTrigger.SelectedClicked)
 
         self.horizontalLayout.addWidget(self.pluginNameList)
 

@@ -1,10 +1,10 @@
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QTranslator, QCoreApplication, QTimer
+from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
-    QLabel, QMenu
+    QLabel, QMenu, QAbstractItemView
 from werkzeug.serving import select_address_family
 
 from src.config import requires_init
@@ -27,25 +27,35 @@ class MainWindow(QWidget):
             self.close()
             raise UIException()
         self.alive = True
+        self.icon = QIcon("assets/icon.png")
+
         self.ui = Ui_MainWindow()
         self.ui_home_page = Ui_HomePage()
         self.ui_plugin_page = Ui_PluginPage()
+
         self.timer = QTimer()
         self.plugin_loader = PluginLoader()
-        self.tray_icon = QSystemTrayIcon()
+        self.plugin_list_model = QStringListModel()
 
+        self.tray_icon = QSystemTrayIcon()
+        # ---
+        self.setWindowIcon(self.icon)
+        # ---
         self.ui.setupUi(self)
         self.ui_home_page.setupUi(self.ui.pageContainer.widget(0))
         self.ui_plugin_page.setupUi(self.ui.pageContainer.widget(1))
+        self.ui_plugin_page.pluginNameList.setModel(self.plugin_list_model)
+
         self.actions_setup()
+
         self.init_plugin_loader()
         self.init_tray_icon()
 
     def on_tray_icon_activated(self, reason: QSystemTrayIcon.ActivationReason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
-            self.request_focus()
+            self.request_focus() # todo 防止右键显示窗口, 有时会出现这个问题.
 
-    def request_focus(self):
+    def request_focus(self, *a):
         self.show()
         self.activateWindow()
         self.setFocus()
@@ -53,7 +63,7 @@ class MainWindow(QWidget):
             self.windowHandle().requestActivate()
 
     def init_tray_icon(self):
-        self.tray_icon.setIcon(QIcon("assets/icon.png"))
+        self.tray_icon.setIcon(self.icon)
         self.tray_icon.activated.connect(self.on_tray_icon_activated)
         menu = QMenu()
         showMainWindow = menu.addAction("显示主窗口")
@@ -76,11 +86,17 @@ class MainWindow(QWidget):
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.plugin_loader.poll)
         self.timer.start()
+        # 插件添加到列表组件.
+        self.plugin_list_model.setStringList(
+            self.plugin_loader.get_imported_plugins()
+        )  # 应该不会自动随列表的值变化而自动响应.
 
     def close(self):
+        """退出应用"""
         self.alive = False
         self.timer.stop()
         self.plugin_loader.close()
+        self.show()  # show 了之后才能正常关闭.
         super().close()
 
     def closeEvent(self, event):

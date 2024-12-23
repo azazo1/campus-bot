@@ -54,12 +54,12 @@ class Ui_MainWindow(object):
 
         self.pageContainer = QStackedWidget(MainWindow)
         self.pageContainer.setObjectName(u"pageContainer")
-        self.pluginPage = QWidget()
-        self.pluginPage.setObjectName(u"pluginPage")
-        self.pageContainer.addWidget(self.pluginPage)
         self.homePage = QWidget()
         self.homePage.setObjectName(u"homePage")
         self.pageContainer.addWidget(self.homePage)
+        self.pluginPage = QWidget()
+        self.pluginPage.setObjectName(u"pluginPage")
+        self.pageContainer.addWidget(self.pluginPage)
 
         self.majorHorizontal.addWidget(self.pageContainer)
 
@@ -69,7 +69,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.pageContainer.setCurrentIndex(1)
+        self.pageContainer.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)

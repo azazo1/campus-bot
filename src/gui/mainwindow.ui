@@ -69,10 +69,10 @@
      <item>
       <widget class="QStackedWidget" name="pageContainer">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
-       <widget class="QWidget" name="pluginPage"/>
        <widget class="QWidget" name="homePage"/>
+       <widget class="QWidget" name="pluginPage"/>
       </widget>
      </item>
     </layout>
