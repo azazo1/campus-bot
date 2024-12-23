@@ -15,8 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QPushButton, QSizePolicy,
-    QSpacerItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLayout,
+    QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout,
+    QWidget)
 
 class Ui_HomePage(object):
     def setupUi(self, HomePage):
@@ -36,15 +37,39 @@ class Ui_HomePage(object):
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.uiaLoginBtn = QPushButton(HomePage)
+        self.homeTitleLabel = QLabel(HomePage)
+        self.homeTitleLabel.setObjectName(u"homeTitleLabel")
+        self.homeTitleLabel.setStyleSheet(u"font: bold 40px;")
+
+        self.verticalLayout.addWidget(self.homeTitleLabel)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer_3)
+
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.verticalWidget = QWidget(HomePage)
+        self.verticalWidget.setObjectName(u"verticalWidget")
+        self.verticalWidget.setMaximumSize(QSize(100, 16777215))
+        self.verticalLayout_2 = QVBoxLayout(self.verticalWidget)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.uiaLoginBtn = QPushButton(self.verticalWidget)
         self.uiaLoginBtn.setObjectName(u"uiaLoginBtn")
 
-        self.verticalLayout.addWidget(self.uiaLoginBtn)
+        self.verticalLayout_2.addWidget(self.uiaLoginBtn)
 
-        self.quitBtn = QPushButton(HomePage)
+        self.quitBtn = QPushButton(self.verticalWidget)
         self.quitBtn.setObjectName(u"quitBtn")
 
-        self.verticalLayout.addWidget(self.quitBtn)
+        self.verticalLayout_2.addWidget(self.quitBtn)
+
+
+        self.horizontalLayout_3.addWidget(self.verticalWidget)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
@@ -65,7 +90,8 @@ class Ui_HomePage(object):
 
     def retranslateUi(self, HomePage):
         HomePage.setWindowTitle(QCoreApplication.translate("HomePage", u"\u4e3b\u9875", None))
+        self.homeTitleLabel.setText(QCoreApplication.translate("HomePage", u"ECNU \u6821\u56ed\u63d2\u4ef6", None))
         self.uiaLoginBtn.setText(QCoreApplication.translate("HomePage", u"\u767b\u5f55 UIA", None))
-        self.quitBtn.setText(QCoreApplication.translate("HomePage", u"\u9000\u51fa", None))
+        self.quitBtn.setText(QCoreApplication.translate("HomePage", u"\u9000\u51fa\u5e94\u7528", None))
     # retranslateUi
 
