@@ -13,7 +13,7 @@ class QuickSelect:
     表示 quickSelect 请求返回的 json 中的 data 字段.
     包含可选 预约日期(day), 校区(premises), 楼层(storey), 区域(area) 的速览信息.
 
-    见 assets/development_need/quick_select_example.json 查看各个种类的 json 对象拥有的字段.
+    见 assets/development-references/quick_select_example.json 查看各个种类的 json 对象拥有的字段.
     """
 
     def __init__(self, data: dict):
