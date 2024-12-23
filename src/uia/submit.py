@@ -77,14 +77,3 @@ def submit_login(driver: Edge, stu_number: str, password: str, timeout=24 * 60):
     driver.find_element(By.CSS_SELECTOR, STUDENT_NUMBER_SELECTOR).send_keys(stu_number)
     driver.find_element(By.CSS_SELECTOR, CAPTCHA_INPUT_SELECTOR).send_keys(captcha)
     driver.find_element(By.CSS_SELECTOR, SUBMIT_BUTTON_SELECTOR).click()
-    # driver.execute_script(f"""
-    # const password = {repr(password)};
-    #
-    # const t = (null === (o = document.getElementById("login-croypto")) || void 0 === o ? void 0 : o.innerText) || "";
-    # const r = document.createElement("input");
-    # r.setAttribute("name", "password");
-    # r.setAttribute("value", desEncrypt(t, password.value));
-    # r.setAttribute("style", "display: none");
-    # document.forms[1].appendChild(r);
-    # document.forms[1].submit();
-    # """)
