@@ -54,12 +54,12 @@ class Ui_MainWindow(object):
 
         self.pageContainer = QStackedWidget(MainWindow)
         self.pageContainer.setObjectName(u"pageContainer")
-        self.page = QWidget()
-        self.page.setObjectName(u"page")
-        self.pageContainer.addWidget(self.page)
-        self.page_2 = QWidget()
-        self.page_2.setObjectName(u"page_2")
-        self.pageContainer.addWidget(self.page_2)
+        self.pluginPage = QWidget()
+        self.pluginPage.setObjectName(u"pluginPage")
+        self.pageContainer.addWidget(self.pluginPage)
+        self.homePage = QWidget()
+        self.homePage.setObjectName(u"homePage")
+        self.pageContainer.addWidget(self.homePage)
 
         self.majorHorizontal.addWidget(self.pageContainer)
 
@@ -78,6 +78,6 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"ECNU\u6821\u56ed\u63d2\u4ef6", None))
         self.homePageBtn.setText(QCoreApplication.translate("MainWindow", u"\u4e3b\u9875", None))
-        self.pluginPageBtn.setText(QCoreApplication.translate("MainWindow", u"\u63d2\u4ef6", None))
+        self.pluginPageBtn.setText(QCoreApplication.translate("MainWindow", u"\u63d2\u4ef6\u914d\u7f6e", None))
     # retranslateUi
 
