@@ -4,15 +4,14 @@ from pathlib import Path
 from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt, QModelIndex
 from PySide6.QtGui import QIcon, QImage
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
-    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy
-from sympy import preview
-from werkzeug.serving import select_address_family
+    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy, QLayout, QHBoxLayout, QCheckBox
 
 from src.config import requires_init
 from src.gui.ui_mainwindow import Ui_MainWindow
 from src.gui.ui_home_page import Ui_HomePage
 from src.gui.ui_plugin_page import Ui_PluginPage
-from src.plugin import PluginLoader
+from src.gui.ui_config_item_row import Ui_configItemRow
+from src.plugin import PluginLoader, ConfigItem, NumberItem
 
 
 class UIException(Exception):
@@ -58,6 +57,18 @@ class MainWindow(QWidget):
         self.init_status_timer()
         # ---
         self.setWindowIcon(self.icon)
+
+    @property
+    def plugin_config_modified(self):
+        return self._plugin_config_modified
+
+    @plugin_config_modified.setter
+    def plugin_config_modified(self, value):
+        if value:
+            self.ui_plugin_page.saveConfigBtn.show()
+        else:
+            self.ui_plugin_page.saveConfigBtn.hide()
+        self._plugin_config_modified = value
 
     def request_focus(self):
         self.show()
@@ -202,10 +213,24 @@ class MainWindow(QWidget):
         v_layout.addWidget(whether_load_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         for cfg_item in config:
-            pass
-        v_layout.addSpacerItem(
-            QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+            self.add_config_item(v_layout, cfg_item)
+        v_layout.addSpacerItem(QSpacerItem(
+            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+        ))
         # todo 添加加载和取消加载按钮.
+
+    @staticmethod
+    def add_config_item(layout: QLayout, cfg_item: ConfigItem):
+        widget = QWidget()
+        ui = Ui_configItemRow()
+        ui.setupUi(widget)
+        ui.itemName.setText(cfg_item.name)
+        ui.itemDesc.setText(cfg_item.description or "[无说明]")
+        if isinstance(cfg_item, NumberItem):
+            ui.inlineContent.addWidget(QCheckBox("lskdfj"))
+        else:
+            raise TypeError("Unknown config item type.")
+        layout.addWidget(widget)
 
 
 @requires_init

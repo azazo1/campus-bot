@@ -16,7 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QListView,
-    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
+    QPushButton, QScrollArea, QSizePolicy, QVBoxLayout,
+    QWidget)
 
 class Ui_PluginPage(object):
     def setupUi(self, PluginPage):
@@ -42,13 +43,19 @@ class Ui_PluginPage(object):
 
         self.horizontalLayout.addLayout(self.vl)
 
-        self.pluginConfigContent = QVBoxLayout()
+        self.scrollArea = QScrollArea(PluginPage)
+        self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollWidget = QWidget()
+        self.scrollWidget.setObjectName(u"scrollWidget")
+        self.pluginConfigContent = QVBoxLayout(self.scrollWidget)
         self.pluginConfigContent.setObjectName(u"pluginConfigContent")
+        self.scrollArea.setWidget(self.scrollWidget)
 
-        self.horizontalLayout.addLayout(self.pluginConfigContent)
+        self.horizontalLayout.addWidget(self.scrollArea)
 
         self.horizontalLayout.setStretch(0, 1)
-        self.horizontalLayout.setStretch(1, 2)
+        self.horizontalLayout.setStretch(1,  2)
 
         self.retranslateUi(PluginPage)
 
