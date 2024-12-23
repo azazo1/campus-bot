@@ -53,6 +53,10 @@ class Ui_MainWindow(object):
 
         self.pageContainer = QStackedWidget(MainWindow)
         self.pageContainer.setObjectName(u"pageContainer")
+        self.pageContainer.setStyleSheet(u"QStackedWidget {\n"
+"    border: 2px solid #909090;\n"
+"    border-radius: 10px;\n"
+"}")
         self.homePage = QWidget()
         self.homePage.setObjectName(u"homePage")
         self.pageContainer.addWidget(self.homePage)
