@@ -231,6 +231,7 @@ class MainWindow(QWidget):
         else:
             raise TypeError("Unknown config item type.")
         layout.addWidget(widget)
+        # todo largeContent 改为 QWidget 默认不显示, 只有在需要的时候才显示.
 
 
 @requires_init
