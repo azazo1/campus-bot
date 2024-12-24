@@ -98,8 +98,8 @@ class PluginContext:
 
     def __init__(self, name: str):
         self.__name = name  # 插件名称.
-        self._logger = logging.Logger(f"plugin-{self.__name}")
-        self._logger.addHandler(ForwardLoggerHandler(project_logger))
+        self.__logger = logging.Logger(f"plugin-{self.__name}")
+        self.__logger.addHandler(ForwardLoggerHandler(project_logger))
         self._uia_cache: LoginCache | None = None
         self._plugin_cache = PluginCache(self.__name)  # 插件持久化保存数据的位置, 同时也是存放 routine 状态的位置.
         self._report_cache_invalid: Callable[[], None] = lambda: None
@@ -139,7 +139,7 @@ class PluginContext:
 
     def get_logger(self):
         """获取插件专属的 logger"""
-        return self._logger
+        return self.__logger
 
     def get_uia_cache(self) -> LoginCache:
         """
