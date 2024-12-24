@@ -21,7 +21,7 @@
        <item>
         <widget class="QLabel" name="itemName">
          <property name="styleSheet">
-          <string notr="true">font: bold 10sp;</string>
+          <string notr="true">font: bold 15px;</string>
          </property>
          <property name="text">
           <string>itemName</string>
@@ -31,7 +31,7 @@
        <item>
         <widget class="QLabel" name="itemDesc">
          <property name="styleSheet">
-          <string notr="true">font: italic 6sp;
+          <string notr="true">font: italic 13px;
 margin-left: 15px;</string>
          </property>
          <property name="text">

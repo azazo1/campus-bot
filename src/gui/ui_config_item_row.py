@@ -31,13 +31,13 @@ class Ui_configItemRow(object):
         self.vl.setObjectName(u"vl")
         self.itemName = QLabel(configItemRow)
         self.itemName.setObjectName(u"itemName")
-        self.itemName.setStyleSheet(u"font: bold 10sp;")
+        self.itemName.setStyleSheet(u"font: bold 15px;")
 
         self.vl.addWidget(self.itemName)
 
         self.itemDesc = QLabel(configItemRow)
         self.itemDesc.setObjectName(u"itemDesc")
-        self.itemDesc.setStyleSheet(u"font: italic 6sp;\n"
+        self.itemDesc.setStyleSheet(u"font: italic 13px;\n"
 "margin-left: 15px;")
 
         self.vl.addWidget(self.itemDesc)

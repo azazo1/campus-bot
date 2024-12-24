@@ -67,7 +67,6 @@ class MainWindow(QWidget):
         # ---
         self.alive = True
         self.plugin_config_modified = False  # 编辑插件配置的时候, 如果修改了配置项但是没有保存.
-        # todo 修改配置内容时标记 modified 为 True.
 
         self.raw_title = self.windowTitle()
         self.icon = QIcon("assets/icon.png")
@@ -249,7 +248,6 @@ class MainWindow(QWidget):
         v_layout.addSpacerItem(QSpacerItem(
             20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
         ))
-        # todo 添加加载和取消加载按钮.
 
     def add_config_item(self, layout: QLayout, cfg_item: ConfigItem):
         widget = QWidget()
