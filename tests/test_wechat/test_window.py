@@ -1,7 +1,7 @@
 import timeit
 import unittest
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.wechat import wx
 from src.wechat.pc import get_pid_by_name
 

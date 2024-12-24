@@ -2,7 +2,7 @@ import os
 import pickle
 import unittest
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.library import LibCache
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder

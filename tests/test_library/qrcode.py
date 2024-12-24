@@ -5,7 +5,7 @@ import pyzbar.pyzbar
 from PIL import Image
 from io import BytesIO
 
-from src.config import init
+from src.log import init
 
 
 class QRCodeTest(unittest.TestCase):

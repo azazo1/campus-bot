@@ -1,6 +1,6 @@
 import unittest
 
-from src.config import init
+from src.log import init
 from src.email.sender import EmailSender
 
 

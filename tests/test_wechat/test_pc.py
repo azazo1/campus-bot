@@ -1,6 +1,6 @@
 import unittest
 
-from src.config import init
+from src.log import init
 from src.wechat.pc import Taskbar, wechat_control, ReserveCursorFocus
 
 

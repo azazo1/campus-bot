@@ -1,5 +1,6 @@
 import datetime
 import sys
+import traceback
 from pathlib import Path
 from xmlrpc.client import DateTime
 
@@ -9,8 +10,9 @@ from PySide6.QtGui import QIcon, QImage
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
     QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy, QLayout, QHBoxLayout, QCheckBox, \
     QSpinBox, QLineEdit, QCalendarWidget, QDateEdit, QTimeEdit, QDateTimeEdit
+from selenium.common import NoSuchWindowException, WebDriverException
 
-from src.config import requires_init
+from src.log import requires_init, project_logger
 from src.gui.ui_mainwindow import Ui_MainWindow
 from src.gui.ui_home_page import Ui_HomePage
 from src.gui.ui_plugin_page import Ui_PluginPage
@@ -125,6 +127,7 @@ class MainWindow(QWidget):
         self.tray_icon.setToolTip(self.windowTitle())
         self.tray_icon.show()
 
+    @requires_init
     def notify_login(self):
         """提示用户进行 uia 登录操作"""
         rst = QMessageBox.question(self, "UIA 登录",
@@ -135,7 +138,10 @@ class MainWindow(QWidget):
                                    QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
         if rst == QMessageBox.StandardButton.Yes:
             self.hide()
-            self.plugin_loader.ecnu_uia_login()
+            try:
+                self.plugin_loader.ecnu_uia_login()
+            except WebDriverException:
+                project_logger.error(traceback.format_exc())
             self.show()
             if self.plugin_loader.cache_valid:
                 QMessageBox.information(self, "登录成功", "登录成功.")
@@ -341,7 +347,7 @@ class MainWindow(QWidget):
             ui.inlineContent.addWidget(datetime_edit)
             ui.largeContent.addWidget(calendar)
         else:
-            raise TypeError("Unknown config item type.")
+            raise TypeError("Unknown log item type.")
         layout.addWidget(widget)
 
 

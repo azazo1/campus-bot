@@ -10,7 +10,7 @@ import typing
 import uiautomation
 
 from .pc import get_wechat_window_control, WeChatError, wechat_control, WAIT_TIME
-from ..config import project_logger, requires_init
+from ..log import project_logger, requires_init
 
 
 class FileIsEmptyError(Exception):

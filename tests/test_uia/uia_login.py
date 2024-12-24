@@ -1,6 +1,6 @@
 import unittest
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.email import EmailSender
 from src.portal import PortalCache
 from src.uia.login import get_login_cache, FIRST_QRCODE_TITLE, UPDATED_QRCODE_TITLE, QRCODE_HTML
