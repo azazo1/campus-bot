@@ -59,6 +59,7 @@ def get_captcha_img_stream(img_base64_data: str) -> io.BytesIO:
     return b
 
 
+# todo 如果识别出来的验证码不是 4 位则刷新验证码重新识别.
 def submit_login(driver: Edge, stu_number: str, password: str, timeout=24 * 60):
     wait_for(driver, CAPTCHA_IMG_SELECTOR, timeout)
     wait_for(driver, PASSWORD_SELECTOR, timeout)
