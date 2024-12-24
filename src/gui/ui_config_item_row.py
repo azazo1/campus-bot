@@ -22,7 +22,7 @@ class Ui_configItemRow(object):
     def setupUi(self, configItemRow):
         if not configItemRow.objectName():
             configItemRow.setObjectName(u"configItemRow")
-        configItemRow.resize(428, 114)
+        configItemRow.resize(152, 88)
         self.vl2 = QVBoxLayout(configItemRow)
         self.vl2.setObjectName(u"vl2")
         self.hl = QHBoxLayout()

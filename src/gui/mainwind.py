@@ -1,17 +1,49 @@
+import datetime
 import sys
 from pathlib import Path
+from xmlrpc.client import DateTime
 
-from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt, QModelIndex
+from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt, QModelIndex, \
+    QDate, QTime, QDateTime
 from PySide6.QtGui import QIcon, QImage
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
-    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy, QLayout, QHBoxLayout, QCheckBox
+    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy, QLayout, QHBoxLayout, QCheckBox, \
+    QSpinBox, QLineEdit, QCalendarWidget, QDateEdit, QTimeEdit, QDateTimeEdit
 
 from src.config import requires_init
 from src.gui.ui_mainwindow import Ui_MainWindow
 from src.gui.ui_home_page import Ui_HomePage
 from src.gui.ui_plugin_page import Ui_PluginPage
 from src.gui.ui_config_item_row import Ui_configItemRow
-from src.plugin import PluginLoader, ConfigItem, NumberItem
+from src.plugin import PluginLoader, ConfigItem, NumberItem, TextItem, DateItem, TimeItem, \
+    DatetimeItem
+
+
+def to_qdate(date: datetime.date) -> QDate:
+    return QDate(date.year, date.month, date.day)
+
+
+def from_qdate(qdate: QDate) -> datetime.date:
+    return datetime.date(qdate.year(), qdate.month(), qdate.day())
+
+
+def to_qtime(dtime: datetime.time) -> QTime:
+    return QTime(dtime.hour, dtime.minute, dtime.second, dtime.microsecond)
+
+
+def from_qtime(qtime: QTime) -> datetime.time:
+    return datetime.time(qtime.hour(), qtime.minute(), qtime.second(), qtime.msec())
+
+
+def to_qdatetime(ddatetime: datetime.datetime) -> QDateTime:
+    return QDateTime(to_qdate(ddatetime.date()), to_qtime(ddatetime.time()))
+
+
+def from_qdatetime(qdatetime: QDateTime) -> datetime.datetime:
+    qdate = qdatetime.date()
+    qtime = qdatetime.time()
+    return datetime.datetime(qdate.year(), qdate.month(), qdate.day(),
+                             qtime.hour(), qtime.minute(), qtime.second(), qtime.msec())
 
 
 class UIException(Exception):
@@ -219,19 +251,100 @@ class MainWindow(QWidget):
         ))
         # todo 添加加载和取消加载按钮.
 
-    @staticmethod
-    def add_config_item(layout: QLayout, cfg_item: ConfigItem):
+    def add_config_item(self, layout: QLayout, cfg_item: ConfigItem):
         widget = QWidget()
         ui = Ui_configItemRow()
         ui.setupUi(widget)
         ui.itemName.setText(cfg_item.name)
         ui.itemDesc.setText(cfg_item.description or "[无说明]")
         if isinstance(cfg_item, NumberItem):
-            ui.inlineContent.addWidget(QCheckBox("lskdfj"))
+            def vc(new_value: int):
+                if not cfg_item.assert_value(new_value):
+                    spin_box.setValue(cfg_item.current_value)
+                else:
+                    cfg_item.set_value(new_value)
+                    self.plugin_config_modified = True
+
+            spin_box = QSpinBox()
+            spin_box.setMaximum(16777215)
+            spin_box.setMinimum(-16777215)
+            spin_box.setValue(cfg_item.current_value)
+            spin_box.valueChanged.connect(vc)
+            ui.inlineContent.addWidget(spin_box)
+        elif isinstance(cfg_item, TextItem):
+            def ef():
+                line = line_edit.text()
+                if not cfg_item.assert_value(line):
+                    line_edit.setText(cfg_item.current_value)
+                else:
+                    cfg_item.set_value(line)
+                    self.plugin_config_modified = True
+
+            line_edit = QLineEdit()
+            line_edit.editingFinished.connect(ef)
+            line_edit.setText(cfg_item.current_value)
+            ui.inlineContent.addWidget(line_edit)
+        elif isinstance(cfg_item, DateItem):
+            def set_date(new_date: QDate):
+                ddate = from_qdate(new_date)
+                if not cfg_item.assert_value(ddate):
+                    new_date = to_qdate(cfg_item.current_value)
+                else:
+                    cfg_item.set_value(ddate)
+                    self.plugin_config_modified = True
+                date_edit.setDate(new_date)
+                calendar.setSelectedDate(new_date)
+
+            calendar = QCalendarWidget()
+            date_edit = QDateEdit()
+            qdate = to_qdate(cfg_item.current_value)
+            calendar.setSelectedDate(qdate)
+            calendar.clicked.connect(set_date)
+            date_edit.editingFinished.connect(lambda: set_date(date_edit.date()))
+            date_edit.setDate(qdate)
+            ui.inlineContent.addWidget(date_edit)
+            ui.largeContent.addWidget(calendar)
+        elif isinstance(cfg_item, TimeItem):
+            def set_time():
+                new_time = time_edit.time()
+                dtime = from_qtime(new_time)
+                if not cfg_item.assert_value(dtime):
+                    new_time = to_qtime(cfg_item.current_value)
+                    time_edit.setTime(new_time)
+                else:
+                    cfg_item.set_value(dtime)
+                    self.plugin_config_modified = True
+
+            time_edit = QTimeEdit()
+            time_edit.setTime(to_qtime(cfg_item.current_value))
+            time_edit.editingFinished.connect(set_time)
+            time_edit.setTime(cfg_item.current_value)
+            ui.inlineContent.addWidget(time_edit)
+        elif isinstance(cfg_item, DatetimeItem):
+            def set_datetime(new_datetime: QDateTime):
+                ddatetime = from_qdatetime(new_datetime)
+                if not cfg_item.assert_value(ddatetime):
+                    new_datetime = to_qdatetime(cfg_item.current_value)
+                else:
+                    cfg_item.set_value(ddatetime)
+                    self.plugin_config_modified = True
+                datetime_edit.setDateTime(new_datetime)
+                calendar.setSelectedDate(new_datetime.date())
+
+            def set_date(new_date: QDate):
+                set_datetime(QDateTime(new_date, to_qtime(cfg_item.current_value.time())))
+
+            datetime_edit = QDateTimeEdit()
+            calendar = QCalendarWidget()
+            calendar.setSelectedDate(to_qdate(cfg_item.current_value.date()))
+            calendar.clicked.connect(set_date)
+            datetime_edit.setDateTime(to_qdatetime(cfg_item.current_value))
+            datetime_edit.editingFinished.connect(lambda: set_datetime(datetime_edit.dateTime()))
+            ui.inlineContent.addWidget(datetime_edit)
+            ui.largeContent.addWidget(calendar)
         else:
             raise TypeError("Unknown config item type.")
         layout.addWidget(widget)
-        # todo largeContent 改为 QWidget 默认不显示, 只有在需要的时候才显示.
 
 
 @requires_init
