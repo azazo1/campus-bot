@@ -18,6 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge
 
 from src.config import project_logger
+from src.uia.login import LoginError
 
 
 class StudyRoomCache:
@@ -41,7 +42,7 @@ class StudyRoomCache:
 
         # 等待 StudyRoom 页面加载完成.
         WebDriverWait(driver, timeout).until(
-            EC.url_matches("https://studyroom.ecnu.edu.cn/")
+            EC.url_matches("https://studyroom.ecnu.edu.cn/#/ic/home")
         )
 
         # 提取 Cookies
@@ -54,17 +55,12 @@ class StudyRoomCache:
         return cls(cookies)
 
 
-class LoginError(Exception):
-    """自定义登录错误异常"""
-    pass
-
-
 class Request:
 
     def __init__(self, cache: 'StudyRoomCache'):
+        if not isinstance(cache, StudyRoomCache):
+            raise ValueError("cache must be an instance of StudyRoomCache.")
         self.cache = cache
-        if cache is None:
-            raise ValueError("cache cannot be None.")
 
     @classmethod
     def check_login_and_extract_data(

@@ -81,6 +81,7 @@ class LoginCache:
     def get_cache(self, cache_cls: Type[T]) -> T | None:
         """
         通过类型来获取对应的 Cache.
+        # Todo 合并所有不同的 Cache 至 login-cache 中, 此时仍能处理不同类型 Cache 失活的情况.
 
         Parameters:
             cache_cls: Cache 对象的类型.
