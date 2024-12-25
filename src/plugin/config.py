@@ -32,6 +32,7 @@ class ItemType:
     DATE = datetime.date  # 日期.
     TIME = datetime.time  # 时间.
     DATETIME = datetime.datetime  # 日期和时间.
+    PASSWORD = str  # 密码.
 
 
 T = TypeVar(
@@ -40,7 +41,8 @@ T = TypeVar(
     ItemType.NUMBER,
     ItemType.DATE,
     ItemType.TIME,
-    ItemType.DATETIME
+    ItemType.DATETIME,
+    ItemType.PASSWORD
 )
 
 
@@ -116,7 +118,7 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
         """从可序列化对象中恢复当前值"""
 
 
-class TextItem(ConfigItem[str]):
+class TextItem(ConfigItem[ItemType.TEXT]):
     def serialize(self):
         return self.current_value
 
@@ -127,7 +129,7 @@ class TextItem(ConfigItem[str]):
         self.set_value(obj)
 
 
-class NumberItem(ConfigItem[int]):
+class NumberItem(ConfigItem[ItemType.NUMBER]):
     def serialize(self):
         return self.current_value
 
@@ -138,7 +140,7 @@ class NumberItem(ConfigItem[int]):
         self.set_value(obj)
 
 
-class DateItem(ConfigItem[datetime.date]):
+class DateItem(ConfigItem[ItemType.DATE]):
     def serialize(self):
         return self.current_value.strftime("%Y/%m/%d")
 
@@ -149,7 +151,7 @@ class DateItem(ConfigItem[datetime.date]):
         self.set_value(datetime.datetime.strptime(obj, "%Y/%m/%d").date())
 
 
-class TimeItem(ConfigItem[datetime.time]):
+class TimeItem(ConfigItem[ItemType.TIME]):
     def serialize(self):
         return self.current_value.strftime("%H:%M:%S")
 
@@ -160,7 +162,7 @@ class TimeItem(ConfigItem[datetime.time]):
         self.set_value(datetime.datetime.strptime(obj, "%H:%M:%S").time())
 
 
-class DatetimeItem(ConfigItem[datetime.datetime]):
+class DatetimeItem(ConfigItem[ItemType.DATETIME]):
     def serialize(self):
         return self.current_value.strftime("%Y/%m/%d-%H:%M:%S")
 
@@ -169,6 +171,17 @@ class DatetimeItem(ConfigItem[datetime.datetime]):
 
     def from_serializable(self, obj: str):
         self.set_value(datetime.datetime.strptime(obj, "%Y/%m/%d-%H:%M:%S"))
+
+
+class PasswordItem(ConfigItem[ItemType.PASSWORD]):
+    def serialize(self):
+        return self.current_value
+
+    def check_type(self, value):
+        return isinstance(value, str)
+
+    def from_serializable(self, obj: str):
+        self.set_value(obj)
 
 
 class PluginConfig:

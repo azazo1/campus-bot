@@ -4,7 +4,7 @@ import datetime
 import logging
 from copy import deepcopy
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Any
 
 from src import SRC_DIR_PATH
 from src.log import project_logger
@@ -103,6 +103,8 @@ class PluginContext:
         self._uia_cache: LoginCache | None = None
         self._plugin_cache = PluginCache(self.__name)  # 插件持久化保存数据的位置, 同时也是存放 routine 状态的位置.
         self._report_cache_invalid: Callable[[], None] = lambda: None
+        self._queue_message: Callable[[str, str, Any], None] = lambda a, b, c: None
+        self._is_plugin_loaded: Callable[[str], bool] = lambda a: False
 
     def last_routine(self):
         return datetime.datetime.fromtimestamp(self._plugin_cache._last_routine)
@@ -148,3 +150,13 @@ class PluginContext:
         在那之前调用此方法会返回 None.
         """
         return self._uia_cache
+
+    def is_plugin_loaded(self, plugin_name: str) -> bool:
+        return self._is_plugin_loaded(plugin_name)
+
+    def send_message(self, plugin_name: str, obj: Any) -> None:
+        """
+        向其他插件发送消息, 如果对应插件没有被加载, 则不会发生任何事情.
+        """
+        if self.is_plugin_loaded(plugin_name):
+            self._queue_message(plugin_name, self.__name, obj)

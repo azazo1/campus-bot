@@ -19,6 +19,7 @@ from src.gui.ui_plugin_page import Ui_PluginPage
 from src.gui.ui_config_item_row import Ui_configItemRow
 from src.plugin import PluginLoader, ConfigItem, NumberItem, TextItem, DateItem, TimeItem, \
     DatetimeItem
+from src.plugin.config import PasswordItem
 
 
 def to_qdate(date: datetime.date) -> QDate:
@@ -140,7 +141,7 @@ class MainWindow(QWidget):
             self.hide()
             try:
                 self.plugin_loader.ecnu_uia_login()
-            except WebDriverException:
+            except Exception:
                 project_logger.error(traceback.format_exc())
             self.show()
             if self.plugin_loader.cache_valid:
@@ -277,17 +278,17 @@ class MainWindow(QWidget):
             ui.inlineContent.addWidget(spin_box)
         elif isinstance(cfg_item, TextItem):
             def ef():
-                line = line_edit.text()
+                line = pwd_edit.text()
                 if not cfg_item.assert_value(line):
-                    line_edit.setText(cfg_item.current_value)
+                    pwd_edit.setText(cfg_item.current_value)
                 else:
                     cfg_item.set_value(line)
                     self.plugin_config_modified = True
 
-            line_edit = QLineEdit()
-            line_edit.editingFinished.connect(ef)
-            line_edit.setText(cfg_item.current_value)
-            ui.inlineContent.addWidget(line_edit)
+            pwd_edit = QLineEdit()
+            pwd_edit.editingFinished.connect(ef)
+            pwd_edit.setText(cfg_item.current_value)
+            ui.inlineContent.addWidget(pwd_edit)
         elif isinstance(cfg_item, DateItem):
             def set_date(new_date: QDate):
                 ddate = from_qdate(new_date)
@@ -346,6 +347,20 @@ class MainWindow(QWidget):
             datetime_edit.editingFinished.connect(lambda: set_datetime(datetime_edit.dateTime()))
             ui.inlineContent.addWidget(datetime_edit)
             ui.largeContent.addWidget(calendar)
+        elif isinstance(cfg_item, PasswordItem):
+            def set_password():
+                line = pwd_edit.text()
+                if not cfg_item.assert_value(line):
+                    pwd_edit.setText(cfg_item.current_value)
+                else:
+                    cfg_item.set_value(line)
+                    self.plugin_config_modified = True
+
+            pwd_edit = QLineEdit()
+            pwd_edit.setEchoMode(QLineEdit.EchoMode.Password)
+            pwd_edit.editingFinished.connect(set_password)
+            pwd_edit.setText(cfg_item.current_value)
+            ui.inlineContent.addWidget(pwd_edit)
         else:
             raise TypeError("Unknown log item type.")
         layout.addWidget(widget)
