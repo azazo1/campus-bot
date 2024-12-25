@@ -9,7 +9,7 @@ from src.library.seat import SeatFinder
 from src.library.subscribe import Subscribe
 from src.uia.login import get_login_cache
 
-LOGIN_CACHE_FILE = "login-cache.pickle"
+LOGIN_CACHE_FILE = "lib-login-cache.pickle"
 
 
 def load_cache():

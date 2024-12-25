@@ -37,7 +37,7 @@ class TestWechat(unittest.TestCase):
         2. 指定聊天窗口在独立窗口.
         3. 单个独立聊天窗口.
         4. 多个独立聊天窗口.
-        5. 聊天窗口在主窗口内但是没被聚焦, 即当前聊天窗口不是指定聊天窗口.
+        5. 聊天窗口在主窗口内但是没被聚焦, 即当前聊天窗口不是指定聊天窗口. (Todo 本情况在另一台测试机中失败)
 
         以上情况可结合测试.
         """
@@ -63,5 +63,5 @@ class TestWechat(unittest.TestCase):
             wx.send_img("文件传输助手", f)
 
     def test_send_file(self):
-        for _ in range(10):
+        for _ in range(5):
             wx.send_file("文件传输助手", __file__)

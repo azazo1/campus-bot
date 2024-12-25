@@ -9,7 +9,7 @@ from src.portal import PortalCache
 from src.uia.login import get_login_cache
 from src.portal.calendar.query import CalendarQuery
 
-LOGIN_CACHE_FILE = "login-cache.pickle"
+LOGIN_CACHE_FILE = "portal-login-cache.pickle"
 
 
 def load_cache():
@@ -29,7 +29,7 @@ class TestCalendar(unittest.TestCase):
         self.cache = load_cache()
         self.calendar = CalendarQuery(self.cache.get_cache(PortalCache))
 
-    def test_user_schedules(self):
+    def test_user_schedules_for_next_day(self):
         now = datetime.datetime.now()
         pprint(self.calendar.query_user_schedules(
             int(now.timestamp() * 1000),

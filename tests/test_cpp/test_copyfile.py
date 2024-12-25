@@ -7,6 +7,10 @@ from src.cpp.copyfile_build import copyfile_setup
 
 
 class TestCopyFile(unittest.TestCase):
+    '''
+    该测试点在首次运行时可能报错, 请尝试多次进入测试点.
+    可从 class 定义中进入.
+    '''
     def setUp(self):
         init()
 

@@ -8,7 +8,7 @@ from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery
 from src.library.seat import SeatFinder
 
-LOGIN_CACHE_FILE = "login-cache.pickle"
+LOGIN_CACHE_FILE = "lib-login-cache.pickle"
 
 
 def load_cache():

@@ -7,7 +7,7 @@ from src.library import LibCache
 from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery
 
-LOGIN_CACHE_FILE = "login-cache.pickle"
+LOGIN_CACHE_FILE = "lib-login-cache.pickle"
 
 
 def load_cache():

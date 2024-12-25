@@ -217,6 +217,7 @@ def get_login_cache(
     stu_number = "<学号>"
     password = "<密码>"
     ```
+    # Todo 整理配置过程, 使得用户在初次运行时一次性填写好配置信息(Email, UIA), 考虑弹窗形式配置.
 
     Note:
         此方法应仅由 PluginLoader 调用, 以确保将登录缓存分发到各个插件中.
