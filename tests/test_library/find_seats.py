@@ -28,6 +28,12 @@ class TestLibrarySeat(unittest.TestCase):
         self.cache = load_cache()
 
     def test_find_most_isolate_seat(self):
+        """
+        Tips:
+            请注意, 该测试仅在电脑端运行, 若在手机端登录了图书馆系统, 会 Return Code: 10001,
+            此时在类方法 check_login_and_extract_data() raise LoginError 前, 会移除当前的 Lib-login-cache.
+            以便重新获取最新有效的 Lib-login-cache.
+        """
         q = LibraryQuery(self.cache.get_cache(LibCache))
         qs = q.quick_select()
         area_id = qs.get_most_free_seats_area(
