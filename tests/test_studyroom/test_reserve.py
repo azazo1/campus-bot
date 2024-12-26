@@ -3,7 +3,7 @@ import pickle
 import unittest
 from pprint import pprint
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.studyroom import StudyRoomCache
 from src.studyroom.reserve import StudyRoomReserve
 from src.studyroom.query import RoomQuery

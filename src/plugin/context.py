@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Callable
 
 from src import SRC_DIR_PATH
-from src.config import project_logger
+from src.log import project_logger
 from src.uia.login import LoginCache
 
 

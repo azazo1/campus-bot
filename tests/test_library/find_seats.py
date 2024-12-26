@@ -2,7 +2,7 @@ import os
 import pickle
 import unittest
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.library import LibCache
 from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery

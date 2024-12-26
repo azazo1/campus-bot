@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire.webdriver import Edge
 
-from src.config import project_logger
+from src.log import project_logger
 
 stdout = sys.stdout
 sys.stdout = io.StringIO()  # 禁用标准输出

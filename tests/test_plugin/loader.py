@@ -1,7 +1,7 @@
 import time
 import unittest
 
-from src.config import init
+from src.log import init
 from src.plugin import PluginLoader
 
 

@@ -2,7 +2,7 @@
 图书馆座位预约.
 
 https://seat-lib.ecnu.edu.cn/api/index/subscribe 查询预约.
-https://seat-lib.ecnu.edu.cn/api/Seat/confirm 执行预约操作, 此操作涉及加密, 见 assets/development_need/confirm_subscribe.js.
+https://seat-lib.ecnu.edu.cn/api/Seat/confirm 执行预约操作, 此操作涉及加密, 见 assets/development-references/confirm_subscribe.js.
 """
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ class Subscribe(Request):
 
         method: POST
 
-        response(json): 见 assets/development_need/subscribe.json
+        response(json): 见 assets/development-references/subscribe.json
         """
         response = self.post("https://seat-lib.ecnu.edu.cn/api/index/subscribe")
         return self.check_login_and_extract_data(response, 1).get("data")

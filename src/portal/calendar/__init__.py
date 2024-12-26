@@ -6,7 +6,7 @@ import os
 import requests
 from requests import Response
 
-from src.config import project_logger
+from src.log import project_logger
 from src.portal import PortalCache
 from src.uia.login import LoginError
 

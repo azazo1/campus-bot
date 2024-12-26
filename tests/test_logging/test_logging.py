@@ -1,7 +1,7 @@
 """
 测试日志功能.
 """
-from src.config import init, project_logger
+from src.log import init, project_logger
 
 
 def main():

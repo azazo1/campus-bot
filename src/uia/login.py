@@ -18,7 +18,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge
 
-from src.config import project_logger, requires_init
+from src.log import project_logger, requires_init
 from src.uia.submit import submit_login
 
 # ECNU 统一登陆界面的使用二维码登录按钮.

@@ -17,7 +17,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge
 
-from src.config import project_logger
+from src.log import project_logger
 from src.uia.login import LoginError
 
 

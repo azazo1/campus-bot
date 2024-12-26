@@ -2,7 +2,7 @@ import unittest
 
 import win32clipboard
 
-from src.config import project_logger, init
+from src.log import project_logger, init
 from src.cpp.copyfile_build import copyfile_setup
 
 

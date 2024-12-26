@@ -16,7 +16,7 @@ import toml
 from seleniumwire.webdriver import Edge
 
 from src import SRC_DIR_PATH
-from src.config import requires_init, project_logger
+from src.log import requires_init, project_logger
 from src.plugin.config import (PluginConfig, ConfigItem,
                                TextItem, ItemType, DateItem,
                                TimeItem, NumberItem, DatetimeItem)
@@ -107,8 +107,8 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
 
     Example:
 
-    >>> from src.plugin.config import TextItem
-    >>> from src.config import init
+    >>> from src.plugin.log import TextItem
+    >>> from src.log import init
     >>> init()
     >>> @register_plugin(name="plugin_a",
     ...                  configuration=PluginConfig().add(TextItem("address", "no.9 l street")))
@@ -305,7 +305,7 @@ class PluginLoader:
         return False
 
     def load_config(self):
-        project_logger.info("plugin_loader: loading config.")
+        project_logger.info("plugin_loader: loading log.")
         if os.path.exists(self.__CONFIG_FILE_PATH):
             with open(self.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
                 serializable = toml.load(f)
@@ -324,7 +324,7 @@ class PluginLoader:
         """
         保存所有插件的配置.
         """
-        project_logger.info("plugin_loader: saving config.")
+        project_logger.info("plugin_loader: saving log.")
         serializable = {}
         for record in Registry.iter_record():
             if record.config is None:
@@ -441,6 +441,7 @@ class PluginLoader:
     def get_plugin_config(self, plugin_name: str):
         """
         获取指定插件的 plugin_config, 如果插件没有配置 plugin_config, 返回 None.
+        可以对返回对象进行修改.
 
         Note:
             此方法面向持有 PluginLoader 的对象.

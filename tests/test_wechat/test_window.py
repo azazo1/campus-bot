@@ -1,7 +1,7 @@
 import timeit
 import unittest
 
-from src.config import init, project_logger
+from src.log import init, project_logger
 from src.wechat import wx
 from src.wechat.pc import get_pid_by_name
 
@@ -57,9 +57,9 @@ class TestWechat(unittest.TestCase):
 
     def test_send_img(self):
         wx.send_message("文件传输助手", "1")
-        wx.send_img("文件传输助手", "assets/development_need/ecnu_logo.png")
+        wx.send_img("文件传输助手", "assets/development-references/ecnu_logo.png")
         wx.send_message("文件传输助手", "2")
-        with open("assets/development_need/ecnu_logo.png", "rb") as f:
+        with open("assets/development-references/ecnu_logo.png", "rb") as f:
             wx.send_img("文件传输助手", f)
 
     def test_send_file(self):

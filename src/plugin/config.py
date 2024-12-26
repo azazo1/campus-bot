@@ -67,25 +67,29 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
         if not (name and all(c.isalpha() or c == "_" for c in name)):
             raise ValueError(f"invalid name: {name}.")
 
-        self._name = name
-        self._description = description
-        self._default_value = default_value
-        self._value_assert = value_assert
+        self.__name = name
+        self.__description = description
+        self.__default_value = default_value
+        self.__value_assert = value_assert
         self.set_value(default_value)
 
+    @property
     def name(self) -> str:
-        return self._name
+        return self.__name
 
+    @property
     def description(self) -> str:
-        return self._description
+        return self.__description
 
     def assert_value(self, value: T) -> bool:
-        return self._value_assert(value)
+        return self.__value_assert(value)
 
+    @property
     def default_value(self) -> T:
         """获取此配置项的默认值"""
-        return deepcopy(self._default_value)
+        return deepcopy(self.__default_value)
 
+    @property
     def current_value(self) -> T:
         """返回配置项当前的值"""
         return deepcopy(self._current_value)
@@ -114,7 +118,7 @@ class ConfigItem(ABC, Generic[T]):  # 子类继承 T 需为可序列化对象.
 
 class TextItem(ConfigItem[str]):
     def serialize(self):
-        return self.current_value()
+        return self.current_value
 
     def check_type(self, value):
         return isinstance(value, str)
@@ -125,7 +129,7 @@ class TextItem(ConfigItem[str]):
 
 class NumberItem(ConfigItem[int]):
     def serialize(self):
-        return self.current_value()
+        return self.current_value
 
     def check_type(self, value):
         return isinstance(value, int)
@@ -136,7 +140,7 @@ class NumberItem(ConfigItem[int]):
 
 class DateItem(ConfigItem[datetime.date]):
     def serialize(self):
-        return self.current_value().strftime("%Y/%m/%d")
+        return self.current_value.strftime("%Y/%m/%d")
 
     def check_type(self, value):
         return isinstance(value, datetime.date)
@@ -147,7 +151,7 @@ class DateItem(ConfigItem[datetime.date]):
 
 class TimeItem(ConfigItem[datetime.time]):
     def serialize(self):
-        return self.current_value().strftime("%H:%M:%S")
+        return self.current_value.strftime("%H:%M:%S")
 
     def check_type(self, value):
         return isinstance(value, datetime.time)
@@ -158,7 +162,7 @@ class TimeItem(ConfigItem[datetime.time]):
 
 class DatetimeItem(ConfigItem[datetime.datetime]):
     def serialize(self):
-        return self.current_value().strftime("%Y/%m/%d-%H:%M:%S")
+        return self.current_value.strftime("%Y/%m/%d-%H:%M:%S")
 
     def check_type(self, value):
         return isinstance(value, datetime.datetime)
@@ -178,9 +182,9 @@ class PluginConfig:
 
     def add(self, item: ConfigItem):
         """添加配置项, 可链式调用"""
-        if item.name() in self._items.keys():
-            raise ValueError("Item with name '{}' already exists.".format(item.name()))
-        self._items[item.name()] = item
+        if item.name in self._items.keys():
+            raise ValueError("Item with name '{}' already exists.".format(item.name))
+        self._items[item.name] = item
         return self
 
     def serialize(self) -> dict:

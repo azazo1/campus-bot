@@ -3,7 +3,7 @@ import logging
 import os
 from typing import Optional
 
-from src.config import init
+from src.log import init
 from src.portal import PortalCache
 from src.portal.calendar.query import CalendarQuery
 from src.uia.login import get_login_cache

@@ -1,6 +1,6 @@
 import unittest
 
-from src.config import init
+from src.log import init
 from src.email.sender import EmailSender
 
 
@@ -17,7 +17,7 @@ class TestEmailSender(unittest.TestCase):
         email_sender.send_html_email("Test Html Subject", "<h1>Hello, World!</h1>")
         email_sender.send_html_with_attachments("Test Attachment Subject",
                                                 "<h1>Test Attachment Content</h1>",
-                                                ["assets/development_need/ecnu_logo.png", "assets/development_need/ecnu_logo.png"])
+                                                ["assets/development-references/ecnu_logo.png", "assets/development-references/ecnu_logo.png"])
 
     def test_send_open_wx_link(self):
         email_sender = EmailSender(sender="", password="", receiver="", smtp_host=("smtp.qq.com", 465))

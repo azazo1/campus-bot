@@ -24,7 +24,7 @@ class CalendarNotice(Plugin):
 
     def on_config_load(self, ctx: PluginContext, cfg: PluginConfig):
         item = cfg.get_item("notice_before_class_start")
-        self.time_ahead = item.current_value()
+        self.time_ahead = item.current_value
 
     def on_uia_login(self, ctx: PluginContext):
         login_cache = ctx.get_uia_cache()
