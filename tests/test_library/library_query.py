@@ -7,10 +7,10 @@ from src.library import LibCache
 from src.uia.login import get_login_cache
 from src.library.query import LibraryQuery
 
-LOGIN_CACHE_FILE = "lib-login-cache.pickle"
+LOGIN_CACHE_FILE = "login-cache.pickle"
 
 
-def load_cache():
+def load_cache() -> LibCache:
     if os.path.exists(LOGIN_CACHE_FILE):
         with open(LOGIN_CACHE_FILE, "rb") as f:
             login_cache = pickle.load(f)
@@ -18,8 +18,14 @@ def load_cache():
         login_cache = get_login_cache(cache_grabbers=[LibCache.grab_from_driver])
         with open(LOGIN_CACHE_FILE, "wb") as f:
             pickle.dump(login_cache, f)
-    return login_cache
 
+    # 如果对应的缓存为空, 重新调用 grab_from_driver.
+    if login_cache.get_cache(LibCache) is None:
+        login_cache = get_login_cache(cache_grabbers=[LibCache.grab_from_driver])
+        with open(LOGIN_CACHE_FILE, "wb") as f:
+            pickle.dump(login_cache, f)
+
+    return login_cache
 
 class LibraryQueryTest(unittest.TestCase):
     def setUp(self):

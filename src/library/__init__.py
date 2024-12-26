@@ -103,21 +103,7 @@ class Request:
 
         Tips:
             当用户在手机端登录 Lib 后, 电脑端的 Lib-Login-Cache 会失效.
-            故若出现 10001 时, 先删除当前 Lib-Login-Cache, 以便后续重新获取.
         """
-
-        def delete_pickle_file(file_path: str):
-            """
-            删除指定的 pickle 文件。
-            """
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    project_logger.info(f"Successfully removed cache file: {file_path}")
-                except Exception as e:
-                    project_logger.error(f"Failed to remove cache file: {file_path}. Error: {e}")
-            else:
-                project_logger.error(f"No such file or directory: {file_path}")
 
         if response.status_code != 200:
             raise LoginError(f"response status code: {response.status_code}.")
@@ -125,9 +111,6 @@ class Request:
             raise LoginError("request was redirected, which means you didn't login.")
         ret = json.loads(response.text)
         if ret["code"] != expected_code:
-            # 如果返回的 code 是 10001，删除缓存文件
-            if ret.get("code") == 10001:
-                delete_pickle_file("lib-login-cache.pickle")
             raise LoginError(f"result code: {ret['code']}, {ret}.")
         return ret
 

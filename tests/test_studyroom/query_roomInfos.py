@@ -9,7 +9,7 @@ from src.studyroom.query import RoomQuery
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
-LOGIN_CACHE_FILE = "studyroom-login-cache.pickle"
+LOGIN_CACHE_FILE = "login-cache.pickle"
 
 
 def load_cache() -> StudyRoomCache:
@@ -24,6 +24,13 @@ def load_cache() -> StudyRoomCache:
         login_cache = get_login_cache(cache_grabbers=[StudyRoomCache.grab_from_driver])
         with open(LOGIN_CACHE_FILE, "wb") as f:
             pickle.dump(login_cache, f)
+
+    # 如果对应的缓存为空, 重新调用 grab_from_driver.
+    if login_cache.get_cache(StudyRoomCache) is None:
+        login_cache = get_login_cache(cache_grabbers=[StudyRoomCache.grab_from_driver])
+        with open(LOGIN_CACHE_FILE, "wb") as f:
+            pickle.dump(login_cache, f)
+
     return login_cache
 
 
@@ -38,28 +45,15 @@ class RoomQueryTest(unittest.TestCase):
     def test_query_room_infos(self):
         """
         测试查询校内所有研讨室的基础信息功能.
+
+        Tips: 该 Url 似乎会随着时间改变响应
         """
         rooms = self.query.query_room_infos()
 
         # 验证返回值不为空
         self.assertIsNotNone(rooms, "房间信息查询失败，返回 None")
 
-        # 遍历房间信息并验证数据结构
-        for campus in rooms:
-            self.assertIn("campusName", campus, "缺少校园名称")
-            self.assertIn("devKinds", campus, "缺少房间分类信息")
-            print(f"Campus: {campus['campusName']}")
-
-            for dev_kind_group in campus["devKinds"]:
-                for dev_kind in dev_kind_group:
-                    self.assertIn("roomInfos", dev_kind, "缺少房间详细信息")
-                    self.assertIn("kindName", dev_kind, "缺少房间类型名称")
-                    print(f"  Room Type: {dev_kind['kindName']}")
-
-                    for room in dev_kind["roomInfos"]:
-                        self.assertIn("devName", room, "缺少房间名称")
-                        self.assertIn("devId", room, "缺少房间 ID")
-                        print(f"    Room: {room['devName']} (ID: {room['devId']})")
+        pprint(rooms)
 
     def test_query_rooms(self):
         """

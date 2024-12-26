@@ -51,7 +51,6 @@ class StudyRoomCache:
             cookies[cookie["name"]] = cookie["value"]
 
         project_logger.info("got StudyRoom login cache.")
-        project_logger.debug(f"cookies: {cookies}")  # Todo: To delete
         return cls(cookies)
 
 
@@ -80,23 +79,7 @@ class Request:
         Returns:
             如果执行正常，返回请求回应中的 json 结构。
 
-        Tips:
-            当用户在手机端登录 StudyRoom 后，电脑端的 StudyRoom-Login-Cache 会失效。
-            故若出现 10001 时，先删除当前 StudyRoom-Login-Cache，以便后续重新获取。
         """
-
-        def delete_pickle_file(file_path: str):
-            """
-            删除指定的 pickle 文件。
-            """
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    project_logger.info(f"Successfully removed cache file: {file_path}")
-                except Exception as e:
-                    project_logger.error(f"Failed to remove cache file: {file_path}. Error: {e}")
-            else:
-                project_logger.error(f"No such file or directory: {file_path}")
 
         if response.status_code != 200:
             raise LoginError(f"Response status code: {response.status_code}.")
@@ -108,9 +91,6 @@ class Request:
             raise LoginError("Failed to decode JSON response.")
 
         if ret.get("code") != expected_code:
-            # 如果返回的 code 是 300
-            if ret.get("code") == 300:
-                delete_pickle_file("studyroom-login-cache.pickle")
             raise LoginError(f"Result code: {ret.get('code')}, {ret}.")
         return ret
 

@@ -32,35 +32,12 @@ class Request:
             如果执行正常, 返回请求回应中的 json 结构 data 字段.
         """
 
-        def delete_pickle_file(file_path: str):
-            """
-            删除指定的 pickle 文件。
-            """
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    project_logger.info(f"Successfully removed cache file: {file_path}")
-                except Exception as e:
-                    project_logger.error(f"Failed to remove cache file: {file_path}. Error: {e}")
-            else:
-                project_logger.error(f"No such file or directory: {file_path}")
-
         if response.status_code != 200:
             raise LoginError(f"response status code: {response.status_code}.")
         if "json" not in response.headers["content-type"]:
             raise LoginError("request was redirected, which means you didn't login.")
         ret = response.json()
-
-        errors = ret.get("errors", [])
         if ret.get("data") is None:
-            # 获取第一个错误的扩展信息
-            error_extensions = errors[0].get("extensions", {})
-            code = error_extensions.get("code")
-
-            # 检查 code 是否为 "ACCESS_TOKEN_INVALID"
-            if code == "ACCESS_TOKEN_INVALID":
-                delete_pickle_file("portal-login-cache.pickle")
-
             raise LoginError(f"response has no valid data, {ret}.")
         return ret["data"]
 

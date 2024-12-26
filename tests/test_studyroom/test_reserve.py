@@ -10,7 +10,7 @@ from src.studyroom.query import RoomQuery
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
-LOGIN_CACHE_FILE = "studyroom-login-cache.pickle"
+LOGIN_CACHE_FILE = "login-cache.pickle"
 
 
 def load_cache() -> StudyRoomCache:
@@ -25,6 +25,13 @@ def load_cache() -> StudyRoomCache:
         login_cache = get_login_cache(cache_grabbers=[StudyRoomCache.grab_from_driver])
         with open(LOGIN_CACHE_FILE, "wb") as f:
             pickle.dump(login_cache, f)
+
+    # 如果对应的缓存为空, 重新调用 grab_from_driver.
+    if login_cache.get_cache(StudyRoomCache) is None:
+        login_cache = get_login_cache(cache_grabbers=[StudyRoomCache.grab_from_driver])
+        with open(LOGIN_CACHE_FILE, "wb") as f:
+            pickle.dump(login_cache, f)
+
     return login_cache
 
 
