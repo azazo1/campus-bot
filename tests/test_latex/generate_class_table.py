@@ -1,4 +1,3 @@
-import datetime
 import os
 import pickle
 import unittest
@@ -8,6 +7,7 @@ from src.log import init
 from src.portal import PortalCache
 from src.uia.login import get_login_cache
 from src.portal.calendar.query import CalendarQuery
+from tools.classtable.generate_latex_table import LatexGenerator
 
 LOGIN_CACHE_FILE = "login-cache.pickle"
 
@@ -36,18 +36,10 @@ class TestCalendar(unittest.TestCase):
         self.cache = load_cache()
         self.calendar = CalendarQuery(self.cache.get_cache(PortalCache))
 
-    def test_user_schedules_for_next_day(self):
-        now = datetime.datetime.now()
-        pprint(self.calendar.query_user_schedules(
-            int(now.timestamp() * 1000),
-            int((now + datetime.timedelta(days=1)).timestamp() * 1000),
-        ))
-
-    def test_school_calendar(self):
-        school_calendar = self.calendar.query_school_calendar()
-        pprint(school_calendar)
-
-    def test_get_double_class_table(self):
-        class_table_dict = self.calendar.query_user_class_table()
-        pprint("当前的课表为:")
-        pprint(class_table_dict)
+    def test_get_class_table(self):
+        double_week_class_table = self.calendar.query_user_class_table()
+        pprint(double_week_class_table)
+        generator = LatexGenerator(double_week_class_table)
+        generator.classify_courses()
+        generator.generate_latex()
+        generator.compile_latex()

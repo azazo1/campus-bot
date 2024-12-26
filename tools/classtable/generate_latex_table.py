@@ -1,12 +1,8 @@
 import datetime
 import logging
 import os
-from typing import Optional
-
-from src.log import init
-from src.portal import PortalCache
-from src.portal.calendar.query import CalendarQuery
-from src.uia.login import get_login_cache
+from typing import Optional, List
+from dataclasses import dataclass
 
 # 元组 (start_hour, start_minute, end_hour, end_minute)
 time_slots = [
@@ -14,6 +10,18 @@ time_slots = [
     ((13, 0), (13, 45)), ((13, 50), (14, 35)), ((14, 50), (15, 35)), ((15, 40), (16, 25)), ((16, 30), (17, 15)),  # 下午
     ((18, 0), (18, 45)), ((18, 50), (19, 35)), ((19, 40), (20, 25))  # 晚上
 ]
+
+
+@dataclass
+class ClassSchedule:
+    title: str
+    address: str
+    startTime: datetime.datetime
+    endTime: datetime.datetime
+    description: str
+    hosts: List[Optional[dict[str, str]]]
+    typename: str
+
 
 class LatexGenerator:
     def __init__(self, courses, file_prefix="timetable"):
@@ -43,28 +51,47 @@ class LatexGenerator:
         return None
 
     def classify_courses(self):
-        for c in self.courses:
-            start_dt = datetime.datetime.strptime(c['start_time'], "%Y-%m-%d %H:%M:%S")
-            end_dt = datetime.datetime.strptime(c['end_time'], "%Y-%m-%d %H:%M:%S")
-            wday = start_dt.weekday()  # 获取星期几
+        """
+        将课程按照星期分类, 并提取出课程的开始节次和结束节次.
+
+        Tips:
+            由于接口原因, 在获取用户课表时可能出现 hosts 字典为 None 的情况.
+            优先使用空的教师名字作为传入 LateX 代码的参数.
+        """
+        for cls in self.courses:
+            start_dt = cls.startTime
+            end_dt = cls.endTime
+            wday = start_dt.weekday()  # 获取星期几 (0 = 周一, 6 = 周日)
 
             # 找到开始节次和结束节次
             start_slot = self.time_to_slot(start_dt.hour, start_dt.minute)
             end_slot = self.time_to_slot(end_dt.hour, end_dt.minute)
 
-            # 我们收集的信息: 课程名、开始节次、结束节次、地点、老师（可能空, 此时因为接口查询次数太多）等
+            if start_slot is None or end_slot is None:
+                logging.warning(f"课程时间未匹配到节次: {cls.title} 时间: {cls.startTime} - {cls.endTime}")
+                continue  # 跳过无法匹配节次的课程
+
+            # 提取教师信息
+            teacher_str = " "  # 默认教师为空
+            if cls.hosts:
+                for host in cls.hosts:
+                    if host and 'name' in host and host['name']:
+                        teacher_str = host['name']
+                        break  # 找到第一个有效的教师名称后退出循环
+
+            # 收集课程信息
             self.week_courses[wday].append({
-                'course_name': c['course_name'],
+                'course_name': cls.title,
                 'start_slot': start_slot,
                 'end_slot': end_slot,
-                'location': c['location'],
-                'teacher': c['teacher']
+                'location': cls.address,
+                'teacher': teacher_str
             })
 
     def generate_latex(self):
         colors = ["H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9"]
         latex_output = [
-            r"\documentclass[libertinus,en,sharp,landscape]{./classtable/litetable}",
+            r"\documentclass[libertinus,en,sharp,landscape]{tools/classtable/litetable}",
             r"\begin{document}",
             r"",
             r"\timelist{",
@@ -72,7 +99,7 @@ class LatexGenerator:
             r"8:45,9:35,10:35,11:25,12:15,13:45,14:35,15:35,16:25,17:15,18:45,19:35,20:25",
             r"}",
             r"",
-            r"\sticker{./classtable/favicon}",
+            r"\sticker{tools/classtable/favicon}",
             r"",
             r"\begin{tikzpicture}",
             r"  \makeframe{Timetable -- This Week}"]
@@ -88,13 +115,16 @@ class LatexGenerator:
             for c in day_courses:
                 col = colors[color_index % len(colors)]
                 color_index += 1
-                # 老师信息如果有就写第一个老师名字，没有就空
-                teacher_str = c['teacher'][0] if c['teacher'] else "未知教师"
+                teacher_str = c['teacher']
 
-                week_info = "Week 1 -- 18"
+                # 暂不添加周次信息, 本 API 对周次的适配较为繁琐
+                week_info = " "
 
-                # 添加课程行, 示例输出: \course{H1}{3}{5}{概率论与数理统计}{教书院 219}{巩俊卿}{Week 1 -- 18}
-                latex_output.append(f"\\course{{{col}}}{{{c['start_slot']}}}{{{c['end_slot']}}}{{{c['course_name']}}}{{{c['location']}}}{{{teacher_str}}}{{{week_info}}}")
+                # 添加课程行, 示例输出: \course{H1}{3}{5}{概率论与数理统计}{教书院 219}{巩俊卿}{Week 1}
+                # Warning: 请勿分行, 可能存在换行符导致 LateX 编译错误.
+                latex_output.append(
+                    f"\\course{{{col}}}{{{c['start_slot']}}}{{{c['end_slot']}}}{{{c['course_name']}}}{{{c['location']}}}{{{teacher_str}}}{{{week_info}}}"
+                )
 
         latex_output.append(r"\end{tikzpicture}")
         latex_output.append(r"")
@@ -105,26 +135,10 @@ class LatexGenerator:
             logging.info(f"The Latex file has been generated: {self.file_name}")
 
     def compile_latex(self):
-        try:
-            os.system(f"xelatex -interaction=nonstopmode {self.file_name}")
-            logging.info("PDF compilation successful!")
-        except Exception as e:
-            logging.error(f"An error occurred during compilation: {e}")
-
-        temp_files = [f"{self.file_prefix}.aux", f"{self.file_prefix}.log", f"{self.file_prefix}.out", f"{self.file_name}"]
+        os.system(f"xelatex -interaction=nonstopmode {self.file_name}")
+        temp_files = [f"{self.file_prefix}.aux", f"{self.file_prefix}.log", f"{self.file_prefix}.out", f"{self.file_prefix}.tex"]
 
         for temp_file in temp_files:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
                 logging.info(f"Temporary file {temp_file} has been deleted.")
-
-if __name__ == '__main__':
-    init()
-    cache = get_login_cache()
-    calendar = CalendarQuery(cache.get_cache(PortalCache))
-    class_table_dict = calendar.query_user_class_table()
-    collected_info = CalendarQuery.collect_course_info(class_table_dict)
-    generator = LatexGenerator(collected_info)
-    generator.classify_courses()
-    generator.generate_latex()
-    generator.compile_latex()
