@@ -13,22 +13,24 @@ PAGE_TITLES = {
 
 CONFIG_FILE = 'plugin_config.toml'
 
-# todo 不能这样加载配置文件.
-# 加载配置文件
+
 def load_config():
     with open(CONFIG_FILE, "r") as f:
         return toml.load(f)
+
 
 # 保存配置文件
 def save_config(data):
     with open(CONFIG_FILE, "w") as f:
         toml.dump(data, f)
 
+
 @app.route('/api/get_param', methods=['GET'])
 def get_param():
     config = load_config()
     value = config['calendar_notice']['notice_before_class_start']
     return jsonify({"value": value})
+
 
 @app.route('/api/set_param', methods=['POST'])
 def set_param():
@@ -38,6 +40,7 @@ def set_param():
     config['calendar_notice']['notice_before_class_start'] = int(new_value)
     save_config(config)
     return jsonify({"status": "success", "new_value": new_value})
+
 
 @app.context_processor
 def inject_breadcrumbs() -> dict:
@@ -64,15 +67,18 @@ def inject_breadcrumbs() -> dict:
 def index():  # put application's code here
     return render_template("index.html")
 
+
 # 管理员页面
 @app.route('/admin')
 def admin():
-    return render_template("admin.html")
+    return render_template("base.html")
+
 
 # 文件管理
 @app.route('/admin/file')
 def file():
     return render_template("file.html")
+
 
 # 课表提醒
 @app.route('/admin/class_reminder')
