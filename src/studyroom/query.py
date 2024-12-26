@@ -25,15 +25,15 @@ class RoomQuery(Request):
         查询研修间的房间信息。
 
         URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos
-
         Method: GET
-
         Headers:
             Cookie: ic-cookie
 
+        Tips:
+            本 GET 请求无法提供负载, 故只能请求本日的信息, src.StudyRoom.available.process_reservation_data 可以处理本日的信息.
+
         Returns:
-            list: 包含房间信息的字典列表，如果请求成功。
-            None: 如果请求失败。
+            list: 包含房间信息的字典列表
         """
         url = "https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos"
         headers = {
@@ -45,18 +45,19 @@ class RoomQuery(Request):
 
     def query_rooms(self, day: str = "today") -> Optional[List[dict]]:
         """
-        查询研修间的可用房间。
+        查询当前类别的研修间的可用房间, 在局限于一个校区或钟爱某个类别的研修间时较为有用.
 
         URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
-
         Method: GET
 
         Parameters:
             day: str, 日期, 可选值为 "today" 或 "tomorrow".
 
+        Tips:
+            本请求可以查询今日和明日的相关信息.
+
         Returns:
             list: 包含可用房间信息的字典列表，如果请求成功。
-            None: 如果请求失败。
         """
         if day == "today":
             target_date = datetime.today()
@@ -77,8 +78,8 @@ class RoomQuery(Request):
             "sysKind": 1,
             "resvDates": formatted_date,
             "page": 1,
-            "pageSize": 30,
-            "kindIds": 3675133,
+            "pageSize": 30, # 最大化查询数量, 其实研修间也没有 30 个
+            "kindIds": 3675133, # 测试点为普陀研究室 (木门)
             "labId": "",
             "campusId": 2
         }

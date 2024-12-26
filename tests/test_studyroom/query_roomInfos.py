@@ -46,7 +46,35 @@ class RoomQueryTest(unittest.TestCase):
         """
         测试查询校内所有研讨室的基础信息功能.
 
-        Tips: 该 Url 似乎会随着时间改变响应
+        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos
+        Method: GET
+
+        Tips:
+            该 Url 似乎会随着时间改变响应, 待后续考察.
+
+            示例返回 :
+            :   {'devId': 3676503,
+                 'devName': '普陀校区单人间C421',
+                 'minResvTime': 60,
+                 'openTimes': [{'openEndTime': '22:00',
+                                'openLimit': 1,
+                                'openStartTime': '08:00'}],
+                 'resvInfos': [{'resvBeginTime': '2024-12-26 '
+                                                 '17:01:00',
+                                'resvEndTime': '2024-12-26 '
+                                               '21:01:00',
+                                'resvStatus': 1093}]},
+                {'devId': 3676511,
+                 'devName': '普陀校区单人间C422',
+                 'minResvTime': 60,
+                 'openTimes': [{'openEndTime': '22:00',
+                                'openLimit': 1,
+                                'openStartTime': '08:00'}],
+                 'resvInfos': [{'resvBeginTime': '2024-12-26 '
+                                                 '18:00:00',
+                                'resvEndTime': '2024-12-26 '
+                                               '22:00:00',
+                                'resvStatus': 1093}]},
         """
         rooms = self.query.query_room_infos()
 
@@ -55,11 +83,41 @@ class RoomQueryTest(unittest.TestCase):
 
         pprint(rooms)
 
-    def test_query_rooms(self):
+    def test_query_rooms_today(self):
         """
-        测试查询当前研修间预约情况.
+        测试查询当前类别的研修间的预约情况.
+
+        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
+        Method: GET
+
+        Tips:
+            通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
+
         """
         rooms = self.query.query_rooms("today")
+
+        # 验证返回值不为空
+        self.assertIsInstance(rooms, list, "返回值应为房间列表")
+
+        # 验证列表中的每个房间具有必要的字段
+        for room in rooms:
+            self.assertIn("devId", room, "房间信息缺少 devId")
+            self.assertIn("devName", room, "房间信息缺少 devName")
+
+        pprint(rooms)
+
+    def test_query_rooms_tomorrow(self):
+        """
+        测试查询当前类别的研修间的预约情况.
+
+        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
+        Method: GET
+
+        Tips:
+            通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
+
+        """
+        rooms = self.query.query_rooms("tomorrow")
 
         # 验证返回值不为空
         self.assertIsInstance(rooms, list, "返回值应为房间列表")
