@@ -12,7 +12,7 @@ from src.uia.login import LoginError
     name="calendar_notice",
     configuration=PluginConfig().add(
         TimeItem(
-            name="notice_before_class_start", default_value=datetime.time(0, 10, 0),
+            name="notice_before_class_start", default_value=datetime.time(0, 10),
             description="上课提前提醒时间 (提前h小时m分钟)"
         )
     ),
@@ -42,23 +42,23 @@ class CalendarNotice(Plugin):
         cache = login_cache.get_cache(PortalCache)
         if not cache:
             ctx.get_logger().error("failed to get cache.")
+            ctx.report_cache_invalid()
             return
         self.calendar_query = CalendarQuery(cache)
+        self.update_schedules(ctx)
 
     def on_routine(self, ctx: PluginContext):
-        if self.calendar_query is not None:
-            self.throttler.throttle(self.update_schedules, ctx)
+        self.throttler.throttle(self.update_schedules, ctx)
         now = datetime.datetime.now()
         for sche in self.schedules:
             if now < sche.startTime < now + self.time_ahead:
                 if sche in self.notified_schedules:
                     ctx.get_logger().info(f"{sche.title} is reaching...")
-                    # todo 通过邮件或者其他方式提醒用户.
-                    # todo 添加邮件提醒插件;
-                    # todo 账号密码保存在其下;
-                    # todo configitem 添加 password 类型;
-                    # todo 实现插件间通信, 调用方法为: ctx.send(plugin_name, message), 间接调用, 不返回值, 不是立即到达, 只有被加载的插件能够接收消息.
-                    # todo ctx 提供特定插件是否被加载查询.
+                    ctx.send_message("email_notifier",
+                                     (
+                                         "课程即将开始",
+                                         f"{sche.title} 即将开始({sche.startTime.strftime('%m-%d %H:%M:%S')})"
+                                     ))  # 发送邮件提醒用户.
                 self.notified_schedules.add(sche)
             else:
                 self.notified_schedules.remove(sche)

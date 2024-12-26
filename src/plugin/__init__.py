@@ -8,6 +8,7 @@ import json
 import os
 import sys
 import traceback
+from collections import defaultdict
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, Callable, Any, Sequence
@@ -202,6 +203,16 @@ class Plugin:
             仅被加载的插件能接收到此事件.
         """
 
+    def on_recv(self, ctx: PluginContext, from_plugin: str, obj: Any):
+        """
+        当插件接收到其他插件发送来的消息时触发, 只有被加载的插件才能接收其他插件的消息.
+
+        Parameters:
+            ctx: 插件上下文.
+            from_plugin: 发送消息的插件.
+            obj: 附加的信息对象.
+        """
+
 
 class SingleInstanceError(Exception):
     def __init__(self, msg: str = None):
@@ -251,6 +262,7 @@ class PluginLoader:
     def __init__(self):
         self.cache_valid = False
         self.loaded_plugins: set[str] = set()
+        self.messages: dict[str, list[tuple[str, Any]]] = defaultdict(lambda: [])
 
     @requires_init
     def import_plugins(self):
@@ -343,6 +355,13 @@ class PluginLoader:
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
+            while self.messages[plugin_name]:
+                msg = self.messages[plugin_name].pop()
+                try:
+                    record.instance.on_recv(record.ctx, msg[0], msg[1])
+                except Exception:
+                    project_logger.error(f"Error when calling {plugin_name} recv:\n"
+                                         f"{traceback.format_exc()}")
             if self._check_time_reached(now, record.ctx.last_routine(), record.routine):
                 record.ctx._plugin_cache._last_routine = now.timestamp()
                 try:
@@ -376,6 +395,8 @@ class PluginLoader:
         record = Registry.plugin_record(plugin_name)
         self.loaded_plugins.add(plugin_name)
         record.ctx._report_cache_invalid = self.invalidate_plugin
+        record.ctx._is_plugin_loaded = self.is_plugin_loaded
+        record.ctx._queue_message = self.queue_message
         # 加载 plugin 的 cache, 不是 uia cache.
         self._touch_plugin_cache()
         with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
@@ -393,7 +414,12 @@ class PluginLoader:
         record = Registry.plugin_record(plugin_name)
         record.instance.on_unload(record.ctx)
         self.loaded_plugins.remove(plugin_name)
+
         record.ctx._report_cache_invalid = lambda: None
+        record.ctx._queue_message = lambda a, b, c: None
+        record.ctx._is_plugin_loaded = lambda a: False
+        self.messages.pop(plugin_name, None)
+
         # 保存 plugin_cache.
         self._touch_plugin_cache()
         with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
@@ -427,11 +453,15 @@ class PluginLoader:
             record = Registry.plugin_record(plugin_name)
             grabbers.append(record.cache_grabber)
         login_cache = get_login_cache(cache_grabbers=grabbers, qrcode_callback=qrcode_callback)
+        self.cache_valid = True  # 放在前面可以让插件在 on_uia_login 的时候报告失效(登录失败).
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
             record.ctx._uia_cache = login_cache
-            record.instance.on_uia_login(record.ctx)
-        self.cache_valid = True
+            try:
+                record.instance.on_uia_login(record.ctx)
+            except Exception:
+                project_logger.error(
+                    f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n")
 
     def invalidate_plugin(self):
         self.cache_valid = False
@@ -468,3 +498,6 @@ class PluginLoader:
             此方法面向持有 PluginLoader 的对象.
         """
         return plugin_name in self.loaded_plugins
+
+    def queue_message(self, to_plugin: str, from_plugin: str, obj: Any):
+        self.messages[to_plugin].append((from_plugin, obj))
