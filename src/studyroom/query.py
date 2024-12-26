@@ -43,7 +43,7 @@ class RoomQuery(Request):
         json_output = self.check_login_and_extract_data(response, expected_code=0)
         return json_output
 
-    def query_rooms(self, day: str = "today") -> Optional[List[dict]]:
+    def query_rooms_available(self, day: str = "today") -> Optional[List[dict]]:
         """
         查询当前类别的研修间的可用房间, 在局限于一个校区或钟爱某个类别的研修间时较为有用.
 
@@ -63,8 +63,10 @@ class RoomQuery(Request):
             target_date = datetime.today()
         elif day == "tomorrow":
             target_date = datetime.today() + timedelta(days=1)
+        elif day == "day_after_tomorrow":
+            target_date = datetime.today() + timedelta(days=2)
         else:
-            raise ValueError("day must be 'today' or 'tomorrow'")
+            raise ValueError("day must be 'today', 'tomorrow', or 'day_after_tomorrow'")
 
         # 格式化日期为 "YYYYMMDD"
         formatted_date = target_date.strftime("%Y%m%d")

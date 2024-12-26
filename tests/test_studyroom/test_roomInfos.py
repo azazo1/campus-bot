@@ -35,14 +35,19 @@ def load_cache() -> StudyRoomCache:
 
 
 class RoomQueryTest(unittest.TestCase):
-    """测试 RoomQuery 类的功能"""
+    """
+    测试 RoomQuery 类的功能
+
+    Tips:
+        本测试集仅用于测试接口是否正常工作, 不进行任何数据处理.
+    """
 
     def setUp(self):
         init()
         self.cache = load_cache()
         self.query = RoomQuery(self.cache.get_cache(StudyRoomCache))
 
-    def test_query_room_infos(self):
+    def test_query_roomInfos(self):
         """
         测试查询校内所有研讨室的基础信息功能.
 
@@ -83,7 +88,7 @@ class RoomQueryTest(unittest.TestCase):
 
         pprint(rooms)
 
-    def test_query_rooms_today(self):
+    def test_query_roomAvailable_today(self):
         """
         测试查询当前类别的研修间的预约情况.
 
@@ -94,7 +99,7 @@ class RoomQueryTest(unittest.TestCase):
             通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
 
         """
-        rooms = self.query.query_rooms("today")
+        rooms = self.query.query_rooms_available("today")
 
         # 验证返回值不为空
         self.assertIsInstance(rooms, list, "返回值应为房间列表")
@@ -106,7 +111,7 @@ class RoomQueryTest(unittest.TestCase):
 
         pprint(rooms)
 
-    def test_query_rooms_tomorrow(self):
+    def test_query_roomAvailable_tomorrow(self):
         """
         测试查询当前类别的研修间的预约情况.
 
@@ -117,7 +122,7 @@ class RoomQueryTest(unittest.TestCase):
             通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
 
         """
-        rooms = self.query.query_rooms("tomorrow")
+        rooms = self.query.query_rooms_available("tomorrow")
 
         # 验证返回值不为空
         self.assertIsInstance(rooms, list, "返回值应为房间列表")
