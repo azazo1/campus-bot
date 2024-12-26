@@ -1,12 +1,10 @@
 import os
 import pickle
 import unittest
-from pprint import pprint
 
 from src.log import init, project_logger
 from src.studyroom import StudyRoomCache
 from src.studyroom.reserve import StudyRoomReserve
-from src.studyroom.query import RoomQuery
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
@@ -67,7 +65,3 @@ class RoomQueryTest(unittest.TestCase):
             self.fail(f"Login Failed: {e}")
         except Exception as e:
             self.fail(f"An exception occurred during the reservation. Procedure: {e}")
-
-
-if __name__ == "__main__":
-    unittest.main()

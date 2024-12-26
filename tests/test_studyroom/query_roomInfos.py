@@ -84,7 +84,3 @@ class RoomQueryTest(unittest.TestCase):
 
         self.assertIn("Result code: 300", str(context.exception))
         self.assertIn("用户未登录，请重新登录", str(context.exception))
-
-
-if __name__ == "__main__":
-    unittest.main()

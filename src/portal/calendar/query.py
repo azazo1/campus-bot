@@ -68,6 +68,11 @@ class ClassSchedule:
         self.title = ""
         self.typename = ""
 
+    def __repr__(self):
+        return (f"ClassSchedule(title={self.title}, address={self.address}, "
+                f"startTime={self.startTime}, endTime={self.endTime}, "
+                f"description={self.description}, hosts={self.hosts}, typename={self.typename})")
+
     @classmethod
     def from_json_objs(cls, json_objs: list) -> list[Self]:
         rst = []

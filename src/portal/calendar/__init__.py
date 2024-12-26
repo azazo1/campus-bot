@@ -1,12 +1,9 @@
 """
 校历查询.
 """
-import os
-
 import requests
 from requests import Response
 
-from src.log import project_logger
 from src.portal import PortalCache
 from src.uia.login import LoginError
 
@@ -31,7 +28,6 @@ class Request:
         Returns:
             如果执行正常, 返回请求回应中的 json 结构 data 字段.
         """
-
         if response.status_code != 200:
             raise LoginError(f"response status code: {response.status_code}.")
         if "json" not in response.headers["content-type"]:
