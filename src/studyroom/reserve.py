@@ -1,10 +1,8 @@
-from datetime import datetime, timedelta
-from typing import Optional, List, Dict
+from typing import Optional
 
 from src.studyroom import StudyRoomCache
 from src.studyroom import Request, LoginError
-
-from src.log import project_logger
+from src.studyroom.query import StudyRoomQuery
 
 
 class StudyRoomReserve(Request):
@@ -42,6 +40,16 @@ class StudyRoomReserve(Request):
             }
             return extracted_data
 
+    def _get_room_uuid(self):
+        """
+        获取已预约研修间的 uuid, 用于取消预约.
+
+        Url:
+        """
+        self.query = StudyRoomQuery(self.cache)
+        self.uuid = self.query.check_resvInfo(needStatus=6)[0].get("uuid")
+        return self.uuid
+
     def reserve_room(
             self,
             resvBeginTime: str,
@@ -54,7 +62,6 @@ class StudyRoomReserve(Request):
         封装预约研修间的 POST 请求。
 
         Parameters:
-            appAccNo: int, 用户账号 ID, 从 _fetch_userInfo 获取.
             resvBeginTime: str, 预约开始时间（格式: YYYY-MM-DD HH:MM:SS）。
             resvEndTime: str, 预约结束时间（格式: YYYY-MM-DD HH:MM:SS）。
             testName: str, 测试名称或预约名称。
@@ -76,6 +83,7 @@ class StudyRoomReserve(Request):
             "Cookie": f"ic-cookie={ic_cookie}",
         }
 
+        # appAccNo: int, 用户账号 ID, 从 _fetch_userInfo 获取.
         appAccNo = self._fetch_userInfo().get("accNo")
 
         payload = {
@@ -102,7 +110,7 @@ class StudyRoomReserve(Request):
             该取消接口需要通过查询预约状态获取 uuid:
             -> 通过此 url 查询: https://studyroom.ecnu.edu.cn/ic-web/reserve/resvInfo
         """
-        uuid = self._fetch_userInfo().get("uuid")
+        uuid = self._get_room_uuid()
         url = "https://studyroom.ecnu.edu.cn/ic-web/reserve/delete"
         headers = {
             "Cookie": f"ic-cookie={self.cache.cookies.get('ic-cookie')}"
@@ -112,12 +120,3 @@ class StudyRoomReserve(Request):
         }
         response = self.post(url, headers=headers, json_payload=payload)
         return response.json()
-
-
-
-    def _get_room_uuid(self):
-        """
-        获取已预约研修间的 uuid, 用于取消预约.
-
-        Url:
-        """

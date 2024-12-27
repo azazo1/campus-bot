@@ -113,6 +113,8 @@ class RoomReserver(unittest.TestCase):
     def test_auto_cancel(self):
         """
         自动取消预约研修间, 用于测试取消预约功能的全自动化.
+
+        该测试应在 test_auto_reservation 后运行.
         """
         try:
             cancel_response = self.reserve.cancel_reservation()
