@@ -1,5 +1,13 @@
 # 华师大校园小插件
 
+![](https://img.shields.io/github/languages/top/azazo1/ecnu-campus-plugins "语言")
+[![](https://img.shields.io/github/actions/workflow/status/azazo1/ecnu-campus-plugins/golangci-lint.yml?branch=master)](https://github.com/azazo1/ecnu-campus-plugins/actions/workflows/python-cli.yml "代码分析")
+[![](https://img.shields.io/github/contributors/azazo1/ecnu-campus-plugins)](https://github.com/azazo1/ecnu-campus-plugins/graphs/contributors "贡献者")
+[![](https://img.shields.io/github/license/azazo1/ecnu-campus-plugins)](https://github.com/azazo1/ecnu-campus-plugins/blob/master/LICENSE "许可协议")
+
+[//]: # (todo 将仓库状态变为 Public, 添加./github/workflows/python-cli.yml)
+
+
 华师大校园小插件旨在利用校园内已提供的服务为学生提供一个更自动化, 人性化的便利服务.
 
 ## 部署方法
@@ -26,29 +34,7 @@ pass = "<token>" # SMTP 协议的邮箱授权码.
 to = "<receiver_email>" # 提醒接收邮箱.
 ```
 
-### WebDriver 配置
 
-请为 python 配置 Edge 的 webdriver,
-见 [Microsoft Edge WebDriver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/?form=MA13LH).
-
-### 微信配置
-
-脚本测试微信版本为: 3.9.10.27, 语言和系统语言中文.
-
-脚本对微信的控制需要和 Windows 任务栏交互, 请确保 Windows 任务栏存在, 可按照喜好允许任务栏自动缩回.
-
-### 环境准备
-
-进入项目目录, 运行:
-
-```shell
-pip install -r requirements.txt
-```
-
-### 编译 C++ 代码
-
-使用 python 运行 [copyfile_setup.py](src/cpp/copyfile_build/copyfile_setup.py), 来编译 C++ 代码,
-不编译则无法使用脚本向微信发送文件功能.
 
 ### LateX 环境准备
 
@@ -56,3 +42,9 @@ pip install -r requirements.txt
 
 [//]: # (todo 更加细节的文档, 比如 SMTP 具体配置操作, webdriver 喂奶配置教程)
 [//]: # (todo 添加编写自己的 plugins 的教程.)
+
+# Wiki 文档
+
+本 Wiki 介绍了 ecnu-campus-plugins 的部分运行原理, 供您参考如何编写一个关于 ECNU 的插件.
+
+[![Wiki](https://img.shields.io/badge/Go_to-Wiki-blue?style=for-the-badge)](https://github.com/azazo1/ecnu-campus-plugins/wiki)
