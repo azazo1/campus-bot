@@ -9,7 +9,6 @@ Urls:
 """
 
 import json
-import os
 import requests
 from requests import Response
 from typing import Optional, Union
@@ -127,7 +126,7 @@ class Request:
             cookies=self.cache.cookies,
         )
 
-    def get(self, url: str, headers: Optional[dict] = None) -> Response:
+    def get(self, url: str, params: Optional[dict] = None, headers: Optional[dict] = None,) -> Response:
         """
         提交 GET 请求读取内容。
 
@@ -135,6 +134,7 @@ class Request:
             Cookie: ...
 
         :param url: 请求的 URL.
+        :param params: GET 请求的参数.
         :param headers: 额外的请求头.
         :return: requests.Response 对象.
         """
@@ -151,4 +151,5 @@ class Request:
             url,
             headers=headers_,
             cookies=self.cache.cookies,
+            params=params
         )

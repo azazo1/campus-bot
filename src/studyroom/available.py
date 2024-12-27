@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from src.log import project_logger
 
 
-def process_reservation_data_in_roomInfo(data: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
+def process_reservation_data_in_roomInfos(data: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
     """
     处理预约数据, 返回包含 devId, devName, resvInfos 和 availableInfos 的列表.
 

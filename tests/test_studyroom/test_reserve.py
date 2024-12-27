@@ -8,7 +8,7 @@ from src.log import init, project_logger
 from src.studyroom import StudyRoomCache
 from src.studyroom.available import process_reservation_data_in_roomAvailable
 from src.studyroom.reserve import StudyRoomReserve
-from src.studyroom.query import RoomQuery
+from src.studyroom.query import StudyRoomQuery
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
@@ -37,51 +37,14 @@ def load_cache() -> StudyRoomCache:
     return login_cache
 
 
-class RoomQueryTest(unittest.TestCase):
-    """测试 RoomQuery 类的功能"""
+class RoomReserver(unittest.TestCase):
+    """测试 StudyRoomReserve 类的功能"""
 
     def setUp(self):
         init()
         self.cache = load_cache()
         self.reserve = StudyRoomReserve(self.cache.get_cache(StudyRoomCache))
-        self.query = StudyRoomReserve(self.cache.get_cache(StudyRoomCache))
-
-    def test_successful_reservation(self):
-        """
-        利用一个可以成功预约研修间的用例, 以下情况均为测试成功:
-            AssertTionError:
-                - 预约成功
-                - 预约失败: 预约时间要大于当前时间
-
-        Warning:
-            本测试点仅用于开发测试, 可以在后一个测试点中运行全自动预约.
-        """
-        # 准备预约数据
-        appAccNo = 142319353
-        resvBeginTime = "2024-12-26 20:40:00"
-        resvEndTime = "2024-12-26 21:40:00"
-        testName = "Python 实践"
-        resvDev = [11907]
-        memo = "仅供学习"
-
-        try:
-            # 调用 reserve_room 方法
-            response = self.query.reserve_room(
-                appAccNo=appAccNo,
-                resvBeginTime=resvBeginTime,
-                resvEndTime=resvEndTime,
-                testName=testName,
-                resvDev=resvDev,
-                memo=memo,
-            )
-
-            self.assertIsNotNone(response, "The server did not return a response.")
-            self.assertEqual(response.get("code"), 0, f"预约失败: {response.get('message')}")
-            project_logger.info(f"Reserve success: {response}")
-        except LoginError as e:
-            self.fail(f"Login Failed: {e}")
-        except Exception as e:
-            self.fail(f"An exception occurred during the reservation. Procedure: {e}")
+        self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
 
     def test_auto_reservation(self):
         """
@@ -94,22 +57,20 @@ class RoomQueryTest(unittest.TestCase):
         """
         try:
             # Step 1: 获取用户信息
-            user_info = self.query._fetch_userInfo()
+            user_info = self.reserve._fetch_userInfo()
             if not user_info:
                 self.fail("无法获取用户信息, 预约终止.")
             appAccNo = user_info.get("accNo")
             if not appAccNo:
                 self.fail("用户的 accNo 不存在, 无法进行预约.")
 
-            # Step 2: 获取可用房间信息
-            room_query = RoomQuery(self.cache.get_cache(StudyRoomCache))
-            available_rooms_tomorrow = room_query.query_rooms_available(day="tomorrow")
+            available_rooms_tomorrow = self.query.query_roomsAvailable(day="tomorrow")
             processed_data = process_reservation_data_in_roomAvailable(
                 data=available_rooms_tomorrow,
                 query_date="tomorrow",
                 filter_available_only=True
             )
-            pprint(processed_data) # 获取有预约时段的房间信息
+            pprint(processed_data)  # 获取有预约时段的房间信息
             project_logger.info("Available rooms tomorrow: %s", processed_data)
 
             # 这里假设选择第一个可用的房间和时间段
@@ -133,7 +94,7 @@ class RoomQueryTest(unittest.TestCase):
             if not resvBeginTime or not resvEndTime or not resvDev:
                 self.fail("选定的房间信息不完整，无法进行预约。")
 
-            response = self.query.reserve_room(
+            response = self.reserve.reserve_room(
                 resvBeginTime=resvBeginTime,
                 resvEndTime=resvEndTime,
                 testName=testName,
@@ -148,3 +109,15 @@ class RoomQueryTest(unittest.TestCase):
             self.fail(f"Login Error: {e}")
         except Exception as e:
             self.fail(f"The reservation process is abnormal. Procedure: {e}")
+
+    def test_auto_cancel(self):
+        """
+        自动取消预约研修间, 用于测试取消预约功能的全自动化.
+        """
+        try:
+            cancel_response = self.reserve.cancel_reservation()
+            pprint(cancel_response)
+            project_logger.info("Cancel response: %s", cancel_response)
+            self.assertIsNotNone(cancel_response, "服务器未返回任何响应。")
+        except LoginError as e:
+            self.fail(f"Login Error: {e}")

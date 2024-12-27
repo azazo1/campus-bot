@@ -8,8 +8,8 @@ from pprint import pprint
 
 from src.log import init, project_logger
 from src.studyroom import StudyRoomCache
-from src.studyroom.query import RoomQuery
-from src.studyroom.available import process_reservation_data_in_roomInfo, process_reservation_data_in_roomAvailable
+from src.studyroom.query import StudyRoomQuery
+from src.studyroom.available import process_reservation_data_in_roomInfos, process_reservation_data_in_roomAvailable
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
@@ -49,11 +49,11 @@ class RoomQueryTest(unittest.TestCase):
     def setUp(self):
         init()
         self.cache = load_cache()
-        self.query = RoomQuery(self.cache.get_cache(StudyRoomCache))
+        self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
 
     def test_available_room(self):
-        test_data = self.query.query_room_infos()
-        processed_data = process_reservation_data_in_roomInfo(test_data)
+        test_data = self.query.query_roomInfos()
+        processed_data = process_reservation_data_in_roomInfos(test_data)
         pprint(processed_data)
 
     def test_available_category_rooms_today(self):
@@ -66,7 +66,7 @@ class RoomQueryTest(unittest.TestCase):
                 -> redirect to https://studyroom.ecnu.edu.cn/#/ic/home
                 -> 普陀校区 -> 普陀研究室 (木门)
         """
-        test_data = self.query.query_rooms_available("today")
+        test_data = self.query.query_roomsAvailable("today")
         processed_data = process_reservation_data_in_roomAvailable(test_data, )
         # query_date = "today", filter_available_only = False as default.
         pprint(processed_data)
@@ -82,7 +82,7 @@ class RoomQueryTest(unittest.TestCase):
                 -> 普陀校区 -> 普陀研究室 (木门)
 
         """
-        test_data = self.query.query_rooms_available("tomorrow")
+        test_data = self.query.query_roomsAvailable("tomorrow")
         processed_data = process_reservation_data_in_roomAvailable(
             data=test_data,
             query_date="tomorrow",
@@ -103,7 +103,7 @@ class RoomQueryTest(unittest.TestCase):
                 -> redirect to https://studyroom.ecnu.edu.cn/#/ic/home
                 -> 普陀校区 -> 普陀研究室 (木门)
         """
-        test_data = self.query.query_rooms_available("day_after_tomorrow")
+        test_data = self.query.query_roomsAvailable("day_after_tomorrow")
         processed_data = process_reservation_data_in_roomAvailable(
             data=test_data,
             query_date="day_after_tomorrow",
