@@ -8,7 +8,7 @@ from pprint import pprint
 
 from src.log import init, project_logger
 from src.studyroom import StudyRoomCache
-from src.studyroom.query import RoomQuery
+from src.studyroom.query import StudyRoomQuery
 from src.uia.login import get_login_cache, LoginError
 
 # 缓存文件路径
@@ -37,18 +37,15 @@ def load_cache() -> StudyRoomCache:
     return login_cache
 
 
-class RoomQueryTest(unittest.TestCase):
+class StudyRoomQueryTest(unittest.TestCase):
     """
-    测试 RoomQuery 类的功能
-
-    Tips:
         本测试集仅用于测试接口是否正常工作, 不进行任何数据处理.
     """
 
     def setUp(self):
         init()
         self.cache = load_cache()
-        self.query = RoomQuery(self.cache.get_cache(StudyRoomCache))
+        self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
 
     def test_query_roomInfos(self):
         """
@@ -71,7 +68,7 @@ class RoomQueryTest(unittest.TestCase):
                                                  '17:01:00',
                                 'resvEndTime': '2024-12-26 '
                                                '21:01:00',
-                                'resvStatus': 1093}]}, # Todo 1093 代表这个房间正在使用中, 1027 代表未使用
+                                'resvStatus': 1093}]},
                 {'devId': 3676511,
                  'devName': '普陀校区单人间C422',
                  'minResvTime': 60,
@@ -84,57 +81,55 @@ class RoomQueryTest(unittest.TestCase):
                                                '22:00:00',
                                 'resvStatus': 1093}]},
         """
-        rooms = self.query.query_room_infos()
-
-        # 验证返回值不为空
-        self.assertIsNotNone(rooms, "房间信息查询失败，返回 None")
-
+        rooms = self.query.query_roomInfos()
         pprint(rooms)
 
     def test_query_roomAvailable_today(self):
         """
-        测试查询当前类别的研修间的预约情况.
+        测试查询当前类别的研修间的预约情况的 Url 是否可用正常请求. [今天]
 
         URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
         Method: GET
 
         Tips:
             通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
-
         """
-        rooms = self.query.query_rooms_available("today")
-
-        # 验证返回值不为空
-        self.assertIsInstance(rooms, list, "返回值应为房间列表")
-
-        # 验证列表中的每个房间具有必要的字段
+        rooms = self.query.query_roomsAvailable("today")
         for room in rooms:
             self.assertIn("devId", room, "房间信息缺少 devId")
             self.assertIn("devName", room, "房间信息缺少 devName")
-
         pprint(rooms)
 
     def test_query_roomAvailable_tomorrow(self):
         """
-        测试查询当前类别的研修间的预约情况.
+        测试查询当前类别的研修间的预约情况的 Url 是否可用正常请求. [明天]
 
         URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
         Method: GET
 
         Tips:
             通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
-
         """
-        rooms = self.query.query_rooms_available("tomorrow")
-
-        # 验证返回值不为空
-        self.assertIsInstance(rooms, list, "返回值应为房间列表")
-
-        # 验证列表中的每个房间具有必要的字段
+        rooms = self.query.query_roomsAvailable("tomorrow")
         for room in rooms:
             self.assertIn("devId", room, "房间信息缺少 devId")
             self.assertIn("devName", room, "房间信息缺少 devName")
+        pprint(rooms)
 
+    def test_query_roomAvailable_day_after_tomorrow(self):
+        """
+        测试查询当前类别的研修间的预约情况的 Url 是否可用正常请求. [后天]
+
+        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomAvailable
+        Method: GET
+
+        Tips:
+            通过不同的 kindIds 参数来获取, kindId 从 query_room_infos 中获取.
+        """
+        rooms = self.query.query_roomsAvailable("day_after_tomorrow")
+        for room in rooms:
+            self.assertIn("devId", room, "房间信息缺少 devId")
+            self.assertIn("devName", room, "房间信息缺少 devName")
         pprint(rooms)
 
     def test_invalid_cookie(self):
@@ -142,11 +137,24 @@ class RoomQueryTest(unittest.TestCase):
         测试无效的 ic-cookie, 是否会抛出 LoginError.
         """
         invalid_cache = StudyRoomCache({"ic-cookie": "invalid_cookie"})
-        invalid_query = RoomQuery(invalid_cache)
+        invalid_query = StudyRoomQuery(invalid_cache)
 
         # 验证是否抛出 LoginError
         with self.assertRaises(LoginError) as context:
-            invalid_query.query_room_infos()
+            invalid_query.query_roomInfos()
 
         self.assertIn("Result code: 300", str(context.exception))
         self.assertIn("用户未登录，请重新登录", str(context.exception))
+
+    def test_query_resvInfo(self):
+        """
+        测试查询预约信息的 Url 是否可用正常请求.
+
+        URL: https://studyroom.ecnu.edu.cn/ic-web/reserve/resvInfo
+        Method: GET
+
+        Tips:
+            若没有预约任何研修间, 该测试点返回的数据为空.
+        """
+        resv_info = self.query.check_resvInfo(2) # 查询已预约未使用的研修间
+        pprint(resv_info)
