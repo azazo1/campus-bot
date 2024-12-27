@@ -201,7 +201,11 @@ def process_reservation_data_in_roomInfo(data: Dict[str, Any]) -> Dict[str, List
     return result
 
 
-def process_reservation_data_in_roomAvailable(data: List[Dict[str, Any]], query_date: str = "today") -> List[Dict[str, Any]]:
+def process_reservation_data_in_roomAvailable(
+        data: List[Dict[str, Any]],
+        query_date: str = "today",
+        filter_available_only: bool = False
+) -> List[Dict[str, Any]]:
     """
     整理房间预约数据, 并分析可预约的时间段.
 
@@ -212,6 +216,7 @@ def process_reservation_data_in_roomAvailable(data: List[Dict[str, Any]], query_
     Parameters:
         data (List[Dict[str, Any]]): 输入的房间数据列表.
         query_date (str): 查询日期, 可以是 "today" 或 "tomorrow".
+        filter_available_only (bool): 如果为 True，只返回 availableInfos 不为空的房间. 其缺省值为 False.
 
         示例输入 (仅保留有效字段):
              {'addServices': None,
@@ -283,6 +288,7 @@ def process_reservation_data_in_roomAvailable(data: List[Dict[str, Any]], query_
     for room in data:
         # 提取基本字段
         room_id = room.get('roomId')
+        dev_id = room.get('devId')
         room_name = room.get('roomName')
         kind_id = room.get('kindId')
         lab_name = room.get('labName')
@@ -450,9 +456,10 @@ def process_reservation_data_in_roomAvailable(data: List[Dict[str, Any]], query_
         project_logger.info(f"  可预约时间段: {unique_available_infos}")
         project_logger.info(f" ")
 
-        # 构建结果字典，移除 'deadlineTime' 和 'labId' 字段
+        # 构建结果字典, 目前有用的字段仅有 devId, roomName, resvInfo, 而 availableInfos 是通过计算得到的.
         room_info = {
             "roomId": room_id,
+            "devId": dev_id,
             "roomName": room_name,
             "kindId": kind_id,
             "labName": lab_name,
@@ -460,6 +467,10 @@ def process_reservation_data_in_roomAvailable(data: List[Dict[str, Any]], query_
             "resvInfo": formatted_resv_infos,
             "availableInfos": unique_available_infos
         }
+
+        # 如果只需要返回 availableInfos 不为空的房间
+        if filter_available_only and not unique_available_infos:
+            continue
 
         result.append(room_info)
 

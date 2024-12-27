@@ -1,3 +1,6 @@
+"""
+    Tips: 本测试集仅用于测试接口是否正常工作, 不进行任何数据处理.
+"""
 import os
 import pickle
 import unittest
@@ -68,7 +71,7 @@ class RoomQueryTest(unittest.TestCase):
                                                  '17:01:00',
                                 'resvEndTime': '2024-12-26 '
                                                '21:01:00',
-                                'resvStatus': 1093}]},
+                                'resvStatus': 1093}]}, # Todo 1093 代表这个房间正在使用中, 1027 代表未使用
                 {'devId': 3676511,
                  'devName': '普陀校区单人间C422',
                  'minResvTime': 60,

@@ -1,3 +1,6 @@
+"""
+    Tips: 该测试集是 test_roomInfos 的拓展, 在获得响应字段的基础上进行数据处理.
+"""
 import os
 import pickle
 import unittest
@@ -55,43 +58,55 @@ class RoomQueryTest(unittest.TestCase):
 
     def test_available_category_rooms_today(self):
         """
-        查询当前类别所有研修间的可用时段, 查询内容为今日.
+        查询当前类别所有研修间的可用时段, 查询内容为 [今日].
 
-        请进入此 url 肉眼对照可预约时段结果:
-            https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
+        Tips:
+            请进入此 url 肉眼对照可预约时段结果:
+                https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
                 -> redirect to https://studyroom.ecnu.edu.cn/#/ic/home
                 -> 普陀校区 -> 普陀研究室 (木门)
         """
         test_data = self.query.query_rooms_available("today")
-        processed_data = process_reservation_data_in_roomAvailable(test_data)  # query_date = "today" as default
+        processed_data = process_reservation_data_in_roomAvailable(test_data, )
+        # query_date = "today", filter_available_only = False as default.
         pprint(processed_data)
 
     def test_available_category_rooms_tomorrow(self):
         """
-        查询当前类别所有研修间的可用时段, 查询内容为明日.
+        查询当前类别所有研修间的可用时段, 查询内容为 [明日].
 
-        请进入此 url 肉眼对照可预约时段结果:
-            https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
+        Tips:
+            请进入此 url 肉眼对照可预约时段结果:
+                https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
                 -> redirect to https://studyroom.ecnu.edu.cn/#/ic/home
                 -> 普陀校区 -> 普陀研究室 (木门)
 
         """
         test_data = self.query.query_rooms_available("tomorrow")
-        processed_data = process_reservation_data_in_roomAvailable(test_data, "tomorrow")
+        processed_data = process_reservation_data_in_roomAvailable(
+            data=test_data,
+            query_date="tomorrow",
+            filter_available_only=True
+        )
         pprint(processed_data)
 
     def test_available_category_rooms_day_after_tomorrow(self):
         """
-        查询当前类别所有研修间的可用时段, 查询内容为后天.
+        查询当前类别所有研修间的可用时段, 查询内容为 [后天].
 
-        Tips:
+        Warning:
             本接口可能存在使用时间限制, 或许在每日 22:00 后才能进行查询.
 
-        请进入此 url 肉眼对照可预约时段结果:
-            https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
+        Tips:
+            请进入此 url 肉眼对照可预约时段结果:
+                https://studyroom.ecnu.edu.cn/#/ic/researchSpace/3/3675133/2
                 -> redirect to https://studyroom.ecnu.edu.cn/#/ic/home
                 -> 普陀校区 -> 普陀研究室 (木门)
         """
         test_data = self.query.query_rooms_available("day_after_tomorrow")
-        processed_data = process_reservation_data_in_roomAvailable(test_data, "day_after_tomorrow")
+        processed_data = process_reservation_data_in_roomAvailable(
+            data=test_data,
+            query_date="day_after_tomorrow",
+            filter_available_only=True
+        )
         pprint(processed_data)
