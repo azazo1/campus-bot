@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional, Callable
 from requests import Response
 
-from . import Request, LibCache
+from .req import Request, LibCache
 from .date import Day, TimePeriod
 from .seat import Seat
 
@@ -201,7 +201,7 @@ class LibraryQuery(Request):
         ret_data = self.check_login_and_extract_data(response, expected_code=1)
         return Seat.from_response(ret_data)
 
-    def query_date(self, area_id: int) -> list[Day]:
+    def query_time(self, area_id: int) -> list[Day]:
         """
         查询某个区域可用的预约时间.
 

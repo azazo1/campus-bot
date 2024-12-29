@@ -6,8 +6,8 @@ https://seat-lib.ecnu.edu.cn/api/Seat/confirm 执行预约操作, 此操作涉�
 """
 from __future__ import annotations
 
-from src.library.date import TimePeriod
-from . import Request, LibCache
+from .date import TimePeriod
+from .req import Request, LibCache
 from .encrypt import Encryptor
 
 
@@ -40,7 +40,7 @@ class Subscribe(Request):
             "time": "%H:%M-%H:%M",
             "seat": "...", // 座位全称字符串.
             "new_time": "%Y-%m-%d %H:%M-%H:%M",
-            "area": "...", // 区域全程字符串.
+            "area": "...", // 区域全称字符串.
             "no": "[int]" // 座位字符串.
         }
         """
@@ -61,7 +61,7 @@ class Subscribe(Request):
 
         method: POST
 
-        response(json): 见 assets/development-references/subscribe.json
+        response(json): 见 assets/development-references/subscribe.json 的 data 字段.
         """
         response = self.post("https://seat-lib.ecnu.edu.cn/api/index/subscribe")
         return self.check_login_and_extract_data(response, 1).get("data")

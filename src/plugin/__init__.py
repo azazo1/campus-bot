@@ -32,7 +32,7 @@ __all__ = [
     "PluginConfig", "Plugin", "PluginContext", "PluginLoader",
 ]
 
-from src.uia.login import get_login_cache
+from src.uia.login import get_login_cache, LoginError
 
 
 class Record:
@@ -369,6 +369,9 @@ class PluginLoader:
                 record.ctx._plugin_cache._last_routine = now.timestamp()
                 try:
                     record.instance.on_routine(record.ctx)
+                except LoginError as e:
+                    project_logger.error(f"LoginError ({plugin_name}): {e}")
+                    self.invalidate_cache()
                 except Exception:
                     project_logger.error(f"Error when calling {plugin_name} routine:\n"
                                          f"{traceback.format_exc()}")
@@ -397,7 +400,7 @@ class PluginLoader:
         project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         record = Registry.plugin_record(plugin_name)
         self.loaded_plugins.add(plugin_name)
-        record.ctx._report_cache_invalid = self.invalidate_plugin
+        record.ctx._report_cache_invalid = self.invalidate_cache
         record.ctx._is_plugin_loaded = self.is_plugin_loaded
         record.ctx._queue_message = self.queue_message
         # 加载 plugin 的 cache, 不是 uia cache.
@@ -462,11 +465,13 @@ class PluginLoader:
             record.ctx._uia_cache = login_cache
             try:
                 record.instance.on_uia_login(record.ctx)
+            except LoginError:
+                self.invalidate_cache()
             except Exception:
                 project_logger.error(
                     f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n")
 
-    def invalidate_plugin(self):
+    def invalidate_cache(self):
         self.cache_valid = False
         # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
 

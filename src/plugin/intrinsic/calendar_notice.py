@@ -52,16 +52,18 @@ class CalendarNotice(Plugin):
         now = datetime.datetime.now()
         for sche in self.schedules:
             if now < sche.startTime < now + self.time_ahead:
-                if sche in self.notified_schedules:
+                if sche not in self.notified_schedules:
                     ctx.get_logger().info(f"{sche.title} is reaching...")
                     ctx.send_message("email_notifier",
                                      (
                                          "课程即将开始",
                                          f"{sche.title} 即将开始({sche.startTime.strftime('%m-%d %H:%M:%S')})"
                                      ))  # 发送邮件提醒用户.
-                self.notified_schedules.add(sche)
+                    self.notified_schedules.add(sche)
             else:
                 self.notified_schedules.remove(sche)
+
+        # todo 下课时发送消息给 library
 
     def update_schedules(self, ctx: PluginContext):
         now_time = datetime.datetime.now()
@@ -73,6 +75,5 @@ class CalendarNotice(Plugin):
         except (AttributeError, LoginError):
             ctx.report_cache_invalid()
             return
-        self.notified_schedules.clear()
         self.schedules = schedules
         ctx.get_logger().info("class schedules updated.")

@@ -1,11 +1,6 @@
-"""
-图书馆座位提醒模块.
-"""
-from __future__ import annotations
 import json
 import textwrap
 from typing import Self
-
 import requests
 from requests import Response
 from selenium.webdriver.support.wait import WebDriverWait
@@ -133,13 +128,5 @@ class Request:
             url,
             headers=headers_,
             json=payload,  # 这里不能选择 data 的形参, 因为 data 形参对应的是 x-www-form-urlencodeed.
-            cookies=self.cache.cookies,
-        )
-
-    def get(self, url: str):
-        """提交 GET 请求读取内容, 此方法未经测试, 可能不符合预期"""
-        return requests.get(
-            url,
-            headers={"Authorization": self.cache.authorization},
             cookies=self.cache.cookies,
         )
