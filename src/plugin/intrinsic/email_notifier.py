@@ -198,7 +198,7 @@ class EmailNotifier(Plugin):
         pwd = cfg.get_item("sender_email_password").current_value
         receiver = cfg.get_item("target_email_address").current_value
         if not smtp or not sender or not pwd or not receiver:
-            ctx.get_logger().warn("invalid email sender configuration.")
+            ctx.get_logger().warning("invalid email sender configuration.")
 
         if ":" in smtp:
             split = smtp.split(":")

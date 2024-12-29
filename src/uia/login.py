@@ -170,7 +170,7 @@ def load_password():
             obj = toml.load(f)
             return obj["stu_number"], obj["password"]
     except Exception as e:
-        project_logger.warn(f"failed to load password: {e}")
+        project_logger.warning(f"failed to load password: {e}")
         return None
 
 

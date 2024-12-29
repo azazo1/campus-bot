@@ -8,7 +8,7 @@ from typing import Self
 from src.portal import PortalCache
 from src.portal.calendar import Request
 
-__all__ = ["CalendarQuery"]
+__all__ = ["CalendarQuery", "ClassSchedule"]
 
 from src.uia.login import LoginError
 

@@ -172,7 +172,7 @@ class MainWindow(QWidget):
     def init_plugin_loader(self):
         self.plugin_loader.import_plugins()
         self.plugin_loader.load_config()
-        self.plugin_loader.load_all()  # todo 保存是否加载插件.
+        self.plugin_loader.load_all()
         # 配置插件加载器的定时轮询.
         self.plugin_timer.setInterval(100)
         self.plugin_timer.timeout.connect(self.plugin_loader.poll)

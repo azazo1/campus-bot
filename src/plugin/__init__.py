@@ -108,7 +108,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
 
     Example:
 
-    >>> from src.plugin.log import TextItem
+    >>> from src.plugin.config import TextItem
     >>> from src.log import init
     >>> init()
     >>> @register_plugin(name="plugin_a",
@@ -274,6 +274,9 @@ class PluginLoader:
         被导入的插件不能延迟导入其他模块, 必须在其被导入的时候导入其他所需的模块, 否则可能出现找不到指定模块的错误.
         """
         for path in self.__IMPORT_PATH:
+            if not os.path.exists(path):
+                project_logger.warning(f"skip importing from \"{path}\", it does not exist.")
+                continue
             for s in os.listdir(path):
                 s = Path(path, s)
                 sub_init = s.joinpath("__init__.py")
@@ -401,7 +404,7 @@ class PluginLoader:
         self._touch_plugin_cache()
         with open(self.__PLUGIN_CACHE_PATH, "r", encoding="utf-8") as cache_file:
             record.ctx._plugin_cache._load_from(
-                json.load(cache_file).get(plugin_name)  # 这里读取了整个插件 cache 文件, todo 选择一个更好的加载方式.
+                json.load(cache_file).get(plugin_name)  # 这里读取了整个插件 cache 文件,
             )
 
         record.instance.on_load(record.ctx)
@@ -466,7 +469,6 @@ class PluginLoader:
     def invalidate_plugin(self):
         self.cache_valid = False
         # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
-        # todo 安排时间报告 uia cache 失效.
 
     def get_plugin_config(self, plugin_name: str):
         """
