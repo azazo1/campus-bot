@@ -8,7 +8,7 @@ from src.plugin import TimeItem, PluginContext, PluginConfig, register_plugin, P
     NumberItem
 from src.uia.login import LoginError
 from .subscribe import Subscribe
-from .query import LibraryQuery
+from .query import LibraryQuery, QuickSelect
 from .req import LibCache
 from .seat import SeatFinder
 
@@ -17,10 +17,14 @@ from .seat import SeatFinder
     name="library_seat_subscriber",
     configuration=PluginConfig()
     .add(TimeItem("prefer_study_duration", datetime.time(hour=4),
-                  "偏好的学习时长(h小时m分钟),\n当一次下课时接下来的非上课时间超过此时长,\n则自动预约图书馆座位.\n不建议设置太短, 图书馆当天的预约取消有次数限制."))
+                  "偏好的学习时长(h小时m分钟),\n当一次下课时接下来的非上课时间超过此时长,\n则自动预约图书馆座位.\n不建议设置太短, 频繁地预约取消会达到当天预约取消次数上限."))
     .add(NumberItem("auto_cancel", 1,
                     "是否自动取消未签到的将过期预约,\n如果为 1(True),\n检查账号下的所有图书馆预约,\n在违约的前 1~2 分钟自动取消该预约,\n为 0 则不会.",
                     lambda a: 0 <= a <= 1,
+                    ))
+    .add(NumberItem("premise", -1,
+                    "预约座位选择的校区, 0 为普陀, 1 为闵行, -1 为不限.",
+                    lambda a: -1 <= a <= 1,
                     )),
     routine=Routine.MINUTELY,
     ecnu_cache_grabber=LibCache.grab_from_driver
@@ -29,6 +33,7 @@ class LibrarySeatSubscriberPlugin(Plugin):
     def __init__(self):
         self.prefer_study_duration: datetime.timedelta | None = None
         self.auto_cancel: bool = False
+        self.premise: int = -1
         self.library_query: LibraryQuery | None = None
         self.subscriber: Subscribe | None = None
 
@@ -46,9 +51,19 @@ class LibrarySeatSubscriberPlugin(Plugin):
         self.prefer_study_duration = datetime.timedelta(hours=t.hour, minutes=t.minute)
         t = cfg.get_item("auto_cancel").current_value
         self.auto_cancel = bool(t)
+        t = cfg.get_item("premise").current_value
+        self.premise = t
 
     def on_config_save(self, ctx: PluginContext, cfg: PluginConfig):
         self.on_config_load(ctx, cfg)
+
+    def premise_filter(self, qs: QuickSelect):
+        def filter_func(area: dict, qs_=qs):
+            if self.premise == -1:
+                return True
+            return qs_.get_premises_of(int(area["id"])) == self.premise
+
+        return filter_func
 
     def on_recv(self, ctx: PluginContext, from_plugin: str, obj: Any):
         """
@@ -63,7 +78,7 @@ class LibrarySeatSubscriberPlugin(Plugin):
             return
         try:
             qs = self.library_query.quick_select()
-            area_id = qs.get_most_free_seats_area()
+            area_id = qs.get_most_free_seats_area(self.premise_filter(qs))
             days = self.library_query.query_time(area_id)
             if not days or not days[0].times:
                 ctx.get_logger().info("no available subscribing time")

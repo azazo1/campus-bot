@@ -101,7 +101,7 @@ class CalendarQuery(Request):
             end_time: 同 start_time, 时间段结尾.
 
         Returns:
-            课表数据.
+            课表数据, 见 ClassSchedule.
         """
         rsp = self.query(query=USER_SCHEDULES, variables={
             "filter": {
