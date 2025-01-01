@@ -12,7 +12,7 @@ from .seat import SeatFinder
 class Tests(unittest.TestCase):
     def setUp(self):
         from src.log import init, project_logger
-        from src.plugin.intrinsic.library import Subscribe
+        from plugins.library.subscribe import Subscribe
         from src.uia.login import get_login_cache
         init()
         self.project_logger = project_logger
