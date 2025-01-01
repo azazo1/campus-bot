@@ -22,7 +22,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(800, 450)
+        MainWindow.resize(900, 450)
         self.verticalLayout = QVBoxLayout(MainWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.majorHorizontal = QHBoxLayout()
