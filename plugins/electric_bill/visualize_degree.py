@@ -40,7 +40,7 @@ logger = logging.Logger("visualize_bill")
 
 def load_config():
     global server_address, key, iv
-    config = PluginLoader.read_config_of(PLUGIN_NAME)
+    config = PluginLoader.read_config_of(PLUGIN_NAME) # todo 使用 plugin 中的配置
     if any(i not in config for i in ("server_address", "key", "iv")):
         raise ValueError(
             f"invalid config, please fill in the {PLUGIN_NAME} plugin config before using this tool")

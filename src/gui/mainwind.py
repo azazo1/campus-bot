@@ -221,6 +221,7 @@ class MainWindow(QWidget):
         # 插件配置在用户点击控件时就同步 plugin_loader 中的配置修改, 及时切换插件配置界面也会暂存在内存中.
         # 但是这些配置没有生效, 需要点击保存按钮才能生效.
         config = self.plugin_loader.get_plugin_config(plugin_name)
+        plugin_description = self.plugin_loader.get_plugin_description(plugin_name)
         v_layout = self.ui_plugin_page.pluginConfigContent
         while v_layout.count():
             item = v_layout.takeAt(0)
@@ -244,10 +245,14 @@ class MainWindow(QWidget):
 
         title = QLabel(plugin_name)
         title.setStyleSheet("""font: bold 30px;""")
+        desc = QLabel(plugin_description)
+        desc.setStyleSheet("""font: italic 15px;""")
+        desc.setWordWrap(True)
         whether_load_btn = QPushButton(get_switch_text())
         whether_load_btn.clicked.connect(switch_load)
 
         v_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        v_layout.addWidget(desc, alignment=Qt.AlignmentFlag.AlignRight)
         v_layout.addWidget(whether_load_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         for cfg_item in config:

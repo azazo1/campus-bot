@@ -39,6 +39,7 @@ class Ui_configItemRow(object):
         self.itemDesc.setObjectName(u"itemDesc")
         self.itemDesc.setStyleSheet(u"font: italic 13px;\n"
 "margin-left: 15px;")
+        self.itemDesc.setWordWrap(True)
 
         self.vl.addWidget(self.itemDesc)
 

@@ -37,6 +37,9 @@ margin-left: 15px;</string>
          <property name="text">
           <string>itemDesc</string>
          </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
       </layout>

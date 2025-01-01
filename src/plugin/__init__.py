@@ -38,7 +38,9 @@ from src.uia.login import get_login_cache, LoginError
 class Record:
 
     def __init__(
-            self, name: str, plugin_cls,
+            self, name: str,
+            plugin_cls,
+            description: str,
             plugin_config: Optional[PluginConfig],
             routine: Optional[Routine],
             cache_grabber: Callable[[Edge], Any]
@@ -48,6 +50,7 @@ class Record:
         self.config = plugin_config
         self.routine = routine
         self.instance: Plugin = None  # 类型应为 self.plugin_cls
+        self.description = description
         self.cache_grabber = cache_grabber
         self.ctx = PluginContext(name)
 
@@ -91,6 +94,7 @@ class Routine(Enum):
 @requires_init
 def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说 PluginLoader 先等待项目初始化结束后再加载插件.
         name: str,
+        description: str = "",
         configuration: PluginConfig = None,
         routine: Routine = None,
         ecnu_cache_grabber: Callable[[Edge], Any] | None = None
@@ -100,6 +104,7 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
 
     Parameters:
         name: 插件名称, 只能是英文字母和下划线的排列组合, 插件名不能和其他插件重复.
+        description: 插件介绍.
         configuration: 插件需要的配置项集合, 注册后插件可获取项目读取到的对应格式的配置数据.
         routine: 插件期望的回调周期.
         ecnu_cache_grabber: 回调函数, 用于从 WebDriver 中抓取插件需求的 ECNU 登录缓存数据,
@@ -120,7 +125,8 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     def _decorator(cls):
         if not issubclass(cls, Plugin):
             raise ValueError(f"plugin: {cls.__name__} must be a subclass of Plugin.")
-        Registry.add_record(Record(name, cls, configuration, routine, ecnu_cache_grabber))
+        Registry.add_record(Record(name, cls, description,
+                                   configuration, routine, ecnu_cache_grabber))
         return lambda cls_: cls_
 
     return _decorator
@@ -319,16 +325,6 @@ class PluginLoader:
                 return True
         return False
 
-    @classmethod
-    def read_config_of(cls, plugin_name: str):
-        """单独获取一个插件的配置的底层内容表示, 不会触发任何事件"""
-        if os.path.exists(cls.__CONFIG_FILE_PATH):
-            with open(cls.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
-                serializable = toml.load(f)
-        else:
-            serializable = {}
-        return serializable.get(plugin_name)
-
     def load_config(self):
         project_logger.info("plugin_loader: loading log.")
         if os.path.exists(self.__CONFIG_FILE_PATH):
@@ -349,7 +345,7 @@ class PluginLoader:
         """
         保存所有插件的配置.
         """
-        project_logger.info("plugin_loader: saving log.")
+        project_logger.info("plugin_loader: saving config")
         serializable = {}
         for record in Registry.iter_record():
             if record.config is None:
@@ -455,8 +451,7 @@ class PluginLoader:
         for plugin_name in self.loaded_plugins.copy():
             self.unload_plugin(plugin_name)
 
-    def ecnu_uia_login(self,
-                       qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None):
+    def ecnu_uia_login(self, qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None):
         """
         登录到 UIA, 调用此方法会调出 WebDriver 界面, 引导用户登录 ECNU UIA,
         成功登录后, 各个插件能够获取登录缓存.
@@ -478,12 +473,20 @@ class PluginLoader:
             except LoginError:
                 self.invalidate_cache()
             except Exception:
-                project_logger.error(
-                    f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n")
+                project_logger.error(f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n")
 
     def invalidate_cache(self):
         self.cache_valid = False
         # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
+
+    def get_plugin_description(self, plugin_name: str) -> str:
+        """
+        获取一个插件的描述
+
+        Note:
+            此方法面向持有 PluginLoader 的对象.
+        """
+        return Registry.plugin_record(plugin_name).description
 
     def get_plugin_config(self, plugin_name: str):
         """
