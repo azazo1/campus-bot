@@ -319,6 +319,16 @@ class PluginLoader:
                 return True
         return False
 
+    @classmethod
+    def read_config_of(cls, plugin_name: str):
+        """单独获取一个插件的配置的底层内容表示, 不会触发任何事件"""
+        if os.path.exists(cls.__CONFIG_FILE_PATH):
+            with open(cls.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
+                serializable = toml.load(f)
+        else:
+            serializable = {}
+        return serializable.get(plugin_name)
+
     def load_config(self):
         project_logger.info("plugin_loader: loading log.")
         if os.path.exists(self.__CONFIG_FILE_PATH):

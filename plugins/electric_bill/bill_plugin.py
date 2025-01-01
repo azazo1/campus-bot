@@ -1,4 +1,6 @@
 import asyncio
+import time
+from pathlib import Path
 from typing import Awaitable, Callable
 
 from selenium.webdriver.common.by import By
@@ -10,6 +12,11 @@ from websockets import connect
 from src.plugin import register_plugin, PluginConfig, TextItem, Routine, Plugin, PluginContext
 from src.plugin.config import PasswordItem, NumberItem
 from .client import GuardClient
+
+get_room_info_py = Path(__file__).parent / "get_room_info.py"
+visualize_bill_py = Path(__file__).parent / "visualize_bill.py"
+
+PLUGIN_NAME = "query_electric_bill_client"
 
 
 def byte_len_eq(expected_len: int, accept_empty=False):
@@ -35,6 +42,7 @@ def grabber(driver: Edge) -> EPayCache:
     driver.get(
         "https://epay.ecnu.edu.cn/epaycas/electric/load4electricbill?elcsysid=1"
     )  # 这个网址可能会重定向至登录界面, 但是 plugin loader 应该已经处理好了.
+    time.sleep(1)
     WebDriverWait(driver, timeout=60 * 60).until(
         EC.url_matches(r'https://epay.ecnu.edu.cn')  # 等待重定向.
     )
@@ -53,8 +61,10 @@ def grabber(driver: Edge) -> EPayCache:
 
 
 @register_plugin(
-    name="query_electric_bill_client",
+    name=PLUGIN_NAME,
     configuration=PluginConfig()
+    .add(TextItem("notice", "",
+                  f"可以使用\n{visualize_bill_py}\n来可视化宿舍电量随时间的变化.\n(此配置仅用作展示, 编辑不会起任何作用)"))
     .add(TextItem("server_address", "127.0.0.1:30530",
                   "query bill 服务器套接字地址,\n见 ECNUQueryElectricBill github 仓库"))
     .add(PasswordItem("key", "", "和 query bill 服务器通信的加密密钥,\nutf-8 编码后必须 32 个字节",
@@ -63,11 +73,11 @@ def grabber(driver: Edge) -> EPayCache:
                       byte_len_eq(16, True)))
     .add(NumberItem("alert_degree", 10, "警告电量,\n当宿舍电量低于指定电量的时候发出邮件提醒",
                     lambda a: 0 <= a))
-    .add(TextItem("elcbuis", "", "宿舍配置 1, 使用 get_room_info.py 获取这三个配置的值"))
+    .add(TextItem("elcbuis", "", f"宿舍配置 1,\n使用\n{get_room_info_py}\n获取这三个配置的值"))
     .add(NumberItem("elcarea", -1, "宿舍配置 2"))
     .add(TextItem("room_no", "", "宿舍配置 3"))
-    # todo visualize_bill.py 好像无法单独使用, 找个方法应用上.
-    # todo 制作 get_room_info.py, 方便地获取.
+    # todo visualize_bill.py get_room_info.py 集成到主窗口, 提供注册一个页面功能
+    # todo 插件 description 字段
     ,
     routine=Routine.MINUTELY,
     ecnu_cache_grabber=grabber
