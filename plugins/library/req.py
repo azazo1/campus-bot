@@ -39,7 +39,6 @@ class LibCache:
         """从 WebDriver 中获取 LibCache, 需要 driver 处于 ECNU 登录状态"""
         driver.get("https://seat-lib.ecnu.edu.cn/h5/#/SeatScreening/1")  # 进入图书馆选座界面, 网站会自动请求座位列表.
         # 等待图书馆网页加载完成.
-        project_logger.debug("library site waiting for page loading...")
         WebDriverWait(driver, timeout).until(
             EC.url_matches("https://seat-lib.ecnu.edu.cn/")
         )
@@ -51,7 +50,6 @@ class LibCache:
         c = {}
         for cookie in driver.get_cookies():
             c[cookie["name"]] = cookie["value"]
-        project_logger.info("got library login cache.")
         return cls(req.headers["authorization"], c)
 
 

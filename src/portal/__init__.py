@@ -22,11 +22,9 @@ class PortalCache:
     @classmethod
     def grab_from_driver(cls, driver: Edge, timeout: float = 24 * 60) -> Self:
         driver.get("https://portal2023.ecnu.edu.cn/portal/home")
-        project_logger.debug("portal site waiting for page loading...")
         WebDriverWait(driver, timeout).until(
             EC.url_matches("https://portal2023.ecnu.edu.cn/")
         )
         req = driver.wait_for_request("calendar-new", 60)
-        project_logger.info(f"got portal login cache.")
         return cls(req.headers['Authorization'])
 

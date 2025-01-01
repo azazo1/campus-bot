@@ -102,7 +102,7 @@ class PluginContext:
         self.__logger.addHandler(ForwardLoggerHandler(project_logger))
         self._uia_cache: LoginCache | None = None
         self._plugin_cache = PluginCache(self.__name)  # 插件持久化保存数据的位置, 同时也是存放 routine 状态的位置.
-        self._report_cache_invalid: Callable[[], None] = lambda: None
+        self._report_cache_invalid: Callable[[str], None] = lambda s: None
         self._queue_message: Callable[[str, str, Any], None] = lambda a, b, c: None
         self._is_plugin_loaded: Callable[[str], bool] = lambda a: False
         self._bind_action: Callable[[str, str, Callable[[], None]], None] = lambda n, bt, cb: None
@@ -129,7 +129,7 @@ class PluginContext:
 
         只有被加载的插件 (on_load 调用开始及之后, on_unload 调用结束之前) 使用此方法报告 uia cache 失效才有作用.
         """
-        self._report_cache_invalid()
+        self._report_cache_invalid(self.__name)
 
     def get_cache(self) -> PluginCache:
         """

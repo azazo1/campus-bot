@@ -410,7 +410,7 @@ class PluginLoader:
                     record.instance.on_routine(record.ctx)
                 except LoginError as e:
                     project_logger.error(f"LoginError ({plugin_name}): {e}")
-                    self.invalidate_cache()
+                    self.invalidate_cache(record.name)
                 except Exception:
                     project_logger.error(f"Error when calling {plugin_name} routine:\n"
                                          f"{traceback.format_exc()}")
@@ -515,9 +515,15 @@ class PluginLoader:
                     f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n"
                 )
 
-    def invalidate_cache(self):
+    def invalidate_cache(self, source_plugin: str):
+        """
+        标记登录缓存失效
+
+        Parameters:
+            source_plugin: 失效来源插件
+        """
         self.cache_valid = False
-        # 此方法需要满足: 被调用多次时不会错误地安排多次 UIA 登录会话.
+        project_logger.info(f"{source_plugin} reported invalid cache")
 
     def get_plugin_description(self, plugin_name: str) -> str:
         """
