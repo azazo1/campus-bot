@@ -4,29 +4,13 @@
 import asyncio
 import logging
 import math
-import sys
 from datetime import datetime
-from pathlib import Path
-
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import csv
 from websockets.asyncio.client import connect
 
-from src.plugin import PluginLoader
-
-
-def _import_module(module_name: str, file_path: str | Path):
-    from importlib.util import spec_from_file_location, module_from_spec
-    spec = spec_from_file_location(module_name, file_path)
-    module = module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-sys.path.append(str(Path(__file__).parent.parent))
-init__ = _import_module("electric_bill", Path(__file__).parent / "__init__.py")
-GuardClient = init__.GuardClient
-PLUGIN_NAME = init__.PLUGIN_NAME
+from .client import GuardClient
 
 # 解决中文显示的问题.
 mpl.rcParams['font.family'] = 'SimHei'
@@ -36,17 +20,6 @@ server_address = ""
 key = b""
 iv = b""
 logger = logging.Logger("visualize_bill")
-
-
-def load_config():
-    global server_address, key, iv
-    config = PluginLoader.read_config_of(PLUGIN_NAME) # todo 使用 plugin 中的配置
-    if any(i not in config for i in ("server_address", "key", "iv")):
-        raise ValueError(
-            f"invalid config, please fill in the {PLUGIN_NAME} plugin config before using this tool")
-    server_address = config["server_address"]
-    key = config["key"].encode("utf-8")
-    iv = config["iv"].encode("utf-8")
 
 
 async def download_data():
@@ -112,8 +85,8 @@ def consuming_speed(timestamp, degree):
     return t, s
 
 
-def main():
-    load_config()
+def get_figure():
+    """获得电量变化图表"""
     timestamp, degree = load_data(
         asyncio.run(download_data())
     )
@@ -141,8 +114,4 @@ def main():
     ax.legend(loc="upper left")
     ax1.legend(loc='upper right')
     plt.tight_layout()
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()
+    return fig

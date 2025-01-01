@@ -1,16 +1,14 @@
 import datetime
 import sys
 import traceback
-from pathlib import Path
-from xmlrpc.client import DateTime
+from typing import Callable
 
-from PySide6.QtCore import QTranslator, QCoreApplication, QTimer, QStringListModel, Qt, QModelIndex, \
-    QDate, QTime, QDateTime
-from PySide6.QtGui import QIcon, QImage
+from PySide6.QtCore import QTimer, QStringListModel, Qt, QModelIndex, \
+    QDate, QTime, QDateTime, QThreadPool
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBox, QPushButton, \
-    QLabel, QMenu, QAbstractItemView, QSpacerItem, QSizePolicy, QLayout, QHBoxLayout, QCheckBox, \
-    QSpinBox, QLineEdit, QCalendarWidget, QDateEdit, QTimeEdit, QDateTimeEdit
-from selenium.common import NoSuchWindowException, WebDriverException
+    QLabel, QMenu, QSpacerItem, QSizePolicy, QLayout, \
+    QSpinBox, QLineEdit, QCalendarWidget, QDateEdit, QTimeEdit, QDateTimeEdit, QHBoxLayout
 
 from src.log import requires_init, project_logger
 from src.gui.ui_mainwindow import Ui_MainWindow
@@ -221,6 +219,7 @@ class MainWindow(QWidget):
         # 插件配置在用户点击控件时就同步 plugin_loader 中的配置修改, 及时切换插件配置界面也会暂存在内存中.
         # 但是这些配置没有生效, 需要点击保存按钮才能生效.
         config = self.plugin_loader.get_plugin_config(plugin_name)
+        actions: dict[str, Callable[[], None]] = self.plugin_loader.get_plugin_actions(plugin_name)
         plugin_description = self.plugin_loader.get_plugin_description(plugin_name)
         v_layout = self.ui_plugin_page.pluginConfigContent
         while v_layout.count():
@@ -240,20 +239,37 @@ class MainWindow(QWidget):
                 self.plugin_loader.unload_plugin(plugin_name)
             else:
                 self.plugin_loader.load_plugin(plugin_name)
-            whether_load_btn.setText(get_switch_text())
             QMessageBox.information(self, text, text)
+            self.build_plugin_config_page(plugin_name)  # 刷新插件插件配置界面, 这里不是递归.
 
         title = QLabel(plugin_name)
         title.setStyleSheet("""font: bold 30px;""")
         desc = QLabel(plugin_description)
-        desc.setStyleSheet("""font: italic 15px;""")
+        if plugin_description:  # 如果描述为空, 那么不改变样式
+            desc.setStyleSheet("""
+                font: italic 15px;
+                padding: 0px 10px;
+                border: 2px solid #404040;
+                border-radius: 5px;
+            """)
         desc.setWordWrap(True)
+
+        action_row = QHBoxLayout()
+        action_row_widget = QWidget()
+        action_row_widget.setLayout(action_row)
+
         whether_load_btn = QPushButton(get_switch_text())
         whether_load_btn.clicked.connect(switch_load)
+        action_row.addWidget(whether_load_btn)
+        for action_text, action_callback in actions.items():  # 添加动作按钮
+            btn = QPushButton()
+            btn.setText(action_text)
+            btn.clicked.connect(action_callback)
+            action_row.addWidget(btn)
 
         v_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
         v_layout.addWidget(desc, alignment=Qt.AlignmentFlag.AlignRight)
-        v_layout.addWidget(whether_load_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        v_layout.addWidget(action_row_widget, alignment=Qt.AlignmentFlag.AlignCenter)
 
         for cfg_item in config:
             self.add_config_item(v_layout, cfg_item)
@@ -379,4 +395,6 @@ def main():
         window.show()
     except UIException:
         pass
-    sys.exit(app.exec())
+    rst = app.exec()
+    QThreadPool.globalInstance().waitForDone()
+    sys.exit(rst)

@@ -105,6 +105,18 @@ class PluginContext:
         self._report_cache_invalid: Callable[[], None] = lambda: None
         self._queue_message: Callable[[str, str, Any], None] = lambda a, b, c: None
         self._is_plugin_loaded: Callable[[str], bool] = lambda a: False
+        self._bind_action: Callable[[str, str, Callable[[], None]], None] = lambda n, bt, cb: None
+
+    def bind_action(self, action_text: str, action_callback: Callable[[], None]):
+        """
+        注册一个功能按钮, 用户点击按钮后会触发回调函数, 可多次调用以注册多个 action,
+        对同一个 action_text 进行多次注册会覆盖前一次的回调函数.
+
+        Parameters:
+            action_text: 按钮文字.
+            action_callback: 按钮点击回调.
+        """
+        self._bind_action(self.__name, action_text, action_callback)
 
     def last_routine(self):
         return datetime.datetime.fromtimestamp(self._plugin_cache._last_routine)

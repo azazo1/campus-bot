@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional, Callable, Any, Sequence
 
 import toml
+from PySide6.QtCore import QRunnable, QObject, Signal
 from seleniumwire.webdriver import Edge
 
 from src import SRC_DIR_PATH
@@ -53,6 +54,8 @@ class Record:
         self.description = description
         self.cache_grabber = cache_grabber
         self.ctx = PluginContext(name)
+        self.actions: dict[str, Callable[[], None]] = {}  # 此插件提供的用户交互动作
+        self.messages: list[tuple[str, Any]] = []  # 此插件接收到的其他插件的消息
 
 
 class Registry:
@@ -132,6 +135,28 @@ def register_plugin(  # 此方法应该在运行之后延迟调用, 也就是说
     return _decorator
 
 
+class TaskSignals(QObject):
+    finished = Signal(object)
+
+
+class Task(QRunnable):  # signal 只能在 QObject 里面使用
+
+    def __init__(self, target: Callable, *args, **kwargs):
+        """
+        创建一个 Runnable 供在 QThread 调用.
+
+        signals.finished(Signal) 会在 target 调用结束之后触发, 触发内容是 target 的返回值
+        """
+        super().__init__()
+        self.signals = TaskSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.target = target
+
+    def run(self):
+        self.signals.finished.emit(self.target(*self.args, **self.kwargs))
+
+
 class Plugin:
     """
     插件接口定义.
@@ -140,7 +165,16 @@ class Plugin:
 
     为了保证项目的整洁和规范性, 插件创建文件和记录日志等操作请使用生命周期函数和事件函数中提供的 PluginContext 进行.
 
-    插件编写参见 项目根目录/plugins 下的 demo 和 simple_demo 两个插件.
+    插件回调方法不能是阻塞的, 如果需要执行长时间任务, 请使用 QThread 或者 QThreadPool, 如:
+    >>> from PySide6.QtCore import QThreadPool, QThread
+    >>> def takes_long_time(v):
+    ...     QThread.sleep(10)
+    ...     return v
+    >>> def receiver(v):
+    ...     print(v)
+    >>> task = Task(takes_long_time, "Hello World")
+    >>> task.signals.finished.connect(receiver)
+    >>> QThreadPool.globalInstance().start(task)
     """
 
     def on_load(self, ctx: PluginContext):
@@ -248,7 +282,7 @@ def _import_module(module_name: str, file_path: str | Path):
 
 class PluginLoader:
     __IMPORT_PATH = [
-        SRC_DIR_PATH.parent / "src" / "plugin" / "intrinsic",  # 内部模块在先.
+        # SRC_DIR_PATH.parent / "src" / "plugin" / "intrinsic",
         SRC_DIR_PATH.parent / "plugins",
     ]
     __IMPORTED_MODULE = {}  # 用于防止二次导入, 不是实例变量, 因为如果 PluginLoader 被销毁重建, 插件不用再注册.
@@ -268,7 +302,6 @@ class PluginLoader:
     def __init__(self):
         self.cache_valid = False
         self.loaded_plugins: set[str] = set()
-        self.messages: dict[str, list[tuple[str, Any]]] = defaultdict(lambda: [])
 
     @requires_init
     def import_plugins(self):
@@ -364,8 +397,8 @@ class PluginLoader:
         now = datetime.datetime.now()
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
-            while self.messages[plugin_name]:
-                msg = self.messages[plugin_name].pop()
+            while record.messages:
+                msg = record.messages.pop()
                 try:
                     record.instance.on_recv(record.ctx, msg[0], msg[1])
                 except Exception:
@@ -406,6 +439,7 @@ class PluginLoader:
         project_logger.info(f"plugin_loader: loading plugin {plugin_name}.")
         record = Registry.plugin_record(plugin_name)
         self.loaded_plugins.add(plugin_name)
+        record.ctx._bind_action = self.bind_action
         record.ctx._report_cache_invalid = self.invalidate_cache
         record.ctx._is_plugin_loaded = self.is_plugin_loaded
         record.ctx._queue_message = self.queue_message
@@ -428,9 +462,11 @@ class PluginLoader:
         self.loaded_plugins.remove(plugin_name)
 
         record.ctx._report_cache_invalid = lambda: None
+        record.ctx._bind_action = lambda n, a, b: None
         record.ctx._queue_message = lambda a, b, c: None
         record.ctx._is_plugin_loaded = lambda a: False
-        self.messages.pop(plugin_name, None)
+        record.messages.clear()
+        record.actions.clear()
 
         # 保存 plugin_cache.
         self._touch_plugin_cache()
@@ -451,7 +487,9 @@ class PluginLoader:
         for plugin_name in self.loaded_plugins.copy():
             self.unload_plugin(plugin_name)
 
-    def ecnu_uia_login(self, qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None):
+    def ecnu_uia_login(self,
+                       qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None
+                       ):
         """
         登录到 UIA, 调用此方法会调出 WebDriver 界面, 引导用户登录 ECNU UIA,
         成功登录后, 各个插件能够获取登录缓存.
@@ -473,7 +511,9 @@ class PluginLoader:
             except LoginError:
                 self.invalidate_cache()
             except Exception:
-                project_logger.error(f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n")
+                project_logger.error(
+                    f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n"
+                )
 
     def invalidate_cache(self):
         self.cache_valid = False
@@ -519,5 +559,17 @@ class PluginLoader:
         """
         return plugin_name in self.loaded_plugins
 
+    def get_plugin_actions(self, plugin_name: str):
+        """
+        获取此插件的所有 actions.
+
+        Note:
+            此方法面向持有 PluginLoader 的对象.
+        """
+        return Registry.plugin_record(plugin_name).actions.copy()
+
     def queue_message(self, to_plugin: str, from_plugin: str, obj: Any):
-        self.messages[to_plugin].append((from_plugin, obj))
+        Registry.plugin_record(to_plugin).messages.append((from_plugin, obj))
+
+    def bind_action(self, plugin_name: str, action_text: str, callback: Callable[[], None]):
+        Registry.plugin_record(plugin_name).actions[action_text] = callback
