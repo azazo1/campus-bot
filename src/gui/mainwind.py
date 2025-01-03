@@ -17,7 +17,7 @@ from src.gui.ui_home_page import Ui_HomePage
 from src.gui.ui_plugin_page import Ui_PluginPage
 from src.gui.ui_config_item_row import Ui_configItemRow
 from src.plugin import PluginLoader, ConfigItem, NumberItem, TextItem, DateItem, TimeItem, \
-    DatetimeItem
+    DatetimeItem, Task
 from src.plugin.config import PasswordItem
 
 
@@ -137,21 +137,34 @@ class MainWindow(QWidget):
         self.tray_icon.show()
 
     def perform_login(self, post_info=True):
+        """
+        进行 uia 登录(调出浏览器窗口).
+
+        非阻塞, 在子线程中执行登录操作 (为了不阻止 poll 的进行).
+        """
         if self.performing_login:
             return
         self.performing_login = True
         self.hide()
-        try:
-            self.plugin_loader.ecnu_uia_login()
-        except Exception:
-            project_logger.error(traceback.format_exc())
-        self.show()
-        if post_info:
-            if self.plugin_loader.cache_valid:
-                QMessageBox.information(self, "登录成功", "登录成功.")
-            else:
-                QMessageBox.warning(self, "登录失败", "需要重新登录.")
-        self.performing_login = False
+
+        def parallel():
+            try:
+                self.plugin_loader.ecnu_uia_login()
+            except Exception:
+                project_logger.error(traceback.format_exc())
+
+        def end():
+            self.show()
+            if post_info:
+                if self.plugin_loader.cache_valid:
+                    QMessageBox.information(self, "登录成功", "登录成功.")
+                else:
+                    QMessageBox.warning(self, "登录失败", "需要重新登录.")
+            self.performing_login = False
+
+        task = Task(parallel)
+        task.signals.finished.connect(end)
+        QThreadPool.globalInstance().start(task)
 
     def notify_timeout_login(self):
         """
@@ -177,17 +190,17 @@ class MainWindow(QWidget):
                 self.perform_login(False)
                 self.notifying_login = False
 
-        def btn_clicked(btn):
+        def btn_clicked(apply: bool):
             timer.stop()
             self.notifying_timeout_msgbox.destroy()
-            if btn == QMessageBox.StandardButton.Apply:
-                self.perform_login(False)
+            if apply:
+                self.perform_login(True)  # 用户主动点的则有登录结果提示
             self.notifying_login = False
 
         def box_closing(evt):
             evt.ignore()
             timer.stop()
-            self.notifying_timeout_msgbox.destory()
+            self.notifying_timeout_msgbox.destroy()
             self.notifying_login = False
 
         timer = QTimer()
@@ -197,9 +210,16 @@ class MainWindow(QWidget):
         timer.start()
 
         self.notifying_timeout_msgbox = QMessageBox(icon=QMessageBox.Icon.Information)
-        self.notifying_timeout_msgbox.addButton(QMessageBox.StandardButton.Cancel)
-        self.notifying_timeout_msgbox.addButton(QMessageBox.StandardButton.Apply)
-        self.notifying_timeout_msgbox.buttonClicked.connect(btn_clicked)
+        self.notifying_timeout_msgbox.addButton(
+            QMessageBox.StandardButton.Apply
+        ).clicked.connect(
+            lambda *args: btn_clicked(True)
+        )
+        self.notifying_timeout_msgbox.addButton(
+            QMessageBox.StandardButton.Cancel
+        ).clicked.connect(
+            lambda *args: btn_clicked(False)
+        )
         self.notifying_timeout_msgbox.closeEvent = box_closing
 
         on_timeout()
@@ -461,6 +481,7 @@ class MainWindow(QWidget):
         layout.addWidget(widget)
 
     def poll(self):
+        """在非主线程调用可能会产生错误"""
         if not self.plugin_loader.cache_valid:
             self.notify_login_throttler.throttle(self.notify_timeout_login)
         self.plugin_loader.poll()

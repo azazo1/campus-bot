@@ -486,9 +486,28 @@ class PluginLoader:
         for plugin_name in self.loaded_plugins.copy():
             self.unload_plugin(plugin_name)
 
-    def ecnu_uia_login(self,
-                       qrcode_callback: Callable[[str, str, bool], None] = lambda s1, s2, b1: None
-                       ):
+    def send_qrcode_email(self, img_path: str, content: str, is_retry: bool):
+        title = "CampusPlugins: ECNU 登录二维码" if not is_retry else "CampusPlugins: 登陆二维码已刷新"
+        cid = "qrcode-img"
+        self.queue_message("email_notifier", "", (
+            "file", title,
+            f"""
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>{title}</title>
+</head>
+<body>
+<div>使用微信扫描此二维码来登录 ECNU 插件</div>
+<img src="cid:{cid}" alt="qrcode image here"/>
+<div>或者在微信中打开此连接:</div>
+<div>{content}</div>
+</body>
+</html>""",
+            [(img_path, cid)]
+        ))
+
+    def ecnu_uia_login(self):
         """
         登录到 UIA, 调用此方法会调出 WebDriver 界面, 引导用户登录 ECNU UIA,
         成功登录后, 各个插件能够获取登录缓存.
@@ -500,7 +519,8 @@ class PluginLoader:
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
             grabbers.append(record.cache_grabber)
-        login_cache = get_login_cache(cache_grabbers=grabbers, qrcode_callback=qrcode_callback)
+        login_cache = get_login_cache(cache_grabbers=grabbers,
+                                      qrcode_callback=self.send_qrcode_email)
         self.cache_valid = True  # 放在前面可以让插件在 on_uia_login 的时候报告失效(登录失败).
         for plugin_name in self.loaded_plugins:
             record = Registry.plugin_record(plugin_name)
@@ -508,10 +528,13 @@ class PluginLoader:
             try:
                 record.instance.on_uia_login(record.ctx)
             except LoginError:
-                self.invalidate_cache()
+                project_logger.error(
+                    f"Error when calling {plugin_name} UIA login:\n{traceback.format_exc()}\n"
+                )
+                self.invalidate_cache(record.name)
             except Exception:
                 project_logger.error(
-                    f"Error when calling {plugin_name} UIA login:{traceback.format_exc()}\n"
+                    f"Error when calling {plugin_name} UIA login:\n{traceback.format_exc()}\n"
                 )
 
     def invalidate_cache(self, source_plugin: str):

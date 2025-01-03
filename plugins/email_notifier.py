@@ -41,7 +41,10 @@ class EmailSender:
     def quit(self):
         """关闭 smtp 会话, 可多次调用而不报错."""
         if self.smtp_obj:
-            self.smtp_obj.quit()
+            try:
+                self.smtp_obj.quit()
+            except smtplib.SMTPServerDisconnected:
+                pass
             self.smtp_obj = None
 
     def connect(self):
@@ -106,7 +109,7 @@ class EmailSender:
         :param html_content: 邮件正文内容
         :param files: 附件文件列表, 列表元素可以为单独的文件路径, 也可以为 (文件路径, 文件 Content-ID) 元组.
                 指定文件的 Content-ID(不需要尖括号), 以便在 html 中引用,
-                可以设置为 None, 则对应附件不会有 Content-ID.
+                Content-ID 可以设置为 None, 则对应附件不会有 Content-ID.
         """
         self.connect()
         message = MIMEMultipart()
@@ -178,19 +181,35 @@ class EmailNotifier(Plugin):
 
     def on_recv(self, ctx: PluginContext, from_plugin: str, obj: Any):
         """
-        支持的接收格式: obj 类型为 tuple[str, str].
+        支持的接收格式: obj 类型为 tuple[str, str, str] 或 tuple[str, str, str, list[str | tuple[str, str]]].
 
-        obj[0] 为邮件标题.
-        obj[1] 为邮件内容.
+        obj[0] (str)为发送邮件类型:
+            - "text": 纯文本邮件
+            - "html": 发送 HTML 邮件
+            - "file": 发送带有附件的邮件
+        obj[1] (str)为邮件标题.
+        obj[2] (str)为邮件文本("text" 类型)或者 HTML("html" 类型)内容.
+        obj[3] (list[str | tuple[str, str]])在类型为 file 的时候可选提供, 表示附件文件列表, 列表元素可以为单独的文件路径, 也可以为 (文件路径, 文件 Content-ID) 元组.
+            指定文件的 Content-ID(不需要尖括号), 以便在 html 中引用,
+            文件 Content-ID 可以设置为 None, 则对应附件不会有 Content-ID.
         """
         if self.email_sender is None:
             ctx.get_logger().error("email sender is not configured.")
             return
-        if (isinstance(obj, tuple)
-                and len(obj) == 2
-                and isinstance(obj[0], str)
-                and isinstance(obj[1], str)):
-            self.email_sender.send_text_email(obj[0], obj[1])
+        if obj and isinstance(obj, tuple):
+            if obj[0] == "text":
+                self.email_sender.send_text_email(obj[1], obj[2])
+            elif obj[0] == "html":
+                self.email_sender.send_html_email(obj[1], obj[2])
+            elif obj[0] == "file":
+                if len(obj) >= 4:
+                    self.email_sender.send_html_with_attachments(obj[1], obj[2], obj[3])
+                else:
+                    self.email_sender.send_html_with_attachments(obj[1], obj[2], [])
+            else:
+                ctx.get_logger().error(f"unrecognized email type: {obj[0]}")
+        else:
+            ctx.get_logger().error(f"unrecognized obj: {obj}")
 
     def init_email_sender(self, ctx: PluginContext, cfg: PluginConfig):
         smtp = cfg.get_item("smtp_host").current_value
