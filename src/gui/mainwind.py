@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QWidget, QApplication, QSystemTrayIcon, QMessageBo
     QLabel, QMenu, QSpacerItem, QSizePolicy, QLayout, \
     QSpinBox, QLineEdit, QCalendarWidget, QDateEdit, QTimeEdit, QDateTimeEdit, QHBoxLayout
 
+from src import Throttler
 from src.log import requires_init, project_logger
 from src.gui.ui_mainwindow import Ui_MainWindow
 from src.gui.ui_home_page import Ui_HomePage
@@ -90,6 +91,15 @@ class MainWindow(QWidget):
         # ---
         self.setWindowIcon(self.icon)
 
+        # ---
+        self.performing_login = False
+        self.notifying_login = False
+        self.notifying_timeout_msgbox: QMessageBox | None = None
+        self.notify_login_throttler = Throttler(
+            datetime.timedelta(minutes=10)
+        )  # 如果未登录, 每个一段时间提醒一次自动登录.
+        self.notify_login_timeout = datetime.timedelta(seconds=10)  # notify_timeout_login 的超时时间
+
     @property
     def plugin_config_modified(self):
         return self._plugin_config_modified
@@ -126,9 +136,81 @@ class MainWindow(QWidget):
         self.tray_icon.setToolTip(self.windowTitle())
         self.tray_icon.show()
 
+    def perform_login(self, post_info=True):
+        if self.performing_login:
+            return
+        self.performing_login = True
+        self.hide()
+        try:
+            self.plugin_loader.ecnu_uia_login()
+        except Exception:
+            project_logger.error(traceback.format_exc())
+        self.show()
+        if post_info:
+            if self.plugin_loader.cache_valid:
+                QMessageBox.information(self, "登录成功", "登录成功.")
+            else:
+                QMessageBox.warning(self, "登录失败", "需要重新登录.")
+        self.performing_login = False
+
+    def notify_timeout_login(self):
+        """
+        提醒一段时间, 如果用户没有进行取消操作, 那么自动登录.
+
+        此方法不阻塞.
+        """
+        if self.notifying_login:
+            return
+        self.notifying_login = True
+        start_time = datetime.datetime.now()
+
+        def on_timeout():
+            delta_time = datetime.datetime.now() - start_time
+            self.notifying_timeout_msgbox.setWindowTitle("即将自动登录")
+            self.notifying_timeout_msgbox.setText(
+                f"{(start_time + self.notify_login_timeout - datetime.datetime.now()).total_seconds():.0f} 秒后登录 UIA,\n"
+                f"点击 Apply 按钮立即登录,\n"
+                f"点击 Cancel 按钮或关闭窗口取消自动登录.")
+            if delta_time > self.notify_login_timeout:
+                timer.stop()
+                self.notifying_timeout_msgbox.destroy()
+                self.perform_login(False)
+                self.notifying_login = False
+
+        def btn_clicked(btn):
+            timer.stop()
+            self.notifying_timeout_msgbox.destroy()
+            if btn == QMessageBox.StandardButton.Apply:
+                self.perform_login(False)
+            self.notifying_login = False
+
+        def box_closing(evt):
+            evt.ignore()
+            timer.stop()
+            self.notifying_timeout_msgbox.destory()
+            self.notifying_login = False
+
+        timer = QTimer()
+        timer.setInterval(1000)
+        timer.setSingleShot(False)
+        timer.timeout.connect(on_timeout)
+        timer.start()
+
+        self.notifying_timeout_msgbox = QMessageBox(icon=QMessageBox.Icon.Information)
+        self.notifying_timeout_msgbox.addButton(QMessageBox.StandardButton.Cancel)
+        self.notifying_timeout_msgbox.addButton(QMessageBox.StandardButton.Apply)
+        self.notifying_timeout_msgbox.buttonClicked.connect(btn_clicked)
+        self.notifying_timeout_msgbox.closeEvent = box_closing
+
+        on_timeout()
+        self.notifying_timeout_msgbox.show()
+
     @requires_init
     def notify_login(self):
         """提示用户进行 uia 登录操作"""
+        if self.notifying_login:
+            return
+        self.notifying_login = True
         rst = QMessageBox.question(self, "UIA 登录",
                                    "即将进行 ECNU 统一认证登录操作,\n"
                                    "如果配置了 login_info.toml 则会自动登录, 请不要手动操作,\n"
@@ -136,16 +218,8 @@ class MainWindow(QWidget):
                                    "是否继续?",
                                    QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
         if rst == QMessageBox.StandardButton.Yes:
-            self.hide()
-            try:
-                self.plugin_loader.ecnu_uia_login()
-            except Exception:
-                project_logger.error(traceback.format_exc())
-            self.show()
-            if self.plugin_loader.cache_valid:
-                QMessageBox.information(self, "登录成功", "登录成功.")
-            else:
-                QMessageBox.warning(self, "登录失败", "需要重新登录.")
+            self.perform_login()
+        self.notifying_login = False
 
     def notify_plugin_config_save(self):
         self.plugin_loader.save_config()
@@ -173,7 +247,7 @@ class MainWindow(QWidget):
         self.plugin_loader.load_all()
         # 配置插件加载器的定时轮询.
         self.plugin_timer.setInterval(100)
-        self.plugin_timer.timeout.connect(self.plugin_loader.poll)
+        self.plugin_timer.timeout.connect(self.poll)
         self.plugin_timer.start()
         # 插件添加到列表组件.
         self.plugin_list_model.setStringList(
@@ -385,6 +459,11 @@ class MainWindow(QWidget):
         else:
             raise TypeError("Unknown log item type.")
         layout.addWidget(widget)
+
+    def poll(self):
+        if not self.plugin_loader.cache_valid:
+            self.notify_login_throttler.throttle(self.notify_timeout_login)
+        self.plugin_loader.poll()
 
 
 @requires_init

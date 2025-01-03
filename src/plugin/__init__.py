@@ -8,7 +8,6 @@ import json
 import os
 import sys
 import traceback
-from collections import defaultdict
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, Callable, Any, Sequence
