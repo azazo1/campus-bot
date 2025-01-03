@@ -35,6 +35,11 @@ class Ui_PluginPage(object):
 
         self.vl.addWidget(self.pluginNameList)
 
+        self.disposeModifiedConfigBtn = QPushButton(PluginPage)
+        self.disposeModifiedConfigBtn.setObjectName(u"disposeModifiedConfigBtn")
+
+        self.vl.addWidget(self.disposeModifiedConfigBtn)
+
         self.saveConfigBtn = QPushButton(PluginPage)
         self.saveConfigBtn.setObjectName(u"saveConfigBtn")
 
@@ -64,6 +69,7 @@ class Ui_PluginPage(object):
 
     def retranslateUi(self, PluginPage):
         PluginPage.setWindowTitle(QCoreApplication.translate("PluginPage", u"\u63d2\u4ef6\u914d\u7f6e", None))
+        self.disposeModifiedConfigBtn.setText(QCoreApplication.translate("PluginPage", u"\u4e22\u5f03\u672a\u4fdd\u5b58\u4fee\u6539", None))
         self.saveConfigBtn.setText(QCoreApplication.translate("PluginPage", u"\u4fdd\u5b58\u63d2\u4ef6\u914d\u7f6e", None))
     # retranslateUi
 

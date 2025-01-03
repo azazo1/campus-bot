@@ -358,7 +358,7 @@ class PluginLoader:
         return False
 
     def load_config(self):
-        project_logger.info("plugin_loader: loading log.")
+        project_logger.info("plugin_loader: loading config.")
         if os.path.exists(self.__CONFIG_FILE_PATH):
             with open(self.__CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
                 serializable = toml.load(f)

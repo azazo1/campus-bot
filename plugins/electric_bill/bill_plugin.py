@@ -1,7 +1,6 @@
 import asyncio
 import time
 import traceback
-from pathlib import Path
 from typing import Awaitable, Callable, Self
 
 from PIL.ImageQt import QImage

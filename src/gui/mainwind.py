@@ -101,6 +101,8 @@ class MainWindow(QWidget):
         )  # 如果未登录, 每个一段时间提醒一次自动登录.
         self.notify_login_timeout = datetime.timedelta(seconds=10)  # notify_timeout_login 的超时时间
 
+        self.current_config_page = ""  # 当前配置界面的插件名称
+
     @property
     def plugin_config_modified(self):
         return self._plugin_config_modified
@@ -109,8 +111,10 @@ class MainWindow(QWidget):
     def plugin_config_modified(self, value):
         if value:
             self.ui_plugin_page.saveConfigBtn.show()
+            self.ui_plugin_page.disposeModifiedConfigBtn.show()
         else:
             self.ui_plugin_page.saveConfigBtn.hide()
+            self.ui_plugin_page.disposeModifiedConfigBtn.hide()
         self._plugin_config_modified = value
 
     def request_focus(self):
@@ -265,6 +269,12 @@ class MainWindow(QWidget):
         self.plugin_config_modified = False
         QMessageBox.information(self, "插件配置保存", "插件配置已生效并保存")
 
+    def dispose_modified_config(self):
+        self.plugin_loader.load_config()  # 从文件中重新加载插件配置
+        # 刷新插件配置界面
+        self.build_plugin_config_page()
+        self.plugin_config_modified = False
+
     def actions_setup(self):
         self.ui.homePageBtn.clicked.connect(lambda: self.ui.pageContainer.setCurrentIndex(0))
         self.ui.pluginPageBtn.clicked.connect(lambda: self.ui.pageContainer.setCurrentIndex(1))
@@ -273,6 +283,7 @@ class MainWindow(QWidget):
         self.ui_home_page.uiaLoginBtn.clicked.connect(self.notify_login)
 
         self.ui_plugin_page.saveConfigBtn.clicked.connect(self.notify_plugin_config_save)
+        self.ui_plugin_page.disposeModifiedConfigBtn.clicked.connect(self.dispose_modified_config)
 
         self.ui_plugin_page.pluginNameList.clicked.connect(self.on_plugin_item_clicked)
 
@@ -328,12 +339,23 @@ class MainWindow(QWidget):
             event.ignore()
             self.hide()  # 隐藏到后台, 通过任务栏窗口重新唤出.
 
-    def build_plugin_config_page(self, plugin_name: str):
+    def build_plugin_config_page(self, plugin_name: str = ""):
+        """
+        构建插件配置界面.
+
+        Parameters:
+            plugin_name: 要显示配置界面的的插件名称, 如果填空则刷新当前配置界面.
+        """
+        plugin_name = plugin_name or self.current_config_page
+
         # 插件配置在用户点击控件时就同步 plugin_loader 中的配置修改, 及时切换插件配置界面也会暂存在内存中.
         # 但是这些配置没有生效, 需要点击保存按钮才能生效.
         config = self.plugin_loader.get_plugin_config(plugin_name)
         actions: dict[str, Callable[[], None]] = self.plugin_loader.get_plugin_actions(plugin_name)
         plugin_description = self.plugin_loader.get_plugin_description(plugin_name)
+
+        self.current_config_page = plugin_name
+
         v_layout = self.ui_plugin_page.pluginConfigContent
         while v_layout.count():
             item = v_layout.takeAt(0)
@@ -353,7 +375,7 @@ class MainWindow(QWidget):
             else:
                 self.plugin_loader.load_plugin(plugin_name)
             QMessageBox.information(self, text, text)
-            self.build_plugin_config_page(plugin_name)  # 刷新插件插件配置界面, 这里不是递归.
+            self.build_plugin_config_page()  # 刷新插件插件配置界面, 这里不是递归.
 
         title = QLabel(plugin_name)
         title.setStyleSheet("""font: bold 30px;""")
