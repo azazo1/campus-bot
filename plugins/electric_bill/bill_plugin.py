@@ -2,7 +2,7 @@ import asyncio
 import time
 import traceback
 from pathlib import Path
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Self
 
 from PIL.ImageQt import QImage
 from PySide6.QtCore import QThreadPool, Slot
@@ -18,12 +18,10 @@ from websockets import connect
 
 from src.plugin import register_plugin, PluginConfig, TextItem, Routine, Plugin, PluginContext, Task
 from src.plugin.config import PasswordItem, NumberItem
+from src.uia.login import get_login_cache
 from .client import GuardClient
 from .visualize_degree import get_figure as generate_bill_figure
 from . import visualize_degree
-
-get_room_info_py = Path(__file__).parent / "get_room_info.py"
-visualize_degree_py = Path(__file__).parent / "visualize_degree.py"
 
 PLUGIN_NAME = "query_electric_bill_client"
 
@@ -44,29 +42,71 @@ class EPayCache:
         self.cookies = cookies
 
     def __repr__(self):
-        return f"EPayCache(...)"
+        return "EPayCache(...)"
+
+    @classmethod
+    def grabber(cls, driver: Edge) -> Self:
+        driver.get(
+            "https://epay.ecnu.edu.cn/epaycas/electric/load4electricbill?elcsysid=1"
+        )  # 这个网址可能会重定向至登录界面, 但是 plugin loader 应该已经处理好了.
+        time.sleep(1)
+        WebDriverWait(driver, timeout=60 * 60).until(
+            EC.url_matches(r'https://epay.ecnu.edu.cn')  # 等待重定向.
+        )
+        j_session_id = driver.get_cookie("JSESSIONID")['value']
+        cookie = driver.get_cookie("cookie")['value']
+        # 在 main frame 中以获取 x_csrf_token.
+        meta = driver.find_element(By.XPATH, "/html/head/meta[4]")
+        x_csrf_token = meta.get_property("content")
+        return EPayCache(
+            x_csrf_token=x_csrf_token,
+            cookies={
+                "JSESSIONID": j_session_id,
+                "cookie": cookie
+            }
+        )
 
 
-def grabber(driver: Edge) -> EPayCache:
-    driver.get(
-        "https://epay.ecnu.edu.cn/epaycas/electric/load4electricbill?elcsysid=1"
-    )  # 这个网址可能会重定向至登录界面, 但是 plugin loader 应该已经处理好了.
-    time.sleep(1)
-    WebDriverWait(driver, timeout=60 * 60).until(
-        EC.url_matches(r'https://epay.ecnu.edu.cn')  # 等待重定向.
-    )
-    j_session_id = driver.get_cookie("JSESSIONID")['value']
-    cookie = driver.get_cookie("cookie")['value']
-    # 在 main frame 中以获取 x_csrf_token.
-    meta = driver.find_element(By.XPATH, "/html/head/meta[4]")
-    x_csrf_token = meta.get_property("content")
-    return EPayCache(
-        x_csrf_token=x_csrf_token,
-        cookies={
-            "JSESSIONID": j_session_id,
-            "cookie": cookie
-        }
-    )
+class DormInfo:
+    def __init__(self, elcbuis: str, elcarea: int, room_no: str):
+        self.elcbuis = elcbuis
+        self.elcarea = elcarea
+        self.room_no = room_no
+
+    def __repr__(self):
+        return "DormInfo(...)"
+
+    @classmethod
+    def grabber(cls, driver: Edge) -> Self:
+        driver.get(
+            "https://epay.ecnu.edu.cn/epaycas/electric/load4electricbill?elcsysid=1"
+        )  # 这个网址会重定向至登录界面.
+        # 先等待用户登录.
+        time.sleep(1)
+        WebDriverWait(driver, timeout=60 * 60).until(
+            EC.url_matches(r'https://epay.ecnu.edu.cn')
+        )
+        # 等待按钮出现, 放置回调函数.
+        WebDriverWait(driver, timeout=60 * 60).until(
+            EC.presence_of_element_located((By.ID, "queryBill"))
+        )
+        driver.execute_script("""
+                let button = document.querySelector("#queryBill");
+                button.onclick = function() {
+                    let a = document.createElement("a");
+                    a.id = "query_clicked"; // 查询按钮按下时添加新元素, 终结下面的 WebDriverWait.
+                    document.body.appendChild(a);
+                }
+                let h2 = document.querySelector("#inner-headline > div > div > div > h2");
+                h2.innerHTML = "请选择你需要查询电费的宿舍信息";
+                """)
+        WebDriverWait(driver, timeout=60 * 60).until(
+            EC.presence_of_element_located((By.ID, "query_clicked"))
+        )
+        elcbuis = driver.find_element(By.ID, "elcbuis").get_property("value")
+        elcarea = driver.find_element(By.ID, "elcarea").get_property("value")
+        elcroom = driver.find_element(By.ID, "elcroom").get_property("value")
+        return DormInfo(elcbuis=elcbuis, elcarea=int(elcarea), room_no=elcroom)
 
 
 @register_plugin(
@@ -91,7 +131,7 @@ def grabber(driver: Edge) -> EPayCache:
     .add(TextItem("room_no", "", "宿舍配置 3"))
     ,
     routine=Routine.MINUTELY,
-    ecnu_cache_grabber=grabber
+    ecnu_cache_grabber=EPayCache.grabber
 )
 class QueryBillClientPlugin(Plugin):
     def __init__(self):
@@ -187,44 +227,16 @@ class QueryBillClientPlugin(Plugin):
 
     def ask_for_room(self):
         """在浏览器中获取用户宿舍配置消息, 不能直接调用, 需要在子线程中调用"""
-        driver = Edge()
-        driver.maximize_window()
         try:
-            driver.get(
-                "https://epay.ecnu.edu.cn/epaycas/electric/load4electricbill?elcsysid=1"
-            )  # 这个网址会重定向至登录界面.
-            # 先等待用户登录.
-            WebDriverWait(driver, timeout=60 * 60).until(
-                EC.url_matches(r'https://epay.ecnu.edu.cn')
-            )
-            # 等待按钮出现, 放置回调函数.
-            WebDriverWait(driver, timeout=60 * 60).until(
-                EC.presence_of_element_located((By.ID, "queryBill"))
-            )
-            driver.execute_script("""
-                let button = document.querySelector("#queryBill");
-                button.onclick = function() {
-                    let a = document.createElement("a");
-                    a.id = "query_clicked"; // 查询按钮按下时添加新元素, 终结下面的 WebDriverWait.
-                    document.body.appendChild(a);
-                }
-                """)
-            WebDriverWait(driver, timeout=60 * 60).until(
-                EC.presence_of_element_located((By.ID, "query_clicked"))
-            )
-            elcbuis = driver.find_element(By.ID, "elcbuis").get_property("value")
-            elcarea = driver.find_element(By.ID, "elcarea").get_property("value")
-            elcroom = driver.find_element(By.ID, "elcroom").get_property("value")
+            dorm_info = get_login_cache((DormInfo.grabber,)).get_cache(DormInfo)
             return {
-                "elcbuis": elcbuis,
-                "elcarea": int(elcarea),
-                "room_no": elcroom,
+                "elcbuis": dorm_info.elcbuis,
+                "elcarea": dorm_info.elcarea,
+                "room_no": dorm_info.room_no,
             }
-        except Exception:
+        except Exception as e:
             self.ctx.get_logger().error(traceback.format_exc())
-            return {}
-        finally:
-            driver.quit()
+            return {"错误发生了": str(e)}
 
     def get_dorm_info(self):
         # noinspection PyTypeChecker
@@ -247,7 +259,7 @@ class QueryBillClientPlugin(Plugin):
             if self._room_info_widget:
                 self._room_info_widget.destroy()
             layout = QVBoxLayout()
-            layout.addWidget(QLabel("请对照填写到插件列表中"))
+            layout.addWidget(QLabel("请对照填写到插件配置中"))
             for key, value in info.items():
                 label = QLabel(str(key))
                 edit = QLineEdit(str(value))
