@@ -71,7 +71,7 @@ class MainWindow(QWidget):
         self.plugin_config_modified = False  # 编辑插件配置的时候, 如果修改了配置项但是没有保存.
 
         self.raw_title = self.windowTitle()
-        self.icon = QIcon("assets/icon.png")
+        self.icon = QIcon("assets/icon.png")  # ecnu icon
 
         self.plugin_timer = QTimer()
         self.plugin_loader = PluginLoader()
@@ -95,6 +95,7 @@ class MainWindow(QWidget):
         self.performing_login = False
         self.notifying_login = False
         self.notifying_timeout_msgbox: QMessageBox | None = None
+        self.notifying_login_msgbox: QMessageBox | None = None
         self.notify_login_throttler = Throttler(
             datetime.timedelta(minutes=10)
         )  # 如果未登录, 每个一段时间提醒一次自动登录.
@@ -210,6 +211,7 @@ class MainWindow(QWidget):
         timer.start()
 
         self.notifying_timeout_msgbox = QMessageBox(icon=QMessageBox.Icon.Information)
+        self.notifying_timeout_msgbox.setWindowIcon(self.icon)
         self.notifying_timeout_msgbox.addButton(
             QMessageBox.StandardButton.Apply
         ).clicked.connect(
@@ -227,19 +229,36 @@ class MainWindow(QWidget):
 
     @requires_init
     def notify_login(self):
-        """提示用户进行 uia 登录操作"""
+        """提示用户进行 uia 登录操作, 非阻塞"""
         if self.notifying_login:
             return
         self.notifying_login = True
-        rst = QMessageBox.question(self, "UIA 登录",
-                                   "即将进行 ECNU 统一认证登录操作,\n"
-                                   "如果配置了 login_info.toml 则会自动登录, 请不要手动操作,\n"
-                                   "如果没有配置, 请手动进行登录操作.\n"
-                                   "是否继续?",
-                                   QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
-        if rst == QMessageBox.StandardButton.Yes:
-            self.perform_login()
-        self.notifying_login = False
+
+        def end(whether_login: bool):
+            if whether_login:
+                self.perform_login()
+            self.notifying_login = False
+
+        self.notifying_login_msgbox = QMessageBox(icon=QMessageBox.Icon.Question)
+        self.notifying_login_msgbox.setWindowIcon(self.icon)
+        self.notifying_login_msgbox.setWindowTitle("UIA 登录")
+        self.notifying_login_msgbox.setText(
+            "即将进行 ECNU 统一认证登录操作,\n"
+            "如果配置了 login_info.toml 则会自动登录, 请不要手动操作,\n"
+            "如果没有配置, 请手动进行登录操作.\n"
+            "是否继续?"
+        )
+        self.notifying_login_msgbox.addButton(
+            QMessageBox.StandardButton.Yes
+        ).clicked.connect(
+            lambda *a: end(True)
+        )
+        self.notifying_login_msgbox.addButton(
+            QMessageBox.StandardButton.No
+        ).clicked.connect(
+            lambda *a: end(False)
+        )
+        self.notifying_login_msgbox.show()
 
     def notify_plugin_config_save(self):
         self.plugin_loader.save_config()
