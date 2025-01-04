@@ -119,3 +119,48 @@ class CalendarQuery(Request):
         rsp = self.query(query=SCHOOL_CALENDAR, variables={})
         ret = self.check_login_and_extract_data(rsp)
         return ret
+
+    def query_user_class_table(self) -> list[ClassSchedule]:
+        """
+        查询本周和下周, 聚合双周的课程表. (考虑到某些课程只有单周有)
+        Tips:
+            1. 未经处理的示例返回:
+                [ClassSchedule(title=面向对象程序设计（基于Python）, address=理科大楼B226, startTime=2024-12-24 18:00:00, endTime=2024-12-24 19:35:00)
+                ClassSchedule(title=面向对象程序设计（基于Python）, address=理科大楼B226, startTime=2024-12-31 18:00:00, endTime=2024-12-31 19:35:00)
+                ClassSchedule(title=面向对象程序设计(基于Python)实践, address=理科大楼B226, startTime=2024-12-24 19:40:00, endTime=2024-12-24 20:25:00)
+                ClassSchedule(title=面向对象程序设计(基于Python)实践, address=理科大楼B226, startTime=2024-12-31 19:40:00, endTime=2024-12-31 20:25:00)
+                ClassSchedule(title=军事理论（含军训）, address=文附楼218, startTime=2024-12-23 18:00:00, endTime=2024-12-23 19:35:00)
+                ClassSchedule(title=军事理论（含军训）, address=文附楼218, startTime=2024-12-30 18:00:00, endTime=2024-12-30 19:35:00)
+
+            注意几种特殊情况, 需要特殊去重:
+                1. 当相同课程在一周内有多节课时
+                2. 当相同课程在一天内有多节课时
+
+            2. 此接口存在 host 字段返回不稳定的问题, 优先使用空的教师名字作为传入 LateX 代码的参数.
+
+        Todo: 考虑多次频繁调用接口直至出现 host 字段
+
+        Returns: 用户课程表
+        """
+        now = datetime.datetime.now()  # 当前时间: 2024-12-26 14:11:00.123456
+        current_week_start = now - datetime.timedelta(days=now.weekday())  # 本周一 00:00
+        start_time = int(current_week_start.timestamp() * 1000)  # 本周一 00:00 时间戳
+        end_time = int((current_week_start + datetime.timedelta(days=14)).timestamp() * 1000)  # 下周日 23:59 的时间戳
+        double_week_class_table = self.query_user_schedules(start_time, end_time)
+
+        # 去重逻辑
+        seen = set()
+        unique_classes = []
+        for cls in double_week_class_table:
+
+            # 提取上课的星期几和时间 (小时和分钟)
+            weekday = cls.startTime.weekday()  # 0 = 周一, 6 = 周日
+            class_time = cls.startTime.time().replace(second=0, microsecond=0)  # 仅保留时分
+
+            # 创建唯一标识: (课程, 星期, 时间)
+            identifier = (cls.title, weekday)
+            if identifier not in seen:
+                seen.add(identifier)
+                unique_classes.append(cls)
+
+        return unique_classes

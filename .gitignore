@@ -1,10 +1,12 @@
+# 开发配置
+/.idea
+/todo.md
+@AutomationLog.txt
+
+# 本地运行配置
 /*.toml
 /*.pickle
-/.idea
+timetable.pdf
 ec-plugin.log
-/todo.md
-/laundry_data.json
-@AutomationLog.txt
-plugin_cache.json
-/timetable.pdf
 login_info.toml
+plugin_cache.json
