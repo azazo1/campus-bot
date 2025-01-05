@@ -2,14 +2,13 @@ import os
 import pickle
 import unittest
 from datetime import datetime, timedelta
-from pprint import pprint
 
 from src.log import init, project_logger
 from src.studyroom.req import StudyRoomCache
-from src.studyroom.available import process_reservation_data_in_roomAvailable
+from src.studyroom.available import process_reservation_data_in_roomAvailable, process_checkResvInfos
 from src.studyroom.subscribe import StudyRoomReserve
 from src.studyroom.query import StudyRoomQuery
-from src.uia.login import get_login_cache, LoginError
+from src.uia.login import get_login_cache
 
 # 缓存文件路径
 LOGIN_CACHE_FILE = "login-cache.pickle"
@@ -150,6 +149,23 @@ class RoomReserver(unittest.TestCase):
         """
         自动取消预约研修间, 用于测试取消预约功能的全自动化.
 
+        Tips:
+            本测试会直接遍历所有已预约但未使用的研修间, 直接全部取消.
+
         该测试应在 test_auto_reservation 后运行.
         """
-        pass
+        # 获取已预约但未使用的研修间
+        resv_info = self.query.check_resvInfo(2)
+        process_resv_info = process_checkResvInfos(resv_info)
+        if not process_resv_info:
+            self.fail("没有找到已预约但未使用的研修间。")
+
+        # 遍历所有已预约的研修间并取消预约
+        for resv in process_resv_info:
+            uuid = resv.get("uuid")
+
+            try:
+                response = self.reserve.cancel_reservation(uuid)
+                project_logger.info(f"取消预约 (uuid={uuid}) 成功: {response}")
+            except Exception as e:
+                project_logger.error(f"取消预约 (uuid={uuid}) 时发生异常: {e}")

@@ -9,7 +9,7 @@ from pprint import pprint
 from src.log import init
 from src.studyroom.req import StudyRoomCache
 from src.studyroom.query import StudyRoomQuery
-from src.studyroom.available import process_reservation_data_in_roomInfos, process_reservation_data_in_roomAvailable
+from src.studyroom.available import process_reservation_data_in_roomInfos, process_reservation_data_in_roomAvailable, process_checkResvInfos
 from src.uia.login import get_login_cache
 
 # 缓存文件路径
@@ -51,14 +51,14 @@ class RoomQueryTest(unittest.TestCase):
         self.cache = load_cache()
         self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
 
-    def test_available_room(self):
+    def test_all_available_room(self):
         test_data = self.query.query_roomInfos()
         processed_data = process_reservation_data_in_roomInfos(test_data)
         pprint(processed_data)
 
-    def test_available_category_rooms(self):
+    def test_category_available_rooms(self):
         """
-        查询当前类别所有研修间的可用时段.
+        查询指定类别所有研修间的可用时段.
 
         Warning:
             查询后天的可用房间时, 本接口可能存在使用时间限制, 或许在每日 22:00 后才能进行查询.
@@ -77,4 +77,12 @@ class RoomQueryTest(unittest.TestCase):
             query_date="tomorrow",
             filter_available_only=True
         )
+        pprint(processed_data)
+
+    def test_reserved_room(self):
+        """
+        查询当前用户已预约的所有研修间信息.
+        """
+        test_data = self.query.check_resvInfo(2)
+        processed_data = process_checkResvInfos(test_data)
         pprint(processed_data)

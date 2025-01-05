@@ -35,8 +35,7 @@ class StudyRoomQuery(Request):
             "Cookie": f"ic-cookie={self.cache.cookies.get('ic-cookie')}"
         }
         response = self.get(url, headers=headers)
-        json_output = self.check_login_and_extract_data(response, expected_code=0)
-        return json_output
+        return self.check_login_and_extract_data(response, expected_code=0)
 
     def query_roomsAvailable(self, day: str = "today", kind_name: str = None) -> Optional[List[dict]]:
         """
@@ -118,7 +117,7 @@ class StudyRoomQuery(Request):
             Optional[List[Dict]]: 返回包含预约信息的列表，如果查询失败则返回 None。
         """
         yesterday = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
-        day_after_tomorrow = (datetime.today() + timedelta(days=2)).strftime("%Y-%m-%d")
+        four_days_later = (datetime.today() + timedelta(days=4)).strftime("%Y-%m-%d")
 
         url = "https://studyroom.ecnu.edu.cn/ic-web/reserve/resvInfo"
         headers = {
@@ -126,10 +125,10 @@ class StudyRoomQuery(Request):
         }
         params = {
             "beginDate": yesterday,
-            "endDate": day_after_tomorrow,
-            "needStatus": needStatus,
+            "endDate": four_days_later, # 查询未来 4 天的预约信息
+            "needStatus": needStatus, # 需要查询的状态
             "page": 1,
-            "pageNum": 1,
+            "pageNum": 10, # 本查询支持的最大数量, 也没人预约 10 个研修间
             "orderKey": "gmt_create",
             "orderModel": "desc"
         }
