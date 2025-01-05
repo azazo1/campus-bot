@@ -110,7 +110,7 @@ class DormInfo:
 
 @register_plugin(
     name=PLUGIN_NAME,
-    description="    宿舍电量自动查询插件, 需要和 GitHub 仓库 https://github.com/azazo1/ECNUQueryElectricBill 配套的服务器共同使用.\n"
+    description="    宿舍电量自动查询插件, 需要和 GitHub 仓库 https://github.com/azazo1/ecnu-query-electric-bill 配套的服务器共同使用.\n"
                 "    `检查连接`: 可以通过检查服务器连接情况来检查当前与服务器的配置是否正确\n"
                 "    `可视化电量使用情况`: 可以视化宿舍电量随时间的变化\n"
                 "    `获取宿舍配置`: 在弹出的浏览器窗口中选择宿舍信息并获得宿舍配置 1, 2, 3 填写内容",

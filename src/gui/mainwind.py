@@ -387,9 +387,10 @@ class MainWindow(QWidget):
                 font: italic 15px;
                 padding: 10px 10px;
                 border: 2px solid #404040;
-                border-radius: 5px;
+                border-radius: 3px;
             """)
-        desc.setWordWrap(True)
+            desc.setMinimumHeight(63 * len(plugin_description.splitlines()))
+            desc.setWordWrap(True)
 
         action_row = QHBoxLayout()
         action_row_widget = QWidget()

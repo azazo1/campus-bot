@@ -166,6 +166,7 @@ def false_or(o, func: Callable[[Any], bool]) -> bool:
 
 @register_plugin(
     name="email_notifier",
+    description="邮件提醒辅助插件",
     configuration=PluginConfig()
     .add(TextItem("smtp_host", "smtp.qq.com:465", "SMTP 地址",
                   lambda s: false_or(s, is_ip_port)))

@@ -15,6 +15,7 @@ from .seat import SeatFinder
 
 @register_plugin(
     name="library_seat_subscriber",
+    description="图书馆座位预约插件",
     configuration=PluginConfig()
     .add(TimeItem("prefer_study_duration", datetime.time(hour=4),
                   "偏好的学习时长(h小时m分钟),\n当一次下课时接下来的非上课时间超过此时长,\n则自动预约图书馆座位.\n不建议设置太短, 频繁地预约取消会达到当天预约取消次数上限."))
