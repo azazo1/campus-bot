@@ -345,7 +345,7 @@ class QueryBillClientPlugin(Plugin):
         self.on_config_load(ctx, cfg)
 
     def alert(self, title: str, text: str):
-        self.ctx.send_message("email_notifier", (title, text))
+        self.ctx.send_message("email_notifier", ("text", title, text))
 
     def on_routine(self, ctx: PluginContext):
         self.fetch_degree()

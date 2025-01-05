@@ -80,7 +80,6 @@ class StudyRoomQuery(Request):
     ) -> Optional[List[Dict]]:
         """
         通过该接口可以查询研修室是否正在使用中, 用于检查签到状态.
-        # Todo 考虑后期检验在 29 分钟未签到时自动取消预约.
 
         示例 url: https://studyroom.ecnu.edu.cn/ic-web/reserve/resvInfo?beginDate=2024-12-23&endDate=2024-12-29&needStatus=6&page=1&pageNum=10&orderKey=gmt_create&orderModel=desc
 

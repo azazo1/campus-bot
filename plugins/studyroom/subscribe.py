@@ -122,10 +122,6 @@ class StudyRoomReserve(Request):
         返回:
             dict: 如果预约成功，返回服务器的响应数据。
         """
-        # project_logger.info(
-        #     f"开始预约，日期: {day}, 房间类型 ID: {kind_name}, 最短时长: {min_duration_minutes} 分钟"
-        # )
-
         # 获取可用房间
         available_rooms = self.query.query_roomsAvailable(day=day, kind_name=kind_name)
         processed_data = process_reservation_data_in_roomAvailable(

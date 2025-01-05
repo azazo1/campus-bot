@@ -15,7 +15,6 @@ from typing import Optional, Union
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from seleniumwire.webdriver import Edge
-
 from src.uia.login import LoginError
 
 
@@ -58,7 +57,7 @@ class StudyRoomCache:
 
 class Request:
 
-    def __init__(self, cache: 'StudyRoomCache'):
+    def __init__(self, cache: StudyRoomCache):
         self.cache = cache
         if cache is None:
             raise ValueError("cache cannot be None.")

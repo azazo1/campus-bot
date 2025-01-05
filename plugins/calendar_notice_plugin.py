@@ -273,6 +273,7 @@ class CalendarNotice(Plugin):
                     ctx.get_logger().info(f"{sche.title} is reaching...")
                     ctx.send_message("email_notifier",
                                      (
+                                         "text",
                                          "课程即将开始",
                                          f"{sche.title} [{sche.address}] 即将开始({sche.startTime.strftime('%m-%d %H:%M:%S')})"
                                      ))  # 发送邮件提醒用户.
@@ -289,6 +290,7 @@ class CalendarNotice(Plugin):
                     if next_class_schedule:
                         ctx.send_message("library_seat_subscriber",
                                          next_class_schedule.startTime)
+                        ctx.send_message("studyroom_subscriber", next_class_schedule.startTime)
                     self.notified_class_off_schedules.add(sche)
             else:
                 if sche in self.notified_class_off_schedules:

@@ -87,7 +87,7 @@ class LibrarySeatSubscriberPlugin(Plugin):
             target_seat = sf.find_most_isolated()
             rst = self.subscriber.confirm(target_seat.id, subscribe_time)
             ctx.get_logger().info(f"subscribe result: {rst}")
-            ctx.send_message("email_notifier", ("图书馆座位预约", f"预约结果: {rst}"))
+            ctx.send_message("email_notifier", ("text", "图书馆座位预约", f"预约结果: {rst}"))
         except LoginError:
             ctx.report_cache_invalid()
 
@@ -104,5 +104,6 @@ class LibrarySeatSubscriberPlugin(Plugin):
                 if last_signin_time - datetime.datetime.now() < datetime.timedelta(minutes=2):
                     self.subscriber.cancel(subs["id"])
                     ctx.send_message("email_notifier",
-                                     ("图书馆座位预约取消",
+                                     ("text",
+                                     "图书馆座位预约取消",
                                       f"已经为你自动取消即将过期的预约: {subs['nameMerge']} {subs['no']} 座位"))
