@@ -38,6 +38,25 @@ class LibrarySeatSubscriberPlugin(Plugin):
         self.library_query: LibraryQuery | None = None
         self.subscriber: Subscribe | None = None
 
+    def on_load(self, ctx: PluginContext):
+        def sub():
+            try:
+                qs = self.library_query.quick_select()
+                area_id = qs.get_most_free_seats_area(self.premise_filter(qs))
+                days = self.library_query.query_time(area_id)
+                if not days or not days[0].times:
+                    ctx.get_logger().info("no available subscribing time")
+                subscribe_time = days[0].times[0]
+                sf = SeatFinder(self.library_query.query_seats(area_id, subscribe_time))
+                target_seat = sf.find_most_isolated()
+                rst = self.subscriber.confirm(target_seat.id, subscribe_time)
+                ctx.get_logger().info(f"subscribe result: {rst}")
+                ctx.send_message("email_notifier", ("text", "图书馆座位预约", f"预约结果: {rst}"))
+            except LoginError:
+                ctx.report_cache_invalid()
+
+        ctx.bind_action("演示按钮", sub)
+
     def on_uia_login(self, ctx: PluginContext):
         try:
             cache = ctx.get_uia_cache().get_cache(LibCache)
