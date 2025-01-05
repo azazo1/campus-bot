@@ -1,0 +1,60 @@
+\subsection{图书馆预约模块}  % todo subsub
+
+\subsubsection{代码框架及分析}
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{minipage}[H]{0.5\textwidth}
+            \centering
+            \begin{forest}
+                for tree={
+                    grow=east,
+                    draw,
+                    edge={-latex},
+                    rounded corners,
+                    node options={align=center},
+                    anchor=west,
+                    parent anchor=east,
+                    child anchor=west,
+                    delay={where content={}{shape=coordinate}{}} % Avoid empty nodes
+                }
+                [root
+                [plugins
+                [library
+                [\_\_init\_\_.py]
+                [date.py]
+                [encrypt.py]
+                [library\_plugin.py]
+                [query.py]
+                [req.py]
+                [seat.py]
+                [subscribe.py]
+                [tests.py]
+                ]
+                ]
+                ]
+            \end{forest}
+        \end{minipage}
+
+        \hspace{0.8cm}
+
+        \begin{minipage}[H]{0.45\textwidth}
+            \raggedright
+            \textbf{模块说明：}\\
+
+            \textbf{Date (\texttt{date.py})}\\
+            负责处理日期相关功能，例如格式化和时间操作。\\
+            \vspace{0.4cm}
+
+            \textbf{Encrypt (\texttt{encrypt.py})}\\
+            提供加密和解密功能，用于数据传输安全。\\
+            \vspace{0.4cm}
+
+        \end{minipage}
+    }
+    \caption{ECNU 图书馆预约模块说明}
+    \label{fig:directory_structure}
+\end{figure}
+
+\subsubsection{图书馆预约实现原理}
