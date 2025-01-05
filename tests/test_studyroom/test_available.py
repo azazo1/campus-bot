@@ -6,11 +6,11 @@ import pickle
 import unittest
 from pprint import pprint
 
-from src.log import init, project_logger
-from src.studyroom import StudyRoomCache
+from src.log import init
+from src.studyroom.req import StudyRoomCache
 from src.studyroom.query import StudyRoomQuery
 from src.studyroom.available import process_reservation_data_in_roomInfos, process_reservation_data_in_roomAvailable
-from src.uia.login import get_login_cache, LoginError
+from src.uia.login import get_login_cache
 
 # 缓存文件路径
 LOGIN_CACHE_FILE = "login-cache.pickle"

@@ -3,8 +3,7 @@ import requests
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict
 
-from src.studyroom import Request, StudyRoomCache
-from . import ROOM_KINDID
+from src.studyroom.req import Request, StudyRoomCache, ROOM_KINDID
 
 
 class StudyRoomQuery(Request):
