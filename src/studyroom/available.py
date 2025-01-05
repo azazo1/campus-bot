@@ -2,7 +2,6 @@ import datetime
 from typing import List, Dict, Any
 
 
-
 def process_reservation_data_in_roomInfos(data: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
     """
     处理预约数据, 返回包含 devId, devName, resvInfos 和 availableInfos 的列表.
@@ -280,7 +279,6 @@ def process_reservation_data_in_roomAvailable(
     else:
         raise ValueError("query_date 参数必须为 'today' 或 'tomorrow'")
 
-
     for room in data:
         # 提取基本字段
         room_id = room.get('roomId')
@@ -288,7 +286,6 @@ def process_reservation_data_in_roomAvailable(
         room_name = room.get('roomName')
         kind_id = room.get('kindId')
         lab_name = room.get('labName')
-
 
         # 提取开放时间
         open_times = room.get('openTimes', [])

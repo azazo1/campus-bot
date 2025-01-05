@@ -1,10 +1,7 @@
-from datetime import datetime, timedelta
 from typing import Optional
 
-from src.log import project_logger
-from src.studyroom import StudyRoomCache
-from src.studyroom import Request, LoginError
-from src.studyroom.available import process_reservation_data_in_roomAvailable
+from src.studyroom.req import StudyRoomCache
+from src.studyroom.req import Request, LoginError
 from src.studyroom.query import StudyRoomQuery
 
 
@@ -102,9 +99,9 @@ class StudyRoomReserve(Request):
         }
 
         response = self.post(url, json_payload=payload, headers=headers)
-        return response.json()
+        return self.check_login_and_extract_data(response, expected_code=0)
 
-    def cancel_reservation(self) -> None:
+    def cancel_reservation(self) -> dict:
         """
         取消特定的研修间预约.
 
@@ -122,4 +119,4 @@ class StudyRoomReserve(Request):
             "uuid": uuid
         }
         response = self.post(url, headers=headers, json_payload=payload)
-        return response.json()
+        return self.check_login_and_extract_data(response, expected_code=0)

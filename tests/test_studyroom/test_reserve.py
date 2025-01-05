@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 from pprint import pprint
 
 from src.log import init, project_logger
-from src.studyroom import StudyRoomCache
+from src.studyroom.req import StudyRoomCache
 from src.studyroom.available import process_reservation_data_in_roomAvailable
-from src.studyroom.reserve import StudyRoomReserve
+from src.studyroom.subscribe import StudyRoomReserve
 from src.studyroom.query import StudyRoomQuery
 from src.uia.login import get_login_cache, LoginError
 
@@ -66,7 +66,7 @@ class RoomReserver(unittest.TestCase):
         # 获取可用房间, 此时的数据仍处于未处理状态, 调用 process_reservation_data_in_roomAvailable 进行处理
         available_rooms = self.query.query_roomsAvailable(day=day, kind_name=kind_name)
         processed_data = process_reservation_data_in_roomAvailable(
-            data=available_rooms, # 需要处理的数据
+            data=available_rooms,  # 需要处理的数据
             query_date=day,
             filter_available_only=True  # 仅显示可用时长不为空的房间
         )

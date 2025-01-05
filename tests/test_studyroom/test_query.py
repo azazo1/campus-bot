@@ -7,7 +7,7 @@ import unittest
 from pprint import pprint
 
 from src.log import init, project_logger
-from src.studyroom import StudyRoomCache
+from src.studyroom.req import StudyRoomCache
 from src.studyroom.query import StudyRoomQuery
 from src.uia.login import get_login_cache, LoginError
 
