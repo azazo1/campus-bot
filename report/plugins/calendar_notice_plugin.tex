@@ -36,20 +36,19 @@
 这个 POST 请求采用的是 GraphQL 的查询格式，我们只需要使用 filter 过滤器查询自己所需要的字段即可。
 
 \begin{lstlisting}[language=python]
-    USER_SCHEDULES = """
-    query ($filter: ScheduleFilter, $userId: String) {
-      userSchedules(filter: $filter, userId: $userId) {
-        address # 上课地点
-        hosts {
-          name # 教师名字
-        }
-        description # 课程信息和描述
-        endTime # 结束时间
-        startTime # 开始时间
-      }
+USER_SCHEDULES = """
+query ($filter: ScheduleFilter, $userId: String) {
+  userSchedules(filter: $filter, userId: $userId) {
+    address # 上课地点
+    hosts {
+      name # 教师名字
     }
-    """
-\end{lstlisting}
+    description # 课程信息和描述
+    endTime # 结束时间
+    startTime # 开始时间
+  }
+}
+""" \end{lstlisting}
 
 我们原定的设计是查询当前时刻至次日该时刻，用户的课程安排，如果有课程，上课前的一定时段发送邮件提醒用户去上课。
 可以通过插件配置来配置上课前多久提醒用户，相关内容在后面进行详述。
