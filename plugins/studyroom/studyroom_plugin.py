@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import datetime
 import traceback
-from typing import Any
 
 from plugins.studyroom.req import StudyRoomCache, ROOM_KINDID
 from src.plugin import TimeItem, PluginContext, PluginConfig, register_plugin, Plugin, Routine, \
     NumberItem, TextItem
-from src.uia.login import LoginError
 
 
 @register_plugin(

@@ -59,9 +59,9 @@ class StudyRoomCache:
 class Request:
 
     def __init__(self, cache: 'StudyRoomCache'):
-        if not isinstance(cache, StudyRoomCache):
-            raise ValueError("cache must be an instance of StudyRoomCache.")
         self.cache = cache
+        if cache is None:
+            raise ValueError("cache cannot be None.")
 
     @classmethod
     def check_login_and_extract_data(
