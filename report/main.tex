@@ -205,7 +205,7 @@
     morekeywords={*,...},            % if you want to add more keywords to the set
     numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
     numbersep=5pt,                   % how far the line-numbers are from the code
-    numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+    numberstyle=\tiny\color{black}, % the style that is used for the line-numbers
     rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
     showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
     showstringspaces=false,          % underline spaces within strings only
@@ -318,15 +318,14 @@
         title={本项目包含：}
     ]
         \begin{itemize}
-            \item \textbf{一键生成当周课表、课前邮件提醒}
-            \item \textbf{课后研修间与图书馆的全自动预约}
-            \item \textbf{宿舍电费自动查询及充值提醒}
-            \item \textbf{适配 ECNU 多种系统的登录缓存，实现了插件框架，能够接收更多开发者的贡献与集成}
+            \item 一键生成当周课表、课前邮件提醒
+            \item 课后研修间与图书馆的全自动预约
+            \item 宿舍电费自动查询及充值提醒
         \end{itemize}
     \end{tcolorbox}
 
 
-    \section{项目结构}
+    \section{项目结构}\label{sec:project-structure}
 
     \begin{center}
         \begin{tikzpicture}
@@ -347,7 +346,7 @@
                     % @formatter:off
                     [Root
                         [assets: 静态资源目录，包含各开发参考文件及图标等。]
-                        [plugins: 各个插件具体实现，可单独删除和添加
+                        [plugins: 各个插件具体实现，可单独删除和添加、启动和停止
                             % todo 记得填写插件一句话简介
                         ]
                         [src
@@ -365,7 +364,6 @@
             };
         \end{tikzpicture}
     \end{center}
-
 
     \section{项目详述}\label{sec:project-desc}
 
@@ -386,7 +384,7 @@
     \subsection{用户交互界面}\label{subsec:gui}
     \input{gui}
 
-    \section{心得}\label{sec:thoughts}
+    \section{项目心得}\label{sec:thoughts}
 
     \begin{Thought}[关卓谦]
         在本项目中

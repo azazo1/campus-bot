@@ -28,7 +28,7 @@
     \label{fig:latex_table}
 \end{figure}
 
-\subsubsection{基于 CPP 实现文件复制到系统剪贴板}
+\subsubsection{文件复制到系统剪贴板}
 
 \begin{note}
     本模块位于 \texttt{src/cpp/copyfile\_build} 中。请查阅相关代码。
@@ -44,7 +44,7 @@
     \label{fig:copyfile_to_clipboard}
 \end{figure}
 
-\textbf{CopyFileToClipboard} 函数是用来将一个文件路径复制到剪贴板的，基于 Windows API 实现。使用 \textbf{CF\_HDROP} 数据格式，它是 Windows 剪贴板的标准格式，用于表示文件路径。具体步骤：
+\textbf{CopyFileToClipboard} 函数是用来将一个文件路径复制到剪贴板的，使用 Windows API 实现。使用 \textbf{CF\_HDROP} 数据格式，它是 Windows 剪贴板的标准格式，用于表示文件路径。具体步骤：
 
 \begin{enumerate}
     \item 调用 \textbf{OpenClipboard} 打开剪贴板，清空剪贴板数据 (\textbf{EmptyClipboard})。
