@@ -88,6 +88,17 @@ Python/
 
 <img src="./assets/readme/chrome_json.png" alt="Chrome Json" width="550">
 
+### 应用配置
+
+至此, 您应该已经可以成功运行`main.py`, 接下来打开应用, 进入 `email_notifier` 的配置页面, 将您妥善保管好的 SMTP 授权码填写至 `sender_email_password` 中, 并将获取 SMTP 授权码的邮箱地址填写至 `sender_email_address` 中. 之后填入需要收信的邮箱. 作出修改后, 左下角会出现保存插件配置的按钮.
+
+<img src="./assets/readme/email_config.png" alt="Email Config" width="550">
+
+> [!TIP]
+> 若您使用的并非 QQ 邮箱, 请您找到相关的 `SMTP_HOST` 与 `SMTP_PORT` 并填写至配置文件中.
+
+至此, 您除了电费查询插件外的所有插件均已配置完成前置工作, 您可以在插件配置页面配置自己的偏好.
+
 ### 更多配置
 
 #### 识别验证码一键登录
@@ -114,6 +125,12 @@ password = "<公共数据库密码>"
 > 本项目承诺不会对您的账号密码进行任何形式的传输.  
 > 即使您尚未配置账号密码, 您也可以通过我们发送的邮件来进行 UIA 登录.  
 
+#### 电费查询插件部署
+
+若您需要使用电费查询插件, 您可选择本地部署或使用服务端部署.
+
+您需要克隆 [ecnu-campus-electricity](https://github.com/azazo1/ecnu-query-electric-bill) 项目, 并按照其中的 README 进行配置.
+
 #### 微信配置
 
 脚本测试微信版本为: 3.9.10.27, 语言和系统语言中文.
@@ -130,4 +147,5 @@ password = "<公共数据库密码>"
 
 ## 联系我们
 
-若您在使用过程中遇到相关的问题, 您可以向仓库提交 Issues, 若您对部分代码有相关的兴趣, 欢迎向我们提交 Pull Request.
+- 若您在使用过程中遇到相关的问题, 您可以向仓库提交 Issues
+- 若您对部分代码有相关的兴趣, 欢迎向我们提交 Pull Request.
