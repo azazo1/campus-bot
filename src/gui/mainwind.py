@@ -180,6 +180,7 @@ class MainWindow(QWidget):
         if self.notifying_login:
             return
         self.notifying_login = True
+        self.show()
         start_time = datetime.datetime.now()
 
         def on_timeout():
@@ -237,6 +238,7 @@ class MainWindow(QWidget):
         if self.notifying_login:
             return
         self.notifying_login = True
+        self.show()
 
         def end(whether_login: bool):
             if whether_login:
