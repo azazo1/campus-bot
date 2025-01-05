@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
 from typing import Optional
 
+from src.log import project_logger
+from src.studyroom.available import process_reservation_data_in_roomAvailable
 from src.studyroom.req import StudyRoomCache
 from src.studyroom.req import Request, LoginError
 from src.studyroom.query import StudyRoomQuery
@@ -10,6 +13,7 @@ class StudyRoomReserve(Request):
 
     def __init__(self, cache: StudyRoomCache):
         super().__init__(cache)
+        self.query = StudyRoomQuery(self.cache)
 
     def _fetch_userInfo(self) -> Optional[dict]:
         """
@@ -50,7 +54,7 @@ class StudyRoomReserve(Request):
         self.uuid = self.query.check_resvInfo(needStatus=6)[0].get("uuid")
         return self.uuid
 
-    def reserve_room(
+    def _reserve_room(
             self,
             resvBeginTime: str,
             resvEndTime: str,
@@ -100,6 +104,95 @@ class StudyRoomReserve(Request):
 
         response = self.post(url, json_payload=payload, headers=headers)
         return self.check_login_and_extract_data(response, expected_code=0)
+
+    def submit_reserve(
+            self,
+            day: str,
+            kind_name: str,
+            min_duration_minutes: int,
+            max_duration_minutes: int = 240
+    ) -> dict:
+        """
+        根据提供的参数执行预约操作。
+
+        参数:
+            day (str): 要预约的日期（'today'，'tomorrow'，'day_after_tomorrow'）。
+            kind_name (str): 表示要预约的房间类型。
+            min_duration_minutes (int): 预约的最短时长（分钟）。
+            max_duration_minutes (int): 预约的最长时长（分钟），默认 240 分钟。
+
+        返回:
+            dict: 如果预约成功，返回服务器的响应数据。
+        """
+        project_logger.info(
+            f"开始预约，日期: {day}, 房间类型 ID: {kind_name}, 最短时长: {min_duration_minutes} 分钟"
+        )
+
+        # 获取可用房间
+        available_rooms = self.query.query_roomsAvailable(day=day, kind_name=kind_name)
+        processed_data = process_reservation_data_in_roomAvailable(
+            data=available_rooms,
+            query_date=day,
+            filter_available_only=True
+        )
+        project_logger.info(f"{day} 可用房间处理后数据: {processed_data}")
+
+        if not processed_data:
+            raise AssertionError(f"在 {day} 没有找到可用的房间。")
+
+        best_room = None
+        best_slot = None
+        longest_duration = timedelta(minutes=0)
+
+        min_duration = timedelta(minutes=min_duration_minutes)
+        max_duration = timedelta(minutes=max_duration_minutes)
+
+        for room in processed_data:
+            for slot in room.get("availableInfos", []):
+                begin_time_str = slot.get("availableBeginTime")
+                end_time_str = slot.get("availableEndTime")
+                if not begin_time_str or not end_time_str:
+                    continue
+
+                begin_time = datetime.strptime(begin_time_str, "%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
+                duration = end_time - begin_time
+                project_logger.debug(
+                    f"房间 '{room['roomName']}' 有可用时段从 {begin_time} 到 {end_time}（时长: {duration}）"
+                )
+
+                if min_duration <= duration <= max_duration and duration > longest_duration:
+                    best_room = room
+                    best_slot = (begin_time_str, end_time_str)
+                    longest_duration = duration
+                    project_logger.debug(
+                        f"在房间 '{room['roomName']}' 找到新的最佳时段，时长 {duration}"
+                    )
+
+        if not best_room or not best_slot:
+            raise AssertionError(
+                f"在 {day} 没有找到满足最短时长 {min_duration_minutes} 分钟且不超过 {max_duration_minutes} 分钟的可用时段，"
+                f"房间类型 ID: {kind_name}。"
+            )
+
+        project_logger.info(
+            f"选择的房间 '{best_room['roomName']}'，时间段 {best_slot}"
+        )
+
+        resvBeginTime, resvEndTime = best_slot
+        resvDev = [best_room.get("devId")]
+        testName = f"自动预约 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        memo = "自动化测试预约"
+
+        response = self._reserve_room(
+            resvBeginTime=resvBeginTime,
+            resvEndTime=resvEndTime,
+            testName=testName,
+            resvDev=resvDev,
+            memo=memo
+        )
+        project_logger.info(f"自动预约结束: {response}")
+        return response
 
     def cancel_reservation(self, uuid: str) -> dict:
         """
