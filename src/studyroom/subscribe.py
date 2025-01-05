@@ -101,7 +101,7 @@ class StudyRoomReserve(Request):
         response = self.post(url, json_payload=payload, headers=headers)
         return self.check_login_and_extract_data(response, expected_code=0)
 
-    def cancel_reservation(self) -> dict:
+    def cancel_reservation(self, uuid: str) -> dict:
         """
         取消特定的研修间预约.
 
@@ -110,7 +110,6 @@ class StudyRoomReserve(Request):
             该取消接口需要通过查询预约状态获取 uuid:
             -> 通过此 url 查询: https://studyroom.ecnu.edu.cn/ic-web/reserve/resvInfo
         """
-        uuid = self._get_room_uuid()
         url = "https://studyroom.ecnu.edu.cn/ic-web/reserve/delete"
         headers = {
             "Cookie": f"ic-cookie={self.cache.cookies.get('ic-cookie')}"

@@ -441,3 +441,27 @@ def process_reservation_data_in_roomAvailable(
         result.append(room_info)
 
     return result
+
+def process_checkResvInfos(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    提取每个预约项中的 testName、uuid 和 resvBeginTime 字段。
+
+    参数:
+    data (List[Dict[str, Any]]): 包含预约信息的列表。
+
+    返回:
+    List[Dict[str, Any]]: 每个字典包含 testName、uuid 和 resvBeginTime。
+    """
+    extracted = []
+    for item in data:
+        test_name = item.get('testName')
+        uuid = item.get('uuid')
+        resv_begin_time = item.get('resvBeginTime')
+
+        extracted.append({
+            'testName': test_name,
+            'uuid': uuid,
+            'resvBeginTime': resv_begin_time
+        })
+
+    return extracted
