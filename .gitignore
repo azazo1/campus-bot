@@ -1,8 +1,8 @@
 # 开发配置
-/.idea
+.idea
 /todo.md
 @AutomationLog.txt
-
+out
 # 本地运行配置
 /*.toml
 /*.pickle
