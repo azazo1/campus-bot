@@ -383,7 +383,7 @@ class MainWindow(QWidget):
         if plugin_description:  # 如果描述为空, 那么不改变样式
             desc.setStyleSheet("""
                 font: italic 15px;
-                padding: 0px 10px;
+                padding: 10px 10px;
                 border: 2px solid #404040;
                 border-radius: 5px;
             """)
@@ -403,7 +403,7 @@ class MainWindow(QWidget):
             action_row.addWidget(btn)
 
         v_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
-        v_layout.addWidget(desc, alignment=Qt.AlignmentFlag.AlignRight)
+        v_layout.addWidget(desc, alignment=Qt.AlignmentFlag.AlignCenter)
         v_layout.addWidget(action_row_widget, alignment=Qt.AlignmentFlag.AlignCenter)
 
         for cfg_item in config:

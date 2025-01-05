@@ -141,16 +141,6 @@ class PluginContext:
         """
         return self._plugin_cache
 
-    def get_plugin_dir(self) -> Path:
-        """
-        获取插件自身用于保存数据的文件夹, 获取时自动创建文件夹, 无需手动创建.
-
-        插件不应在此处保存配置文件, 因为这样不利于用户感知和设置这些配置.
-        """
-        p = SRC_DIR_PATH.parent / "plugin_dir" / self.__name
-        p.mkdir(parents=True, exist_ok=True)
-        return p
-
     def get_logger(self):
         """获取插件专属的 logger"""
         return self.__logger
