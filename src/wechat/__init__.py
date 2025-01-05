@@ -1,4 +1,5 @@
 """
+todo 移动到 plugins 内
 Windows 微信消息自动化脚本.
 
 测试环境:

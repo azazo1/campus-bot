@@ -30,6 +30,7 @@ __all__ = [
     "TimeItem", "NumberItem", "DatetimeItem",
     "register_plugin",
     "PluginConfig", "Plugin", "PluginContext", "PluginLoader",
+    "Task"
 ]
 
 from src.uia.login import get_login_cache, LoginError
