@@ -9,7 +9,7 @@ from pprint import pprint
 from src.log import init
 from src.studyroom.req import StudyRoomCache
 from src.studyroom.query import StudyRoomQuery
-from src.studyroom.available import process_reservation_data_in_roomInfos, process_reservation_data_in_roomAvailable, process_checkResvInfos
+from src.studyroom.available import process_reservation_data_in_roomAvailable, process_checkResvInfos
 from src.uia.login import get_login_cache
 
 # 缓存文件路径
@@ -50,11 +50,6 @@ class RoomQueryTest(unittest.TestCase):
         init()
         self.cache = load_cache()
         self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
-
-    def test_all_available_room(self):
-        test_data = self.query.query_roomInfos()
-        processed_data = process_reservation_data_in_roomInfos(test_data)
-        pprint(processed_data)
 
     def test_category_available_rooms(self):
         """

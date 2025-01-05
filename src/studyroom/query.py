@@ -14,29 +14,6 @@ class StudyRoomQuery(Request):
     def __init__(self, cache: StudyRoomCache):
         super().__init__(cache)
 
-    def query_roomInfos(self) -> Optional[List[dict]]:
-        """
-        查询研修间的所有房间信息, 一般不用这个接口查询, 不含任何负载, 查询范围过广.
-
-        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos
-        Method: GET
-        Headers:
-            Cookie: ic-cookie
-
-        Tips:
-            本 GET 请求无法提供负载, 故只能请求本日的所有信息
-            src.StudyRoom.available.process_reservation_data 可以处理本日的信息.
-
-        Returns:
-            list: 包含房间信息的字典列表
-        """
-        url = "https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos"
-        headers = {
-            "Cookie": f"ic-cookie={self.cache.cookies.get('ic-cookie')}"
-        }
-        response = self.get(url, headers=headers)
-        return self.check_login_and_extract_data(response, expected_code=0)
-
     def query_roomsAvailable(self, day: str = "today", kind_name: str = None) -> Optional[List[dict]]:
         """
         查询当前类别的研修间的可用房间, 在局限于一个校区或钟爱某个类别的研修间时较为有用.
@@ -125,10 +102,10 @@ class StudyRoomQuery(Request):
         }
         params = {
             "beginDate": yesterday,
-            "endDate": four_days_later, # 查询未来 4 天的预约信息
-            "needStatus": needStatus, # 需要查询的状态
+            "endDate": four_days_later,  # 查询未来 4 天的预约信息
+            "needStatus": needStatus,  # 需要查询的状态
             "page": 1,
-            "pageNum": 10, # 本查询支持的最大数量, 也没人预约 10 个研修间
+            "pageNum": 10,  # 本查询支持的最大数量, 也没人预约 10 个研修间
             "orderKey": "gmt_create",
             "orderModel": "desc"
         }

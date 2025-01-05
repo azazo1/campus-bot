@@ -47,43 +47,6 @@ class StudyRoomQueryTest(unittest.TestCase):
         self.cache = load_cache()
         self.query = StudyRoomQuery(self.cache.get_cache(StudyRoomCache))
 
-    def test_query_roomInfos(self):
-        """
-        测试查询校内所有研讨室的基础信息功能.
-
-        URL: https://studyroom.ecnu.edu.cn/ic-web/roomDevice/roomInfos
-        Method: GET
-
-        Tips:
-            该 Url 似乎会随着时间改变响应, 待后续考察.
-
-            示例返回 :
-            :   {'devId': 3676503,
-                 'devName': '普陀校区单人间C421',
-                 'minResvTime': 60,
-                 'openTimes': [{'openEndTime': '22:00',
-                                'openLimit': 1,
-                                'openStartTime': '08:00'}],
-                 'resvInfos': [{'resvBeginTime': '2024-12-26 '
-                                                 '17:01:00',
-                                'resvEndTime': '2024-12-26 '
-                                               '21:01:00',
-                                'resvStatus': 1093}]},
-                {'devId': 3676511,
-                 'devName': '普陀校区单人间C422',
-                 'minResvTime': 60,
-                 'openTimes': [{'openEndTime': '22:00',
-                                'openLimit': 1,
-                                'openStartTime': '08:00'}],
-                 'resvInfos': [{'resvBeginTime': '2024-12-26 '
-                                                 '18:00:00',
-                                'resvEndTime': '2024-12-26 '
-                                               '22:00:00',
-                                'resvStatus': 1093}]},
-        """
-        rooms = self.query.query_roomInfos()
-        pprint(rooms)
-
     def test_query_roomAvailable(self):
         """
         测试查询当前类别的研修间的预约情况的 Url 是否可用正常请求.
@@ -112,7 +75,7 @@ class StudyRoomQueryTest(unittest.TestCase):
         Tips:
             若没有预约任何研修间, 该测试点返回的数据为空.
         """
-        resv_info = self.query.check_resvInfo(2) # 查询已预约未使用的研修间
+        resv_info = self.query.check_resvInfo(2)  # 查询已预约未使用的研修间
         pprint(resv_info)
 
     def test_invalid_cookie(self):
@@ -128,4 +91,3 @@ class StudyRoomQueryTest(unittest.TestCase):
 
         self.assertIn("Result code: 300", str(context.exception))
         self.assertIn("用户未登录，请重新登录", str(context.exception))
-
