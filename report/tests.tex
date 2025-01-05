@@ -1,0 +1,35 @@
+在本项目中，我们采用了 Python 标准库中的 \texttt{unittest} 模块进行单元测试，以确保项目核心功能的稳定性和正确性。
+
+\begin{itemize}
+    \item \textbf{测试环境的隔离}：通过 \texttt{setUp()} 和 \texttt{tearDown()} 方法，\texttt{unittest} 提供了对每个测试用例的独立初始化和资源回收，避免测试用例之间的相互干扰。
+    \item \textbf{断言机制}：\texttt{unittest} 提供了多种断言方法（如 \texttt{assertEqual()}、\texttt{assertTrue()}），用以验证测试结果是否符合预期。
+\end{itemize}
+
+\textbf{测试用例的结构设计}：
+
+以下是测试模块的代码结构：
+\begin{lstlisting}[language=Python]
+class TestCalendar(unittest.TestCase):
+    def setUp(self):
+        init()  # 初始化日志记录器
+        self.cache = load_cache()  # 加载登录缓存
+        self.calendar = CalendarQuery(self.cache.get_cache(PortalCache))
+
+    def test_user_schedules(self):
+        now = datetime.datetime.now()
+        pprint(self.calendar.query_user_schedules(
+            int(now.timestamp() * 1000),
+            int((now + datetime.timedelta(days=1)).timestamp() * 1000),
+        ))
+
+    def test_school_calendar(self):
+        school_calendar = self.calendar.query_school_calendar()
+        pprint(school_calendar)
+\end{lstlisting}
+
+\textbf{测试框架的执行流程}：
+\begin{itemize}
+    \item 在 \texttt{setUp()} 方法中完成初始化工作，包括日志系统的初始化和登录缓存的加载。
+    \item 使用 \texttt{test\_user\_schedules()} 方法测试用户日程的获取功能，通过时间戳计算和校验确保数据范围的准确性。
+    \item 使用 \texttt{test\_school\_calendar()} 方法验证校历的查询功能，确保校历数据的完整性和准确性。
+\end{itemize}
