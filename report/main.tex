@@ -410,7 +410,6 @@
                 [Root
                     [tests: \textnormal{项目早期测试集}]
                     [main.py: \textnormal{软件启动入口文件}]
-                    [assets: \textnormal{静态资源目录，包含各开发参考文件及图标等。}]
                     [plugins: \textnormal{各个插件具体实现，可单独删除和添加}
                         [electric\_bill: \textnormal{电费查询及充值提醒插件}]
                         [calendar\_notice.py: \textnormal{课前邮件提醒插件}]
@@ -423,8 +422,8 @@
                         [log: \textnormal{实现日志输出}]
                         [plugin: \textnormal{实现插件架构}]
                         [uia: \textnormal{实现 ECNU 统一身份认证辅助/自动登录}]
-                        [wechat: \textnormal{实现微信自动控制}]
                     ]
+                    [assets: \textnormal{静态资源目录，包含各开发参考文件及图标等。}]
                 ]
                 % @formatter:on
             \end{forest}
@@ -978,7 +977,7 @@ password = "<填写数据库密码>" \end{verbatim}
                 draw,
                 edge={-latex},
                 rounded corners,
-                node options={align=center},
+                node options={align=center, font=\ttfamily},
                 anchor=west,
                 parent anchor=east,
                 child anchor=west,
@@ -1105,7 +1104,7 @@ password = "<填写数据库密码>" \end{verbatim}
 每一次预约都会形成一个唯一的预约编号，称为 \texttt{uuid}，我们在进入个人中心时，网页会自动调用查询的接口：
 
 \href{https://studyroom.ecnu.edu.cn/#/ic/userinfo}{\underline{https://studyroom.ecnu.edu.cn/\#/ic/userinfo}}
-，所以，我们也可以通过抓包获取 uuid，便可以知道用户当前是否有预约了，这为后续的自动取消预约提供了保障。
+我们可以通过抓包获取 uuid，便可以知道用户当前是否有预约了，对应的取消接口只需传入 uuid 即可实现取消。
 \end{note}
 
 研修间预约时，需要提交的表单样式如下，我们不采用浏览器自动操作的形式，而是截取提交时发送的 url 请求：
@@ -1175,7 +1174,7 @@ payload = {
                 draw,
                 edge={-latex},
                 rounded corners,
-                node options={align=center},
+                node options={align=center, font=\ttfamily},
                 anchor=west,
                 parent anchor=east,
                 child anchor=west,
@@ -1403,7 +1402,7 @@ service.interceptors.request.use(function(config) {
                 draw,
                 edge={-latex},
                 rounded corners,
-                node options={align=center},
+                node options={align=center, font=\ttfamily},
                 anchor=west,
                 parent anchor=east,
                 child anchor=west,
