@@ -101,7 +101,7 @@
 		fonttitle=\bfseries,fontupper=\normalsize}{dfn}
 
 	% 答题卡
-	\newtcbtheorem[use counter=hitung, number within=section]{ans}{解答}
+	\newtcbtheorem[use counter=hitung, number within=section]{ans}{双端通信}
 	{theorem style=theorem wide name and number,breakable,enhanced,arc=3.5mm,outer arc=3.5mm,
 		boxrule=0pt,toprule=1pt,leftrule=0pt,bottomrule=1pt, rightrule=0pt,left=0.2cm,right=0.2cm,
 		titlerule=0.5em,toptitle=0.1cm,bottomtitle=-0.1cm,top=0.2cm,
@@ -306,6 +306,17 @@
     anchorcolor=blue, % 设置锚点链接（即目标在同一文档内的链接）的颜色为蓝色
     citecolor=blue, % 设置引用（如文献引用）的颜色为蓝色
 }
+
+% Temp Tikz Commands
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+% 定义节点和箭头样式
+\tikzstyle{node_style} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+\tikzstyle{server_node_style} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow_style} = [thick,->,>=stealth]
 
 %——————————————导言区结束，进入正文部分———————————————%
 
@@ -585,8 +596,10 @@ password = "<填写数据库密码>" \end{verbatim}
 \subsubsection{插件事件方法}
 
 \begin{mdframed}
+
 插件注册时，应继承自 Plugin 基类，并自定义实现插件的各种事件方法。
-插件（\textit{Plugin}）基类在 \verb`/src/plugin/__init__.py` 中定义。
+
+其中，插件（\textit{Plugin}）基类在 \verb`/src/plugin/__init__.py` 中定义。
 \end{mdframed}
 
 成功注册后，插件的各种事件方法会被触发，主要的事件方法为：
@@ -1145,6 +1158,10 @@ payload = {
 
 \subsection{图书馆预约模块}
 
+\begin{mdframed}
+    本模块位于 \texttt{/src/plugins/library} 中。
+\end{mdframed}
+
 \subsubsection{代码框架及分析}
 
 \begin{figure}[H]
@@ -1369,9 +1386,188 @@ service.interceptors.request.use(function(config) {
 
 \subsection{电费查询模块}
 
-电费查询插件用到了服务端和客户端，两个客户端之间通过 \verb`iv` 与 \verb`key` 进行加密通信，以确保数据安全与隐私性。
+\subsubsection{插件代码结构}
+
+\begin{mdframed}
+本模块位于 \texttt{/src/plugins/electric\_bill} 中。
+\end{mdframed}
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{minipage}[H]{0.5\textwidth}
+        \centering
+        \begin{forest}
+            for tree={
+                grow=east,
+                draw,
+                edge={-latex},
+                rounded corners,
+                node options={align=center},
+                anchor=west,
+                parent anchor=east,
+                child anchor=west,
+                delay={where content={}{shape=coordinate}{}} % 避免空节点
+            }
+            [electric\_bill
+                [\_\_init\_\_.py]
+                [bill\_plugin.py]
+                [client.py]
+                [encryption.py]
+                [init.py]
+                [visualize\_degree.py]
+                [tests.py]
+            ]
+        \end{forest}
+    \end{minipage}
+
+    \hspace{0.8cm}
+
+    \begin{minipage}[H]{0.45\textwidth}
+        \raggedright
+        \textbf{部分模块功能说明：}\\
+
+        \texttt{bill\_plugin.py}\\
+        实现电费账单的生成和管理，包含账单计算逻辑、数据处理和存储功能。
+        \vspace{0.25cm}
+
+        \texttt{client.py}\\
+        负责与服务器的通信，处理客户端请求和响应。包括建立WebSocket连接、发送和接收数据，以及处理用户交互。
+        \vspace{0.25cm}
+
+        \texttt{encryption.py}\\
+        提供数据的加密与解密功能，使用AES加密算法保障数据传输的安全性。
+        \vspace{0.25cm}
+
+        \texttt{visualize\_degree.py}\\
+        实现电量使用情况的可视化展示，利用图形库绘制用电趋势图和账单分布图。
+    \end{minipage}
+    }
+    \caption{ECNU宿舍电费查询插件结构树形图与模块功能说明}
+    \label{fig:directory_structure_electric_bill}
+\end{figure}
+
+电费查询插件用到了服务端和客户端，两个客户端之间通过 Websocket 进行通信连接。使用 \verb`iv` 与 \verb`key` 进行加密通信，以确保数据安全与隐私性。
+本插件采用 \texttt{asyncio} 库实现异步编程，确保在进行网络通信、文件操作和浏览器自动化时不会阻塞主线程，提高插件的响应速度和稳定性。
+
+\begin{itemize}
+\item 客户端主要用于 token 的获取，由于 token 获取需要使用 ECNU 统一登录，故安排在客户端。
+\item 服务端用于持续对电费账单的查询和记录，并输出电费随时间变化的表格，并将数据提供给客户端。
+\end{itemize}
+
+\begin{note}
+    该插件需要配合 \href{https://github.com/azazo1/ecnu-query-electric-bill}{\underline{https://github.com/azazo1/ecnu-query-electric-bill}} 进行使用。
+
+    本项目实现的是电费查询的客户端，需要上述仓库的服务端配置。
+
+    当用户拥有 ESC 服务器时，可以在 ESC 服务器上进行配置，也可以选择本地部署。
+\end{note}
 
 \newpage{}
+
+\subsubsection{插件配置页面}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[H]{0.45\textwidth}
+        以下是各配置项的简要说明：
+
+        \begin{itemize}
+            \item \texttt{server\_address}: 服务器的IP地址或域名，用于客户端与服务器之间的WebSocket连接。
+            \item \texttt{alert\_degree}: 电量警告阈值，当宿舍电量低于此值时，客户端会弹出警告提示用户充值电量。
+        \end{itemize}
+        
+        本插件需要用户手动设置 \textbf{key.toml}:
+
+        \begin{itemize}
+            \item \texttt{key}: 用于AES加密的数据密钥，必须为32字节长度。
+            \item \texttt{iv}: 初始化向量，用于AES加密，必须为16字节长度。
+        \end{itemize}
+
+        配置文件的正确设置对于插件的正常运行至关重要。
+        \texttt{alert\_degree} 可根据实际需求进行调整。
+
+        同时，\texttt{key.toml}中的\texttt{key}和\texttt{iv}应保持机密，避免泄露以保障数据传输的安全性。
+    \end{minipage}
+    \hfill
+    \begin{minipage}[H]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{img/electric_bill_config.png}
+        \caption{插件配置页面示意图}
+        \label{fig:config_page}
+    \end{minipage}
+\end{figure}
+
+\subsubsection{电费查询原理}
+
+与上述模块的流程相似，先获取 \texttt{EpayCache}，之后就可以随时访问 API 获取电费信息。
+
+\begin{ans}{}{}
+
+\begin{itemize}
+    \item 客户端负责与用户交互、获取电费信息并向服务器发送相关数据；
+    \item 服务器端负责接收客户端的数据请求，处理电费查询，并将结果反馈给客户端。
+    \item 数据在传输过程中采用AES加密，确保通信的安全性。
+\end{itemize}
+
+\end{ans}
+
+\subsubsection*{客户端}
+
+客户端的启动运行流程如下所示：
+
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm and 3cm]
+	
+	  % 第一行
+	  \node[node_style] (node0) {客户端启动};
+	  \node[node_style, right of=node0, xshift=3cm] (node1) {加载配置文件};
+	  \node[node_style, right of=node1, xshift=3cm] (node2) {建立WebSocket连接};
+	  \draw[arrow_style] (node0.east) -- (node1.west); 
+	  \draw[arrow_style] (node1.east) -- (node2.west);
+	  
+	  % 第二行
+	  \node[node_style, below of=node1, yshift=-0.1cm] (node3) {认证与授权};
+	  \node[node_style, right of=node3, xshift=3cm] (node4) {电量查询与监控};
+	  \draw[arrow_style] (node2.south) -- ++(0,-0.5) -- ++(-2.5,0) -- (node3.north);
+	  \draw[arrow_style] (node3.east) -- (node4.west);
+	\end{tikzpicture}
+\end{center}
+
+\subsubsection*{服务端}
+
+服务端启动的流程如下所示：
+
+\begin{center}
+	\begin{tikzpicture}[node distance=2cm and 3cm]
+	
+	  % 第一行
+	  \node[node_style] (node0) {服务器启动};
+	  \node[node_style, right of=node0, xshift=3cm] (node1) {加载配置与初始化};
+	  \node[node_style, right of=node1, xshift=3cm] (node2) {启动WebSocket服务器};
+	  \draw[arrow_style] (node0.east) -- (node1.west); 
+	  \draw[arrow_style] (node1.east) -- (node2.west);
+	  
+	  % 第二行
+	  \node[node_style, below of=node1, yshift=-0.1cm] (node3) {处理客户端请求};
+	  \node[node_style, right of=node3, xshift=3cm] (node4) {电量查询与记录};
+	  \draw[arrow_style] (node2.south) -- ++(0,-0.5) -- ++(-2.5,0) -- (node3.north);
+	  \draw[arrow_style] (node3.east) -- (node4.west);
+	\end{tikzpicture}
+\end{center}
+
+服务端可以处理客户端的多种请求：
+
+\begin{itemize}
+    \item 解析客户端发送的加密命令，根据\texttt{type}字段执行相应操作。
+    \item 支持的命令包括：
+    \begin{itemize}
+        \item \texttt{POST\_TOKEN}：接收并存储客户端的CSRF Token和Cookies。
+        \item \texttt{POST\_ROOM}：接收并存储宿舍信息（宿舍号、电区、电楼）。
+        \item \texttt{GET\_DEGREE}：返回当前剩余电量。
+        \item \texttt{FETCH\_DEGREE\_FILE}：返回最近的电量记录文件内容。
+    \end{itemize}
+\end{itemize}
 
 \section{项目主要界面贴图}
 
@@ -1400,8 +1596,6 @@ service.interceptors.request.use(function(config) {
     \caption{插件配置界面示例}
     \label{fig:plugin-config-gui}
 \end{figure}
-
-\newpage{}
 
 \subsection{系统托盘图标}
 
@@ -1444,6 +1638,8 @@ service.interceptors.request.use(function(config) {
 
 通过持续迭代和优化，本项目有潜力为华东师范大学的师生带来更加便利的校园生活体验。
 
+\newpage{}
+
 \subsection{项目收获}
 
 \subsubsection*{关卓谦}
@@ -1454,10 +1650,13 @@ service.interceptors.request.use(function(config) {
 我还使用 PySide6 设计了界面布局, 事件交互逻辑, 与插件系统的无缝集成.
 项目中的电费查询插件, 图书馆座位预约插件也是我编写的.
 
+\vspace{0.3cm}
+
 通过此次项目的实践, 尝试编写高可拓展性的代码, 我更加深入地感受到了 python 代码的灵活性;
-我也借此机会将校园生活中的信息数据与代码相结合, 感受到了校园网站开发者的辛勤劳动;
-我得以熟悉 Qt 框架的大致使用方法;
-在和其他参与者进行交流和开发的时候, 我也认识到了应该如何去规范地进行版本控制, 代码管理, 解决团队中不一致的观点.
+我也借此机会将校园生活中的信息数据与代码相结合, 感受到了校园网站开发者的辛勤劳动, 得以熟悉 Qt 框架的大致使用方法;
+在和其他参与者进行交流时, 我也认识到了应该如何去规范地进行版本控制, 代码管理, 解决团队中不一致的观点.
+
+\vspace{0.3cm}
 
 这些经验都会为我以后的学习生活提供有效帮助.
 \end{Thought}
