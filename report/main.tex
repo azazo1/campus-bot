@@ -1270,21 +1270,21 @@ service.interceptors.request.use(function(config) {
     lang = localStorage.getItem("lang") || "zh";
     
     if (token) {
-        // 处理已登录状态下的请求
+        ...  // do something, 处理已登录状态下的请求
         if (encryptRequest.includes(config.url)) {
             let encryptedData = encrypt("encrypt", config.data);
             config.data = encryptedData;
         }
-        // 其他处理逻辑...
+        ... // do something, 其他处理逻辑
     } else {
-        // 处理未登录状态下的请求
+        ... // do something, 处理未登录状态下的请求
         if (encryptRequest.includes(config.url)) {
             let encryptedData = encrypt("encrypt", config.data);
             config.data = encryptedData;
         }
-        // 其他处理逻辑...
+        ... // do something, 其他处理逻辑...
     }
-    // 其他配置...
+    ... // do something
     return config;
 });
 \end{lstlisting}
