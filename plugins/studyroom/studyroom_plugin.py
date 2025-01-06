@@ -41,24 +41,6 @@ class LibrarySeatSubscriberPlugin(Plugin):
         self.query: StudyRoomQuery | None = None
         self.reserve: StudyRoomReserve | None = None
 
-    def on_load(self, ctx: PluginContext):
-        def sub():
-            rst = self.reserve.submit_reserve(
-                day="tomorrow",
-                kind_name=self.reserve_place,
-                min_duration_minutes=self.min_reserve_time.seconds // 60,
-                max_duration_minutes=self.max_reserve_time.seconds // 60,
-            )
-            resv = rst['resvDevInfoList']
-            resv_str = []
-            for r in resv:
-                resv_str.append(f"{r['kindName']} - {r['labName']} - {r['roomName']}")
-            ctx.send_message("email_notifier",
-                             ("text",
-                              "研修间预约成功",
-                              "预约成功:\n{}".format("\n".join(resv_str))))
-        ctx.bind_action("演示按钮", sub)
-
     def on_uia_login(self, ctx: PluginContext):
         try:
             cache = ctx.get_uia_cache().get_cache(StudyRoomCache)
