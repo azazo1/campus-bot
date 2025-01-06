@@ -433,7 +433,7 @@
     插件登录使用了 WebDriver 控制浏览器实现自动化或半自动化的辅助登录流程。
 
     \begin{mdframed}
-    本部分代码位于 \texttt{src/uia/login.py} 文件中，核心函数 \texttt{get\_login\_cache} 已提供了完整的注释信息。
+    本部分代码位于 \texttt{/src/uia/login.py} 文件中，核心函数 \texttt{get\_login\_cache} 已提供了完整的注释信息。
     \end{mdframed}
 
     在插件登录时，会出现浏览器 ECNU 统一身份认证的界面，登录有两种方式。
@@ -510,7 +510,6 @@ password = "<填写数据库密码>" \end{verbatim}
 \end{figure}
 
 正因该 Bearer 字段存在一次获取后便保持一定时长活性的特性，我们才能实现登录缓存的保存机制，为后续分发各缓存至插件提供逻辑闭环（见章节\ \ref{subsec:plugin_loader}）。
-
 有时 OCR 的结果不是四位有效的验证码，所以我们添加了一行代码增大了准确性：
 
 \begin{lstlisting}[language=Python]
@@ -528,10 +527,14 @@ password = "<填写数据库密码>" \end{verbatim}
 
 \subsubsection{插件加载器（PluginLoader）}\label{subsec:plugin_loader}
 
+\begin{mdframed}
+    插件加载器（\textit{PluginLoader}）类在 \verb`/src/plugin/__init__.py` 中定义。
+\end{mdframed}
+
 项目启动时，PluginLoader 依次导入位于项目根目录下的 \verb`plugins` 文件夹中的插件。
 然后从文件中读取各个插件配置，并传递给插件。
 插件配置读取完毕之后，PluginLoader 加载各个插件。
-被加载的插件可以从其他插件中接收消息和按照特定周期执行（见自然段 \ref{para:routine}）。
+被加载的插件可以从其他插件中接收消息和按照特定周期执行。
 
 插件的加载和运行通过 PluginLoader 驱动。它可调用 \verb`get_login_cache()`，
 实现各缓存的分发，供相应的插件调用。
@@ -580,6 +583,11 @@ password = "<填写数据库密码>" \end{verbatim}
 \newpage{} % 第五页结束
 
 \subsubsection{插件事件方法}
+
+\begin{mdframed}
+插件注册时，应继承自 Plugin 基类，并自定义实现插件的各种事件方法。
+插件（\textit{Plugin}）基类在 \verb`/src/plugin/__init__.py` 中定义。
+\end{mdframed}
 
 成功注册后，插件的各种事件方法会被触发，主要的事件方法为：
 
@@ -680,7 +688,7 @@ password = "<填写数据库密码>" \end{verbatim}
 \subsubsection{插件配置（PluginConfig）}
 
 \begin{mdframed}
-    此部分代码如 \verb`root/src/plugin/config.py` 所示。
+    此部分代码如 \verb`/src/plugin/config.py` 所示。
 \end{mdframed}
 
 插件在插件注册时提供需要的配置，在 PluginLoader 从文件中读取插件配置的时候，获得配置的值。
@@ -705,8 +713,8 @@ password = "<填写数据库密码>" \end{verbatim}
 \end{lstlisting}
 
 \begin{note}
-    ItemType 中我们定义了许多不同的配置项类型，例如 TextItem、NumberItem、DateItem、PASSWORD 等。
-    通过不同类型的定义，可以接受不同的输入，防止用户输入的内容不符合要求，而像 PASSWORD 的定义处理，可以在插件配置界面不明文展示密钥信息，充分保障了信息的安全性。
+    ItemType 中我们定义了许多不同的配置项类型，例如 TextItem、NumberItem、DateItem、Password 等。
+    通过不同类型的定义，可以接受不同的输入，防止用户输入的内容不符合要求，而像 Password 的定义处理，可以在插件配置界面不明文展示密钥信息，充分保障了信息的安全性。
 \end{note}
 
 \begin{figure}[H]
@@ -762,7 +770,7 @@ password = "<填写数据库密码>" \end{verbatim}
 \subsubsection{插件上下文（PluginContext）}
 
 \begin{mdframed}
-    此部分代码见 \texttt{root/src/plugin/context.py}
+    此部分代码见 \texttt{/src/plugin/context.py}
 \end{mdframed}
 
 \begin{note}
@@ -862,7 +870,7 @@ password = "<填写数据库密码>" \end{verbatim}
 \subsubsection{模块设计与配置}
 
 \begin{mdframed}
-    本模块位于 \texttt{plugins/studyroom/calendar\_notice\_plugin.py}
+    本模块位于 \texttt{/plugins/studyroom/calendar\_notice\_plugin.py}
 \end{mdframed}
 
 本插件在设计上，主要用于与其他插件通信。
@@ -942,7 +950,9 @@ password = "<填写数据库密码>" \end{verbatim}
 
 \subsubsection{代码框架及配置}
 
-此部分代码位于 \texttt{src/studyroom/} 中。
+\begin{mdframed}
+此部分代码位于 \texttt{/src/studyroom/} 中。
+\end{mdframed}
 
 \begin{figure}[H]
     \centering
