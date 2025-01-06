@@ -1451,16 +1451,14 @@ service.interceptors.request.use(function(config) {
 本插件采用 \texttt{asyncio} 库实现异步编程，确保在进行网络通信、文件操作和浏览器自动化时不会阻塞主线程，提高插件的响应速度和稳定性。
 
 \begin{itemize}
-\item 客户端主要用于 token 的获取，由于 token 获取需要使用 ECNU 统一登录，故安排在客户端。
-\item 服务端用于持续对电费账单的查询和记录，并输出电费随时间变化的表格，并将数据提供给客户端。
+    \item 客户端主要用于 token 的获取，由于 token 获取需要使用 ECNU 统一登录，故安排在客户端。
+    \item 服务端用于持续对电费账单的查询和记录，并输出电费随时间变化的表格，并将数据提供给客户端。
 \end{itemize}
 
 \begin{note}
     该插件需要配合 \href{https://github.com/azazo1/ecnu-query-electric-bill}{\underline{https://github.com/azazo1/ecnu-query-electric-bill}} 进行使用。
 
     本项目实现的是电费查询的客户端，需要上述仓库的服务端配置。
-
-    当用户拥有 ESC 服务器时，可以在 ESC 服务器上进行配置，也可以选择本地部署。
 \end{note}
 
 \newpage{}
@@ -1586,7 +1584,7 @@ service.interceptors.request.use(function(config) {
 
 \subsection{插件配置页面}\label{subsubsec:gui-plugin-config}
 
-插件配置页面右侧框中左侧的列表是插件选择，鼠标单击即可进入各个插件的配置界面，如图\ref{fig:plugin-config-gui} 中红框所示。
+插件配置页面右侧框中左侧的列表是插件选择，鼠标单击即可进入各个插件的配置界面，如图\ \ref{fig:plugin-config-gui} 中红框所示。
 
 在每个插件的配置界面，会根据插件注册时提供的配置项生成可交互配置界面。
 
@@ -1659,30 +1657,32 @@ service.interceptors.request.use(function(config) {
 \vspace{0.3cm}
 
 这些经验都会为我以后的学习生活提供有效帮助.
+
 \end{Thought}
 
 \subsubsection*{张梓卫}
 
 \begin{Thought}
-得益于良好的团队框架，后来使用团队中完善的 \texttt{Cache\_grabber} 框架，
-让我能够马上上手研修间预约模块的开发，熟悉了数据处理和 API 调用的结合应用，
-当然，LateX 课表生成器的开发让我对编译有了更深入的理解，
+    在本项目中，我主要负责课程报告的编写，参与了研修间插件的开发和测试，为 SMTP 发送服务提供支持。
+    得益于良好的团队框架，后来使用团队中完善的 \texttt{Cache\_grabber} 框架，
+    让我能够马上上手研修间预约模块的开发，熟悉了数据处理和 API 调用的结合应用。
 
 \vspace{0.3cm}
 
-在不断翻看关卓谦的 \texttt{PluginLoader} 的代码到理解，最终写出一份详解的报告
-从提出到实现，从实现到推翻重来，一切都有迹可循。
-通过团队交流，我增强了自己的跨领域的开发编程能力，掌握了 Git 多种不同的使用方式，
-同时跟随团队的项目规范，掌握了如何通过良好的代码架构提高代码复用性和维护性。
+    在不断翻看关卓谦的 \texttt{PluginLoader} 的代码到理解，最终写出一份详解的报告
+    从提出到实现，从实现到推翻重来，一切都有迹可循。
+    通过团队交流，我增强了自己的跨领域的开发编程能力，掌握了 Git 多种不同的使用方式，
+    同时跟随团队的项目规范，掌握了如何通过良好的代码架构提高代码复用性和维护性。
 
 \vspace{0.3cm}
 
-同时，我还学到了如何利用 Python 的自动化工具（Selenium-Wire 和 requests）
-实现复杂的登录流程。翻看华东师范大学开发者文档时，涉及到鉴权，还了解到了 OAuth 2.0 和 JWT 等的认证机制。
+    在项目进行过程中，我还学到了如何利用自动化工具（Selenium-Wire 和 requests）实现复杂的登录流程。
+    翻看华东师范大学开发者文档时，涉及到鉴权，还了解到了 OAuth 2.0 和 JWT 等的认证机制。
 
 \vspace{0.3cm}
 
-是非常愉悦的一次项目经历！
+    是非常愉悦的一次项目经历！
+
 \end{Thought}
 
 \subsubsection*{王文锦}
