@@ -1,3 +1,4 @@
+numpy~=1.26.4
 toml~=0.10.2
 selenium~=4.21.0
 selenium-wire~=5.1.0
@@ -10,5 +11,7 @@ Cython~=3.0.11
 setuptools~=70.0.0
 pywin32==308
 pycryptodome~=3.21.0
-flask~=3.1.0
 ddddocr~=1.5.6
+pyside6~=6.8.0
+websockets~=14.1
+matplotlib~=3.10.0

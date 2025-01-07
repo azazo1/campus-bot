@@ -170,7 +170,7 @@ def load_password():
             obj = toml.load(f)
             return obj["stu_number"], obj["password"]
     except Exception as e:
-        project_logger.warn(f"failed to load password: {e}")
+        project_logger.warning(f"failed to load password: {e}")
         return None
 
 
@@ -249,7 +249,7 @@ def get_login_cache(
                 project_logger.info("uia login qrcode updated.")
                 url, img_base64_data = _get_qrcode(driver, timeout)
                 file = _get_temp_qrcode_file(img_base64_data)
-                qrcode_callback(file, url, False)
+                qrcode_callback(file, url, True)
 
         # 提取 cache.
         login_cache = LoginCache()

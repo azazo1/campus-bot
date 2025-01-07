@@ -102,9 +102,21 @@ class PluginContext:
         self.__logger.addHandler(ForwardLoggerHandler(project_logger))
         self._uia_cache: LoginCache | None = None
         self._plugin_cache = PluginCache(self.__name)  # 插件持久化保存数据的位置, 同时也是存放 routine 状态的位置.
-        self._report_cache_invalid: Callable[[], None] = lambda: None
+        self._report_cache_invalid: Callable[[str], None] = lambda s: None
         self._queue_message: Callable[[str, str, Any], None] = lambda a, b, c: None
         self._is_plugin_loaded: Callable[[str], bool] = lambda a: False
+        self._bind_action: Callable[[str, str, Callable[[], None]], None] = lambda n, bt, cb: None
+
+    def bind_action(self, action_text: str, action_callback: Callable[[], None]):
+        """
+        注册一个功能按钮, 用户点击按钮后会触发回调函数, 可多次调用以注册多个 action,
+        对同一个 action_text 进行多次注册会覆盖前一次的回调函数.
+
+        Parameters:
+            action_text: 按钮文字.
+            action_callback: 按钮点击回调.
+        """
+        self._bind_action(self.__name, action_text, action_callback)
 
     def last_routine(self):
         return datetime.datetime.fromtimestamp(self._plugin_cache._last_routine)
@@ -117,7 +129,7 @@ class PluginContext:
 
         只有被加载的插件 (on_load 调用开始及之后, on_unload 调用结束之前) 使用此方法报告 uia cache 失效才有作用.
         """
-        self._report_cache_invalid()
+        self._report_cache_invalid(self.__name)
 
     def get_cache(self) -> PluginCache:
         """
@@ -128,16 +140,6 @@ class PluginContext:
         插件自身的 cache 用于插件持久化保存数据, 但是 cache 中保存的数据有可能被用户清除数据.
         """
         return self._plugin_cache
-
-    def get_plugin_dir(self) -> Path:
-        """
-        获取插件自身用于保存数据的文件夹, 获取时自动创建文件夹, 无需手动创建.
-
-        插件不应在此处保存配置文件, 因为这样不利于用户感知和设置这些配置.
-        """
-        p = SRC_DIR_PATH.parent / "plugin_dir" / self.__name
-        p.mkdir(parents=True, exist_ok=True)
-        return p
 
     def get_logger(self):
         """获取插件专属的 logger"""
